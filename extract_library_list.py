@@ -1,64 +1,82 @@
 import os, sys, json, re
 
-if len(sys.argv) != 2:
-    print("Incorrect number of arguments\n")
+if __name__ == "__main__":
+    if len(sys.argv) not in [2, 3]:
+        print("Incorrect number of arguments\n")
+    if len(sys.argv) == 2:
+        mode = "w"
+    else:
+        mode = sys.argv[2]
+    if mode not in ["w", "a"]:
+        print("Incorrect argument\n")
 
-target_dir = sys.argv[1]
-    
-with open("imported_libraries_list.txt", "w") as f:
-    f.write("Target directory: " + target_dir + "\n" + "\n")
+    target_dir = sys.argv[1]
 
-data = {}
-data["software"] = []
+    #with open("imported_libraries_list.txt", "w") as f:
+    #    f.write("Target directory: " + target_dir + "\n" + "\n")
 
-file_types = ["ai_app", "book_reader", "browser", "calculator", "emulator", 
-              "graphic_editor", "ide", "media_player", "terminal", "text_editor", "text_voice_chat"]
+    data = {}
 
-for root, dirs, files in os.walk(target_dir):
-    for file in files:
-        if file.endswith(".java"):
-            filepath = os.path.join(root, file).replace("\\", "/")
-            imports = []
-            unique_libraries = []
+    if mode == "a":
+        with open("imported_libraries.json", "r") as f:
+            data = json.load(f)
+    else:
+        data["software"] = []
 
-            imported_libraries = ""
-            with open(filepath, "r",  errors="replace") as f:
-                line = f.readline()
-                while line:
-                    if "{" in line: break
+    file_types = ["/ai_app/", "/book_reader/", "/browser/", "/calculator/", "/emulator/", 
+                  "/graphic_editor/", "/ide/", "/media_player/", "/terminal/", "/text_editor/", "/text_voice_chat/"]
 
-                    if "import " in line and "=" not in line:
-                        line = line.replace("import ", "").replace("static ", "")
+    for root, dirs, files in os.walk(target_dir):
+        for file in files:
+            if file.endswith(".java"):
+                filepath = os.path.join(root, file).replace("\\", "/")
+                imports = []
+                unique_libraries = []
 
-                        imported_libraries += line
-                        line = line.replace(";\n", "")
-                        imports.append(line)
-
-                        classname_index = line.rfind(".")
-                        library = line[:classname_index]
-
-                        #reg = r"^([\w]+[.]*[\w, *]*)"
-                        #if re.match(reg, line):
-                        #    library = re.match(reg, line).group()
-
-                        if library not in unique_libraries:
-                            unique_libraries.append(library)
-
+                imported_libraries = ""
+                with open(filepath, "r",  errors="replace") as f:
                     line = f.readline()
+                    while line:
+                        if "{" in line: break
 
-            for typ in file_types:
-                if typ in filepath: 
-                    filetype = typ
-                    break
+                        if "import " in line and "=" not in line:
+                            line = line.replace("import ", "").replace("static ", "")
 
-            with open("imported_libraries_list.txt", "a") as f:
-                f.write(filepath + "\n")
-                f.write(imported_libraries + "\n")
+                            #imported_libraries += line
 
-            data["software"].append({"filename": file, "filepath": filepath, "type": filetype, 
-                                     "imports": imports, "unique_libraries": unique_libraries})
+                            line = line.replace(";\n", "")
+                            imports.append(line)
 
-json_data = json.dumps(data)
+                            classname_index = line.rfind(".")
+                            library = line[:classname_index]
 
-with open("imported_libraries.json", "w") as f:
-    f.write(json_data)
+                            #reg = r"^([\w]+[.]*[\w, *]*)"
+                            #if re.match(reg, line):
+                            #    library = re.match(reg, line).group()
+
+                            if library not in unique_libraries:
+                                unique_libraries.append(library)
+
+                        line = f.readline()
+
+                for typ in file_types:
+                    if typ in filepath:
+                        typ = typ.replace("/", "") 
+                        filetype = typ
+                        break
+
+                reg = r"({})[/]([_\d.\w-]+)[/]".format(filetype)
+                project_name = re.search(reg, filepath).group()
+
+                #with open("imported_libraries_list.txt", "a") as f:
+                #    f.write(filepath + "\n")
+                #    f.write(imported_libraries + "\n")
+
+                data["software"].append({"filename": file, "filepath": filepath, "type": filetype, 
+                                         "imports": imports, "unique_libraries": unique_libraries,
+                                           "project_name": project_name})
+
+    json_data = json.dumps(data)
+
+    with open("imported_libraries.json", "w") as f:
+        f.write(json_data)
