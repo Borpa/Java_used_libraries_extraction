@@ -1,4 +1,4 @@
-import os, sys, json, re, csv
+import os, sys, re, csv
 
 if __name__ == "__main__":
     if len(sys.argv) not in [2, 3]:
@@ -12,20 +12,12 @@ if __name__ == "__main__":
 
     target_dir = sys.argv[1]
 
-    #with open("imported_libraries_list.txt", "w") as f:
-    #    f.write("Target directory: " + target_dir + "\n" + "\n")
-
     data = {}
     
     csv_data = []
 
     header = ["filename", "type", "project", "imports", "uniques_libraries", "filepath"]
 
-    #if mode == "a":
-    #    with open("imported_libraries.json", "r") as f:
-    #        data = json.load(f)
-    #else:
-    #    data["software"] = []
     if mode == "w":
         with open("imported_libraries.csv", "w", encoding="UTF8", newline="") as f:
             writer = csv.writer(f)
@@ -50,17 +42,11 @@ if __name__ == "__main__":
                         if "import " in line and "=" not in line:
                             line = line.replace("import ", "").replace("static ", "")
 
-                            #imported_libraries += line
-
                             line = line.replace(";\n", "")
                             imports.append(line)
 
                             classname_index = line.rfind(".")
                             library = line[:classname_index]
-
-                            #reg = r"^([\w]+[.]*[\w, *]*)"
-                            #if re.match(reg, line):
-                            #    library = re.match(reg, line).group()
 
                             if library not in unique_libraries:
                                 unique_libraries.append(library)
@@ -78,22 +64,7 @@ if __name__ == "__main__":
 
                 csv_data.append([file, filetype, project_name, imports, unique_libraries, filepath])
 
-                #header = ["filename", "type", "project", "imports", "uniques_libraries", "filepath"]
-
-                #with open("imported_libraries_list.txt", "a") as f:
-                #    f.write(filepath + "\n")
-                #    f.write(imported_libraries + "\n")
-
-                #data["software"].append({"filename": file, "filepath": filepath, "type": filetype, 
-                #                         "imports": imports, "unique_libraries": unique_libraries,
-                #                           "project_name": project_name})
-
     with open("imported_libraries.csv", "a", encoding="UTF8", newline="") as f:
         writer = csv.writer(f)
         for data in csv_data:
             writer.writerow(data)
-
-    #json_data = json.dumps(data)
-
-    #with open("imported_libraries.json", "w") as f:
-    #    f.write(json_data)
