@@ -11,8 +11,6 @@ if __name__ == "__main__":
         print("Incorrect argument\n")
 
     target_dir = sys.argv[1]
-
-    data = {}
     
     csv_data = []
 
