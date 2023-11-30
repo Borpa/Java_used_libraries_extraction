@@ -21,8 +21,9 @@ if __name__ == "__main__":
             writer = csv.writer(f)
             writer.writerow(header)
 
-    file_types = ["/ai_app/", "/book_reader/", "/browser/", "/calculator/", "/emulator/", 
-                  "/graphic_editor/", "/ide/", "/media_player/", "/terminal/", "/text_editor/", "/text_voice_chat/"]
+    file_types = ["/ai_app/", "/book_reader/", "/web_file_browser/", "/calculator/", 
+                  "/emulator_environment/", "/graphic_editor/", "/dev_environment/", 
+                  "/media_player/", "/terminal_interface/", "/text_editor/", "/text_voice_chat/"]
 
     for root, dirs, files in os.walk(target_dir):
         for file in files:
@@ -57,8 +58,11 @@ if __name__ == "__main__":
                         filetype = typ
                         break
 
-                reg = r"({})[/]([_\d.\w-]+)[/]".format(filetype)
-                project_name = re.search(reg, filepath).group()
+                reg = r"({})[/]([_\d\s.\w-]+)[/]".format(filetype)
+                try:
+                    project_name = re.search(reg, filepath).group()
+                except:
+                    print("error occured\nfilepath:", filepath)
 
                 csv_data.append([file, filetype, project_name, imports, unique_libraries, filepath])
 
