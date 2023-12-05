@@ -14,7 +14,7 @@ if __name__ == "__main__":
     
     csv_data = []
 
-    header = ["filename", "type", "project", "imports", "uniques_libraries", "filepath"]
+    header = ["filename", "type", "project", "imports", "packages", "filepath"]
 
     if mode == "w":
         with open("imported_libraries.csv", "w", encoding="UTF8", newline="") as f:
@@ -30,9 +30,8 @@ if __name__ == "__main__":
             if file.endswith(".java"):
                 filepath = os.path.join(root, file).replace("\\", "/")
                 imports = []
-                unique_libraries = []
+                packages = []
 
-                imported_libraries = ""
                 with open(filepath, "r",  errors="replace") as f:
                     line = f.readline()
                     while line:
@@ -47,8 +46,8 @@ if __name__ == "__main__":
                             classname_index = line.rfind(".")
                             library = line[:classname_index]
 
-                            if library not in unique_libraries:
-                                unique_libraries.append(library)
+                            if library not in packages:
+                                packages.append(library)
 
                         line = f.readline()
 
@@ -64,7 +63,7 @@ if __name__ == "__main__":
                 except:
                     print("error occured\nfilepath:", filepath)
 
-                csv_data.append([file, filetype, project_name, imports, unique_libraries, filepath])
+                csv_data.append([file, filetype, project_name, imports, packages, filepath])
 
     with open("imported_libraries.csv", "a", encoding="UTF8", newline="") as f:
         writer = csv.writer(f)
