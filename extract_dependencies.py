@@ -1,10 +1,37 @@
-import os, sys, subprocess, csv, io
+import os, sys, subprocess, csv, io, re
 from bs4 import BeautifulSoup
+import pandas as pd 
 
 def init_output_csv(header, filename):
     with open(filename, "w", encoding="UTF8", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(header)
+
+def append_new_entry(filename, entry_list):
+    with open(filename, "a", encoding="UTF8", newline="") as f:
+        writer = csv.writer(f)
+        for entry in entry_list:
+            writer.writerow(entry)
+
+def project_has_entry(output_filename, project_name):
+    df = pd.read_csv(output_filename)
+    has_entry = project_name in df["project"].unique()
+    print(df["project"].unique())
+    return has_entry
+
+def get_project_type(filepath, type_list):
+    project_type = "/empty_type/"
+    for typ in type_list:
+        if typ in filepath: 
+            project_type = typ
+            break
+    return project_type
+
+def create_entry_list(project_name, project_type, dep_list):
+    entry_list = []
+    for dep in dep_list:
+        entry_list.append([project_name, dep, project_type])
+    return entry_list
 
 def run_cmd_command(command):
     proc = subprocess.Popen(command, shell=True, 
@@ -19,29 +46,46 @@ def extract_deps_from_pom(filepath):
     bs_data = BeautifulSoup(xml_data, "xml")
 
     dep_list = []
-
     for dep in bs_data.find_all("dependency"):
-        dep_list.append({"artifactId": dep.find("artifactId").text,
-                         "version": dep.find("version").text})
+        #dep_list.append({"dependency": dep.find("artifactId").text,
+        #                 "version": dep.find("version").text})
+        dep_list.append(dep.find("artifactId").text)
 
     return dep_list
 
 def extract_deps_from_jar(filepath):
-    command = "jdeps --print-module-deps -R {}".format(filepath)
+    print(filepath)
+    jar_filename = os.path.basename(filepath)
+    command = "jdeps -R --print-module-deps {}".format(filepath)
     output = run_cmd_command(command)
 
     if "Error: Missing dependencies:" not in output:
+        print("ran new command")
         command = "jdeps -R {}".format(filepath)
         output = run_cmd_command(command)
 
     buffer = io.StringIO(output)
+    line = buffer.readline()
 
-    while buffer:
+    result = []
 
+    while line:
+        if "->" in line and "not found" in line or jar_filename in line:
+            line = line.replace("->", "")
+            entry = re.split("\s\s+",line)
+            entry = [i for i in entry if i] #remove empty elements 
+            
+            if len(entry) != 3: 
+                line = buffer.readline()
+                continue
 
-        buffer = buffer.readline()
+            #check if dependency is not included or if dependency is included in the .jar and is not standard 
+            if entry[2] == "not found" or entry[2] == jar_filename and not entry[1].startswith("java"):
+                result.append(entry[1])
 
-    return output
+        line = buffer.readline()
+
+    return result
 
 if __name__ == "__main__":
     if len(sys.argv) > 2:
@@ -52,41 +96,39 @@ if __name__ == "__main__":
     target_dir = sys.argv[1]
 
     #header = ["class", "dependency", "origin"]
-    header = ["package", "dependency", "origin"]
+    header = ["project", "dependency", "project_type"]
     output_filename = "dependencies.csv"
 
-    file_types = ["/ai_app/", "/book_reader/", "/web_file_browser/", "/calculator/", 
+    project_types = ["/ai_app/", "/book_reader/", "/web_file_browser/", "/calculator/", 
                   "/emulator_environment/", "/graphic_editor/", "/dev_environment/", 
                   "/media_player/", "/terminal_interface/", "/text_editor/", "/text_voice_chat/"]
 
     init_output_csv(header, output_filename)
 
     for root, dirs, files in os.walk(target_dir):
+        if "pom.xml" in files:
+            file = "pom.xml"
+            project_name = os.path.basename(root)
+            filepath = os.path.join(root, file).replace("\\", "/")
+            dep_list = extract_deps_from_pom(filepath)
+            project_type = get_project_type(filepath, project_types)
+
+            append_new_entry(output_filename, 
+                             create_entry_list(project_name, project_type, dep_list))
+            continue
+
         for file in files:
-            if file == "pom.xml":
-                filepath = os.path.join(root, file).replace("\\", "/")
-                project_name = os.path.basename(root)
-                deps = extract_deps_from_pom(filepath)
-                
-                continue
-
             if file.endswith(".jar"):
-                if "/src/" in root: continue
+                project_name = os.path.basename(root)
+                if project_name in ["src", "target", "lib"]: continue
+                if project_has_entry(output_filename, project_name): continue
 
                 filepath = os.path.join(root, file).replace("\\", "/")
-                project_name = os.path.basename(root)
                 filename = file.replace(".jar", "")
 
-                output = extract_deps_from_jar(filepath)
+                dep_list = extract_deps_from_jar(filepath)
+                project_type = get_project_type(filepath, project_types)
 
-                filetype = "/empty_filetype/"
-                for typ in file_types:
-                    if typ in filepath: 
-                        filetype = typ
-                        break
+                append_new_entry(output_filename, 
+                                 create_entry_list(project_name, project_type, dep_list))
                 continue
-
-            output_filepath = "./output{0}{1}.txt".format(filetype, filename)
-            os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
-            with open(output_filepath, "w", encoding="UTF8", newline="") as f:
-                f.write(str(output))
