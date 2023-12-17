@@ -15,9 +15,7 @@ def append_new_entry(filename, entry_list):
 
 def project_has_entry(output_filename, project_name):
     df = pd.read_csv(output_filename)
-    has_entry = project_name in df["project"].unique()
-    print(df["project"].unique())
-    return has_entry
+    return project_name in df["project"].unique()
 
 def get_project_type(filepath, type_list):
     project_type = "/empty_type/"
@@ -109,6 +107,9 @@ if __name__ == "__main__":
         if "pom.xml" in files:
             file = "pom.xml"
             project_name = os.path.basename(root)
+
+            if project_has_entry(output_filename, project_name): continue
+
             filepath = os.path.join(root, file).replace("\\", "/")
             dep_list = extract_deps_from_pom(filepath)
             project_type = get_project_type(filepath, project_types)
@@ -120,6 +121,7 @@ if __name__ == "__main__":
         for file in files:
             if file.endswith(".jar"):
                 project_name = os.path.basename(root)
+                
                 if project_name in ["src", "target", "lib"]: continue
                 if project_has_entry(output_filename, project_name): continue
 
@@ -131,4 +133,3 @@ if __name__ == "__main__":
 
                 append_new_entry(output_filename, 
                                  create_entry_list(project_name, project_type, dep_list))
-                continue
