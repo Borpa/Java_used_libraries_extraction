@@ -1,0 +1,7 @@
+project,dependency,project_type
+clopad,junit,/text_editor/
+clopad,freditor,/text_editor/
+clopad,clojure,/text_editor/
+freditor,junit,/text_editor/
+Cypher-Notepad-master,<unnamed>,/text_editor/
+Cypher-Notepad-master,org.eclipse.jdt.internal.jarinjarloader,/text_editor/
