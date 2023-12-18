@@ -86,14 +86,12 @@ def extract_deps_from_jar(filepath):
     return set(dep_list)
 
 if __name__ == "__main__":
-    if len(sys.argv) > 2:
-        print(len(sys.argv))
+    if len(sys.argv) != 2:
         print("Incorrect number of arguments\n")
         exit()
 
     target_dir = sys.argv[1]
 
-    #header = ["class", "dependency", "origin"]
     header = ["project", "dependency", "project_type"]
     output_filename = "dependencies.csv"
 
