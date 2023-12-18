@@ -3,21 +3,75 @@ from bs4 import BeautifulSoup
 import pandas as pd 
 
 def init_output_csv(header, filename):
+    """
+    Initialize output csv file for extracted dependencies
+
+    Parameters:
+    ----------
+
+    header : str
+        The header of the output csv
+
+    filename : str
+        output csv filename
+
+    """
     with open(filename, "w", encoding="UTF8", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(header)
 
 def append_new_entry(filename, entry_list):
+    """
+    Append new values to the output csv file
+
+    Parameters:
+    ----------
+
+    filename : str
+        output csv filename
+
+    entry_list : list(list(str))
+        list of new entries to the output file
+
+    """
     with open(filename, "a", encoding="UTF8", newline="") as f:
         writer = csv.writer(f)
         for entry in entry_list:
             writer.writerow(entry)
 
-def project_has_entry(output_filename, project_name):
+def deps_extracted_check(output_filename, project_name):
+    """
+    Check if the dependencies have already been extracted
+      from the project by checking the entries of the output file
+
+    Parameters:
+    ----------
+
+    output_filename : str
+        output csv filename
+
+    project_name : str
+        name of the project
+
+    """
     df = pd.read_csv(output_filename)
     return project_name in df["project"].unique().tolist()
 
 def get_project_type(filepath, type_list):
+    """
+    Get the type of the project from provided list of types. 
+    Returns "empty_project" if not found.
+
+    Parameters:
+    ----------
+
+    filepath : str
+        filepath to the project file
+
+    type_list : list(str)
+        list of possible project types
+
+    """
     project_type = "/empty_type/"
     for typ in type_list:
         if typ in filepath: 
@@ -26,12 +80,38 @@ def get_project_type(filepath, type_list):
     return project_type
 
 def create_entry_list(project_name, project_type, dep_list):
+    """
+    Create list of entries for the output csv file.
+
+    Parameters:
+    ----------
+
+    project_name : str
+        name of the project
+
+    project_type : str
+        type of project
+    
+    dep_list : list(str)
+        list of project's dependencies
+
+    """
     entry_list = []
     for dep in dep_list:
         entry_list.append([project_name, dep, project_type])
     return entry_list
 
 def run_cmd_command(command):
+    """
+    Run cmd command and return the output. 
+
+    Parameters:
+    ----------
+
+    command : str
+        cmd command
+
+    """
     proc = subprocess.Popen(command, shell=True, 
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out, err = proc.communicate()
@@ -39,6 +119,19 @@ def run_cmd_command(command):
     return output
 
 def is_dep_local_check(dir_path, dep_name):
+    """
+    Check if the dependency is located in the project's directories. 
+
+    Parameters:
+    ----------
+
+    dir_path : str
+        project's directory
+
+    dep_name : str
+        dependency name
+
+    """
     check = False
     for root, dirs, files in os.walk(dir_path):
         root_dot_format = root.replace("/", ".").replace("\\", ".")
@@ -47,6 +140,16 @@ def is_dep_local_check(dir_path, dep_name):
     return check
 
 def extract_deps_from_pom(filepath):
+    """
+    Extract dependencies from "pom.xml" file. Returns the set of dependencies.
+
+    Parameters:
+    ----------
+
+    filepath: str
+        path to the "pom.xml" file
+
+    """
     with open(filepath, "r") as f:
         xml_data = f.read()
     bs_data = BeautifulSoup(xml_data, "xml")
@@ -64,6 +167,16 @@ def extract_deps_from_pom(filepath):
     return set(dep_list)
 
 def extract_deps_from_jar(filepath):
+    """
+    Extract dependencies from .jar file. Returns the set of dependencies.
+
+    Parameters:
+    ----------
+
+    filepath: str
+        path to the .jar file
+
+    """
     jar_filename = os.path.basename(filepath)
     command = "jdeps -R --print-module-deps {}".format(filepath)
     output = run_cmd_command(command)
@@ -120,7 +233,7 @@ if __name__ == "__main__":
             file = "pom.xml"
             project_name = os.path.basename(root)
 
-            if project_has_entry(output_filename, project_name): continue
+            if deps_extracted_check(output_filename, project_name): continue
 
             filepath = os.path.join(root, file).replace("\\", "/")
             dep_list = extract_deps_from_pom(filepath)
@@ -135,7 +248,7 @@ if __name__ == "__main__":
                 project_name = os.path.basename(root)
                 
                 if project_name in ["src", "target", "lib"]: continue
-                if project_has_entry(output_filename, project_name): continue
+                if deps_extracted_check(output_filename, project_name): continue
 
                 filepath = os.path.join(root, file).replace("\\", "/")
                 filename = file.replace(".jar", "")
