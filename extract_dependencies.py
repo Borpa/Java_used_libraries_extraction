@@ -38,16 +38,27 @@ def run_cmd_command(command):
     output = out.decode()
     return output
 
+def is_dep_local_check(dir_path, dep_name):
+    check = False
+    for root, dirs, files in os.walk(dir_path):
+        root_dot_format = root.replace("/", ".").replace("\\", ".")
+        check = dep_name in root_dot_format
+        if check: break
+    return check
+
 def extract_deps_from_pom(filepath):
     with open(filepath, "r") as f:
         xml_data = f.read()
     bs_data = BeautifulSoup(xml_data, "xml")
 
     dep_list = []
+    dir_path = filepath.replace("pom.xml", "")
     for dep in bs_data.find_all("dependency"):
         #dep_list.append({"dependency": dep.find("artifactId").text,
         #                 "version": dep.find("version").text})
-        dep_list.append(dep.find("artifactId").text)
+        dep_name = dep.find("artifactId").text
+        if not is_dep_local_check(dir_path, dep_name):
+            dep_list.append(dep.find("artifactId").text)
 
     print("extracted dependencies from {}".format(filepath))
     return set(dep_list)
@@ -76,9 +87,12 @@ def extract_deps_from_jar(filepath):
                 line = buffer.readline()
                 continue
 
+            dir_path = filepath.replace(jar_filename, "")
+
             #check if dependency is not included or if dependency is included in the .jar and is not standard 
             if entry[2] == "not found" or entry[2] == jar_filename and not entry[1].startswith("java"):
-                dep_list.append(entry[1])
+                if (not is_dep_local_check(dir_path, entry[1])):
+                    dep_list.append(entry[1])
 
         line = buffer.readline()
 
