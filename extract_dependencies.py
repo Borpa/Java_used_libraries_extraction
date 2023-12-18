@@ -197,7 +197,7 @@ def extract_deps_from_jar(filepath):
             entry = [i for i in entry if i] #remove empty elements 
             
             if len(entry) != 3: 
-                line = buffer.readline()
+                line = buffer.readline() #skip lines without "<package> -> <dependency> <origin>" line
                 continue
 
             dir_path = filepath.replace(jar_filename, "")
