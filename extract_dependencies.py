@@ -15,7 +15,7 @@ def append_new_entry(filename, entry_list):
 
 def project_has_entry(output_filename, project_name):
     df = pd.read_csv(output_filename)
-    return project_name in df["project"].unique()
+    return project_name in df["project"].unique().tolist()
 
 def get_project_type(filepath, type_list):
     project_type = "/empty_type/"
@@ -49,23 +49,22 @@ def extract_deps_from_pom(filepath):
         #                 "version": dep.find("version").text})
         dep_list.append(dep.find("artifactId").text)
 
-    return dep_list
+    print("extracted dependencies from {}".format(filepath))
+    return set(dep_list)
 
 def extract_deps_from_jar(filepath):
-    print(filepath)
     jar_filename = os.path.basename(filepath)
     command = "jdeps -R --print-module-deps {}".format(filepath)
     output = run_cmd_command(command)
 
     if "Error: Missing dependencies:" not in output:
-        print("ran new command")
         command = "jdeps -R {}".format(filepath)
         output = run_cmd_command(command)
 
     buffer = io.StringIO(output)
     line = buffer.readline()
 
-    result = []
+    dep_list = []
 
     while line:
         if "->" in line and "not found" in line or jar_filename in line:
@@ -79,11 +78,12 @@ def extract_deps_from_jar(filepath):
 
             #check if dependency is not included or if dependency is included in the .jar and is not standard 
             if entry[2] == "not found" or entry[2] == jar_filename and not entry[1].startswith("java"):
-                result.append(entry[1])
+                dep_list.append(entry[1])
 
         line = buffer.readline()
 
-    return result
+    print("extracted dependencies from {}".format(filepath))
+    return set(dep_list)
 
 if __name__ == "__main__":
     if len(sys.argv) > 2:
