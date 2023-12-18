@@ -181,7 +181,7 @@ def extract_deps_from_jar(filepath):
     command = "jdeps -R --print-module-deps {}".format(filepath)
     output = run_cmd_command(command)
 
-    if "Error: Missing dependencies:" not in output:
+    if "Error: Missing dependencies:" not in output: #check if .jar contains the dependencies
         command = "jdeps -R {}".format(filepath)
         output = run_cmd_command(command)
 
