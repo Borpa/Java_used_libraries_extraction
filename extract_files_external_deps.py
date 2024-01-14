@@ -11,7 +11,7 @@ def append_new_entry(filename, entry):
         writer = csv.writer(f)
         writer.writerow(entry)
 
-def get_project_external_dips(dep_filename, project_name):
+def get_project_external_deps(dep_filename, project_name):
     df = pd.read_csv(dep_filename)
     external_deps = df.loc[df["project"] == project_name]["dependency"].tolist()
     return external_deps
@@ -48,10 +48,10 @@ def get_projects_filelist(project_path):
                 filelist.append(filepath)
     return filelist
 
-def extract_files_external_dips(filepath, project_path, dep_filename):
+def extract_files_external_deps(filepath, project_path, dep_filename):
     project_name = os.path.basename(project_path)
-    project_deps = get_project_external_dips(dep_filename, project_name)
-    external_dips = []
+    project_deps = get_project_external_deps(dep_filename, project_name)
+    external_deps = []
 
     with open(filepath, "r",  errors="replace") as f:
         line = f.readline()
@@ -62,9 +62,9 @@ def extract_files_external_dips(filepath, project_path, dep_filename):
                 line = line.replace(";\n", "")
                 
                 for dep in project_deps:
-                    if (dep in line): external_dips.append(line)
+                    if (dep in line): external_deps.append(line)
             line = f.readline()
-    return external_dips
+    return external_deps
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     target_dir = sys.argv[1]
 
     header = ["filename", "type", "project", "dependencies", "filepath"]
-    projects_dep_file = "dependencies.csv"
+    projects_dep_file = "projects_dependencies.csv"
     output_filename = "files_dependencies.csv"
 
     init_output_csv(header, output_filename)
@@ -88,7 +88,7 @@ if __name__ == "__main__":
             project_name = os.path.basename(project)
             project_type = get_project_type(projects_dep_file, project_name)
             if project_type == None: continue
-            dependencies = extract_files_external_dips(file, project, projects_dep_file)
+            dependencies = extract_files_external_deps(file, project, projects_dep_file)
             if len(dependencies) == 0: continue
             new_entry = [filename, project_type, project_name, dependencies, filepath]
             append_new_entry(output_filename, new_entry)

@@ -220,7 +220,7 @@ if __name__ == "__main__":
     target_dir = sys.argv[1]
 
     header = ["project", "dependency", "project_type"]
-    output_filename = "dependencies.csv"
+    output_filename = "projects_dependencies.csv"
 
     project_types = ["/ai_app/", "/book_reader/", "/web_file_browser/", "/calculator/", 
                   "/emulator_environment/", "/graphic_editor/", "/dev_environment/", 
