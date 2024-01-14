@@ -203,7 +203,7 @@ def extract_deps_from_jar(filepath):
             dir_path = filepath.replace(jar_filename, "")
 
             #check if dependency is not included or if dependency is included in the .jar and is not standard 
-            if entry[2] == "not found" or entry[2] == jar_filename and not entry[1].startswith("java"):
+            if entry[2] == "not found" or entry[2] == jar_filename and not entry[1].startswith("java."):
                 if (not is_dep_local_check(dir_path, entry[1])):
                     dep_list.append(entry[1])
 
