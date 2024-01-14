@@ -79,13 +79,15 @@ def get_project_type(filepath, type_list):
             break
     return project_type
 
-def create_entry_list(project_name, project_type, dep_list):
+def create_entry_list(package_name, project_name, project_type, dep_list):
     """
     Create list of entries for the output csv file.
 
     Parameters:
     ----------
-
+    package_name : str
+        name of the package
+    
     project_name : str
         name of the project
 
@@ -98,7 +100,7 @@ def create_entry_list(project_name, project_type, dep_list):
     """
     entry_list = []
     for dep in dep_list:
-        entry_list.append([project_name, dep, project_type])
+        entry_list.append([package_name, project_name, dep, project_type])
     return entry_list
 
 def run_cmd_command(command):
@@ -212,6 +214,20 @@ def extract_deps_from_jar(filepath):
     #print("extracted dependencies from {}".format(filepath))
     return set(dep_list)
 
+def get_project_name(filepath, project_types):
+    project_name = filepath
+    for type in project_types:
+        if type in project_name:
+            project_name_start = project_name.index(type) + len(type)
+            project_name = project_name[project_name_start:]
+            try:
+                project_name_end = project_name.index("/")
+                project_name = project_name[:project_name_end]
+            except:
+                project_name = project_name
+            break
+    return project_name
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Incorrect number of arguments\n")
@@ -219,42 +235,52 @@ if __name__ == "__main__":
 
     target_dir = sys.argv[1]
 
-    header = ["project", "dependency", "project_type"]
+    header = ["package", "project", "dependency", "project_type"]
     output_filename = "projects_dependencies.csv"
 
     project_types = ["/ai_app/", "/book_reader/", "/web_file_browser/", "/calculator/", 
                   "/emulator_environment/", "/graphic_editor/", "/dev_environment/", 
                   "/media_player/", "/terminal_interface/", "/text_editor/", "/text_voice_chat/"]
+    dir_name_stopwords = ["src", "target", "lib"]
 
     init_output_csv(header, output_filename)
 
     for root, dirs, files in os.walk(target_dir):
         if "pom.xml" in files:
             file = "pom.xml"
-            project_name = os.path.basename(root)
+            filepath = os.path.join(root, file).replace("\\", "/")
+
+            package_name = os.path.basename(root)
+
+            if package_name in dir_name_stopwords: continue
+
+            project_name = get_project_name(filepath, project_types)
 
             if deps_extracted_check(output_filename, project_name): continue
 
-            filepath = os.path.join(root, file).replace("\\", "/")
             dep_list = extract_deps_from_pom(filepath)
             project_type = get_project_type(filepath, project_types)
 
             append_new_entry(output_filename, 
-                             create_entry_list(project_name, project_type, dep_list))
+                             create_entry_list(package_name, project_name, project_type, dep_list))
             continue
 
         for file in files:
             if file.endswith(".jar"):
-                project_name = os.path.basename(root)
+                filepath = os.path.join(root, file).replace("\\", "/")
                 
-                if project_name in ["src", "target", "lib"]: continue
+                package_name = os.path.basename(root)
+
+                if package_name in dir_name_stopwords: continue
+
+                project_name = get_project_name(filepath, project_types)
+                
                 if deps_extracted_check(output_filename, project_name): continue
 
-                filepath = os.path.join(root, file).replace("\\", "/")
                 filename = file.replace(".jar", "")
 
                 dep_list = extract_deps_from_jar(filepath)
                 project_type = get_project_type(filepath, project_types)
 
                 append_new_entry(output_filename, 
-                                 create_entry_list(project_name, project_type, dep_list))
+                                 create_entry_list(package_name, project_name, project_type, dep_list))
