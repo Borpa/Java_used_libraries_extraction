@@ -163,7 +163,7 @@ def extract_deps_from_pom(filepath):
         if not is_dep_local_check(dir_path, dep_name):
             dep_list.append(dep.find("artifactId").text)
 
-    print("extracted dependencies from {}".format(filepath))
+    #print("extracted dependencies from {}".format(filepath))
     return set(dep_list)
 
 def extract_deps_from_jar(filepath):
@@ -209,7 +209,7 @@ def extract_deps_from_jar(filepath):
 
         line = buffer.readline()
 
-    print("extracted dependencies from {}".format(filepath))
+    #print("extracted dependencies from {}".format(filepath))
     return set(dep_list)
 
 if __name__ == "__main__":
