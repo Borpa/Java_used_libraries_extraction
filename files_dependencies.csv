@@ -1,0 +1,23 @@
+filename,type,project,dependencies,filepath
+Clojure.java,/text_editor/,clopad,"['clojure.lang.Compiler', 'clojure.lang.*', 'clojure.lang.Compiler.*']",../tested_software/text_editor/clopad_new/clopad/src/main/java/Clojure.java
+ClojureIndenter.java,/text_editor/,clopad,"['freditor.FlexerState', 'freditor.Freditor', 'freditor.Indenter', 'freditor.ephemeral.IntStack']",../tested_software/text_editor/clopad_new/clopad/src/main/java/ClojureIndenter.java
+Console.java,/text_editor/,clopad,"['clojure.lang.Compiler', 'clojure.lang.*', 'freditor.FreditorUI']",../tested_software/text_editor/clopad_new/clopad/src/main/java/Console.java
+Flexer.java,/text_editor/,clopad,"['freditor.FlexerState', 'freditor.FlexerStateBuilder', 'freditor.persistent.ChampMap', 'freditor.FlexerState.EMPTY', 'freditor.FlexerState.THIS']",../tested_software/text_editor/clopad_new/clopad/src/main/java/Flexer.java
+FreditorUI_symbol.java,/text_editor/,clopad,"['clojure.lang.Symbol', 'freditor.Flexer', 'freditor.FreditorUI', 'freditor.Indenter']",../tested_software/text_editor/clopad_new/clopad/src/main/java/FreditorUI_symbol.java
+FreditorWriter.java,/text_editor/,clopad,['freditor.FreditorUI'],../tested_software/text_editor/clopad_new/clopad/src/main/java/FreditorWriter.java
+ISeqSpliterator.java,/text_editor/,clopad,['clojure.lang.ISeq'],../tested_software/text_editor/clopad_new/clopad/src/main/java/ISeqSpliterator.java
+Main.java,/text_editor/,clopad,"['clojure.lang.RT', 'freditor.SwingConfig']",../tested_software/text_editor/clopad_new/clopad/src/main/java/Main.java
+MainFrame.java,/text_editor/,clopad,"['clojure.lang.Compiler', 'clojure.lang.*', 'freditor.FreditorUI', 'freditor.Fronts', 'freditor.Release', 'freditor.TabbedEditors']",../tested_software/text_editor/clopad_new/clopad/src/main/java/MainFrame.java
+NamespaceExplorer.java,/text_editor/,clopad,"['clojure.lang.ISeq', 'clojure.lang.Namespace', 'clojure.lang.RT', 'clojure.lang.Symbol', 'freditor.Fronts']",../tested_software/text_editor/clopad_new/clopad/src/main/java/NamespaceExplorer.java
+ClojureIndenterTest.java,/text_editor/,clopad,"['freditor.Freditor', 'org.junit.Test', 'org.junit.Assert.assertArrayEquals']",../tested_software/text_editor/clopad_new/clopad/src/test/java/ClojureIndenterTest.java
+CharZipperTest.java,/text_editor/,freditor,"['org.junit.Test', 'org.junit.Assert.assertArrayEquals']",../tested_software/text_editor/clopad_new/freditor/src/test/java/freditor/CharZipperTest.java
+LevenshteinTest.java,/text_editor/,freditor,"['org.junit.Test', 'org.junit.Assert.assertEquals']",../tested_software/text_editor/clopad_new/freditor/src/test/java/freditor/LevenshteinTest.java
+MathsTest.java,/text_editor/,freditor,"['org.junit.Test', 'org.junit.Assert.assertEquals']",../tested_software/text_editor/clopad_new/freditor/src/test/java/freditor/MathsTest.java
+SystemClipboardTest.java,/text_editor/,freditor,"['org.junit.Before', 'org.junit.Test', 'org.junit.Assert.assertEquals', 'org.junit.Assume.assumeFalse']",../tested_software/text_editor/clopad_new/freditor/src/test/java/freditor/SystemClipboardTest.java
+GapBufferTest.java,/text_editor/,freditor,"['org.junit.Test', 'org.junit.Assert.*']",../tested_software/text_editor/clopad_new/freditor/src/test/java/freditor/ephemeral/GapBufferTest.java
+IntGapBufferTest.java,/text_editor/,freditor,"['org.junit.Test', 'org.junit.Assert.*']",../tested_software/text_editor/clopad_new/freditor/src/test/java/freditor/ephemeral/IntGapBufferTest.java
+IntStackTest.java,/text_editor/,freditor,"['org.junit.Test', 'org.junit.Assert.*']",../tested_software/text_editor/clopad_new/freditor/src/test/java/freditor/ephemeral/IntStackTest.java
+ByteVectorTest.java,/text_editor/,freditor,"['org.junit.Test', 'org.junit.Assert.*']",../tested_software/text_editor/clopad_new/freditor/src/test/java/freditor/persistent/ByteVectorTest.java
+ChampMapTest.java,/text_editor/,freditor,"['org.junit.Test', 'org.junit.Assert.*']",../tested_software/text_editor/clopad_new/freditor/src/test/java/freditor/persistent/ChampMapTest.java
+HamtSetTest.java,/text_editor/,freditor,"['org.junit.Test', 'org.junit.Assert.assertEquals', 'org.junit.Assert.assertNull']",../tested_software/text_editor/clopad_new/freditor/src/test/java/freditor/persistent/HamtSetTest.java
+StringedValueMapTest.java,/text_editor/,freditor,"['org.junit.Test', 'org.junit.Assert.assertEquals', 'org.junit.Assert.assertNull']",../tested_software/text_editor/clopad_new/freditor/src/test/java/freditor/persistent/StringedValueMapTest.java
