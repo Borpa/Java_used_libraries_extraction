@@ -24,6 +24,9 @@ threshold = Threshold.DEFAULT // default threshold (0.75)
 
 header = ["birthmark", "comparator", "matcher", "file1", "file2", "result"]
 
+data = []
+data.append(header)
+
 //update to write all results to a single csv 
 
 for (currentBirthmark in birthmarkList){
@@ -47,12 +50,15 @@ for (currentBirthmark in birthmarkList){
                 .map(either -> either.get())
                 .filter(comparison -> comparison.isStolen(threshold))
 
-            filename = args[0].split("/")[-1] + "_" +args[1].split("/")[-1] + ".csv"
-
-            writeToFile(matchResult, filename, "birthmarks/")
+            newline = [currentBirthmark, currentComparator, currentMatcher]
+            newline.merge(matchResult)
+            data.append(newline)
         }
     }
 }
 
-
-
+filename = args[0].split("/")[-1] + "_" +args[1].split("/")[-1] + ".csv"
+def file = File.createTempFile(filename, ".csv")
+file.withWriter { w ->
+    new CSVWriter(w).writeAll(data.collect{ it as String[] })
+}
