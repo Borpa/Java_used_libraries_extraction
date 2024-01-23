@@ -11,8 +11,8 @@ def extract(path, extractor) {
     return extractor.extract(source)
 }
 
-//threshold = Threshold.DEFAULT // default threshold (0.75): 0.75 originality, 0.25 similarity
-threshold = new Threshold(0.25)
+threshold = Threshold.DEFAULT // default threshold (0.75): 0.75 originality, 0.25 similarity
+//threshold = new Threshold(0.25)
 
 def header = ["birthmark", "comparator", "matcher", "file1", "file2", "result"]
 def data = []
