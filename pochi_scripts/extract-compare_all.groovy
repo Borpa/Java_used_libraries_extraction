@@ -18,6 +18,14 @@ def header = ["birthmark", "comparator", "matcher", "file1", "file2", "result"]
 def data = []
 data.add(header)
 
+file_output_flag = True
+
+if (args.size() > 2){
+    if (args[2] == "no-csv"){
+        file_output_flag = False
+    }
+}
+
 for (currentBirthmark in birthmarkList){
     extractor = pochi.extractor(currentBirthmark)
     birthmarks_1 = Arrays.stream(args[0])
@@ -41,17 +49,19 @@ for (currentBirthmark in birthmarkList){
                 .filter(comparison -> comparison.isStolen(threshold))
                 .forEach(comparison -> result_lines.add(comparison))
 
-            newline = [currentBirthmark, currentComparator, currentMatcher]
-
-            for (result in result_lines){
-                data.add(newline + result)
+            if (file_output_flag){
+                newline = [currentBirthmark, currentComparator, currentMatcher]
+                for (result in result_lines){
+                    data.add(newline + result)
+                }
             }
         }
     }
 }
 
-directoryName = "birthmarks/"
-filename = args[0].split("/")[-1] + "_" +args[1].split("/")[-1] + ".csv"
-def file = new File(directoryName + filename)
-
-file.text = data*.join(",").join(System.lineSeparator())
+if (file_output_flag){
+    directoryName = "birthmarks/"
+    filename = args[0].split("/")[-1] + "_" +args[1].split("/")[-1] + ".csv"
+    def file = new File(directoryName + filename)
+    file.text = data*.join(",").join(System.lineSeparator())
+}
