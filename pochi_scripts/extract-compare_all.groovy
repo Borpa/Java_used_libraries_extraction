@@ -11,17 +11,8 @@ def extract(path, extractor) {
     return extractor.extract(source)
 }
 
-def writeToFile(matchResult, filename, directoryName){
-    directoryName = "birthmarks/"
-    File file = new File(directoryName + filename)
-
-    for (result in matchResult){
-        file.append(result)
-        file.append("\n")
-    }
-}
-
-threshold = Threshold.DEFAULT // default threshold (0.75)
+//threshold = Threshold.DEFAULT // default threshold (0.75): 0.75 originality, 0.25 similarity
+threshold = new Threshold(0.25)
 
 def header = ["birthmark", "comparator", "matcher", "file1", "file2", "result"]
 def data = []
@@ -59,7 +50,8 @@ for (currentBirthmark in birthmarkList){
     }
 }
 
+directoryName = "birthmarks/"
 filename = args[0].split("/")[-1] + "_" +args[1].split("/")[-1] + ".csv"
-def file = new File(filename)
+def file = new File(directoryName + filename)
 
 file.text = data*.join(",").join(System.lineSeparator())
