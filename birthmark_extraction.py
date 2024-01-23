@@ -31,23 +31,41 @@ def run_cmd_command(command):
     return output
 
 
-def run_pochi(software_location, program_1, program_2, options=None):
+def run_pochi(
+    software_location,
+    project1,
+    project1_file_list,
+    project2,
+    project2_file_list,
+    options=None,
+):
     version = "pochi-2.6.0"
     full_path = software_location + version + "/bin/"
-    extraction_script = full_path + "extract-compare_all.groovy"
+    extraction_script = "pochi_scripts/extract-compare_all.groovy"
     pochi_script = full_path + "pochi"
-    output_filename = "_".join([program_1, program_2, version])
+    total_output = []
 
-    command = " ".join([pochi_script, extraction_script, program_1, program_2, options])
-    command = command + " > " + output_filename
-    output = run_cmd_command(command)
+    for project1_file in project1_file_list:
+        for project2_file in project2_file_list:
+            command = " ".join(
+                [
+                    pochi_script,
+                    extraction_script,
+                    project1_file,
+                    project2_file,
+                    options,
+                ]
+            )
+            output = run_cmd_command(command)
+            total_output.append(output)
 
-    return output
+    return total_output
 
 
 def run_stigmara(software_location, program_1, program_2, options):
-    version = "stigmata-master/target"
-    # java -jar stigmata-5.0-SNAPSHOT.jar -b cvfv -f xml --store-target MEMORY extract ./test-classes/resources/samplewar.war > test.xml
+    version = "stigmata-master/target/"
+    full_path = software_location + version
+
     return None
 
 
@@ -58,9 +76,11 @@ def get_project_jar_list(main_dir, project_type, project_name):
 
     for root, dirs, files in os.walk(target_dir):
         for file in files:
-            if file.endswith(".jar") and "src" not in root:
-                jar_list.append(file)
+            if file.endswith(".jar"):
+                if "src" not in root and "lib" not in root:
+                    jar_list.append(file)
     return jar_list
+
 
 if __name__ == "__main__":
     option = sys.argv[0]
@@ -68,6 +88,15 @@ if __name__ == "__main__":
     similarity_data = "file_similarity.csv"
     birthmark_software = "../birthmark_extraction_software/"
     tested_software = "../tested_software/"
+
+    pochi_output_header = [
+        "birthmark",
+        "comparator",
+        "matcher",
+        "file1",
+        "file2",
+        "result",
+    ]
 
     similarity_groups = get_similar_pairs(70, 3, similarity_data)
     project_pairs = similarity_groups[
@@ -78,11 +107,18 @@ if __name__ == "__main__":
     print(project_pairs)
 
     for index, row in project_pairs.iterrows():
-        project1_list = get_project_jar_list(tested_software, row.project1_type, row.project1)
-        project2_list = get_project_jar_list(tested_software, row.project2_type, row.project2)
+        project1_list = get_project_jar_list(
+            tested_software, row.project1_type, row.project1
+        )
+        project2_list = get_project_jar_list(
+            tested_software, row.project2_type, row.project2
+        )
 
-        if option == "pochi":
-            output = run_pochi(birthmark_software, project1_list, project2_list)
-
-    # print(project_pairs)
-    # print(get_project_jar(tested_software, "/text_editor/", "clopad_new"))
+        output = run_pochi(
+            birthmark_software,
+            row.project1,
+            project1_list,
+            row.project2,
+            project2_list,
+            "no-csv",
+        )
