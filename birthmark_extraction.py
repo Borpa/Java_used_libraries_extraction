@@ -65,9 +65,11 @@ def run_cmd_command(command):
     output= subprocess.check_output(
         new_command, shell=False, executable=r"C:\Program Files\Git\bin\bash.exe")
 
-    print(output)
+    output = output.decode()
 
-    return ""
+    #print(output)
+
+    return output
 
 
 def export_as_csv(filename, data):
@@ -104,7 +106,7 @@ def run_pochi(
     ]
     total_output.append(header)
 
-    output_filename = "__".join([project1, project2])
+    output_filename = "__".join([project1, project2]) + ".csv"
 
     #for project1_file in project1_file_list:
     #    for project2_file in project2_file_list:
@@ -124,10 +126,13 @@ def run_pochi(
     ])
     #print(command)
     output = run_cmd_command(command)
-    #print(output)
+    output = output.split("\r\n")
     for line in output:
-        line = line.split(",")
-        newline = [project1_file, project2_file] + output
+        if len(line) == 0: 
+            continue 
+        line = line.replace("\r\n", "").split(",")
+        newline = [os.path.basename(project1_file), os.path.basename(project2_file)] + line
+        print(newline)
         total_output.append(newline)
 
     export_as_csv(output_filename, total_output)
