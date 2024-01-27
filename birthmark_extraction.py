@@ -6,7 +6,7 @@ import sys
 import pandas as pd
 
 
-git_bash_exec_path = r"C:\Program Files\Git\bin\bash.exe"
+git_bash_exec_path = "C:/Program Files/Git/bin/bash.exe"
 
 similarity_data = "file_similarity.csv"
 birthmark_software = "D:/Study/phd_research/birthmark_extraction_software/"
