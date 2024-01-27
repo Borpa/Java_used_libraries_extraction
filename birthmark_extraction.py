@@ -5,7 +5,6 @@ import sys
 
 import pandas as pd
 
-
 git_bash_exec_path = "C:/Program Files/Git/bin/bash.exe"
 
 similarity_data = "file_similarity.csv"
@@ -14,6 +13,7 @@ tested_software = "D:/Study/phd_research/tested_software/"
 
 similarity_threshold = 70
 similarity_pairs_num = 3
+
 
 def get_similar_pairs(threshold, num_of_pairs, similarity_data):
     df = pd.read_csv(similarity_data)
@@ -148,18 +148,22 @@ if __name__ == "__main__":
         "result",
     ]
 
-    similarity_groups = get_similar_pairs(similarity_threshold, similarity_pairs_num, similarity_data)
+    similarity_groups = get_similar_pairs(
+        similarity_threshold, similarity_pairs_num, similarity_data
+    )
     project_pairs = similarity_groups[
         ["project1", "project2", "project1_type", "project2_type"]
     ]
-    project_pairs = project_pairs.drop_duplicates() # might count num of pairs with similarity >= thershold in the future
+    project_pairs = (
+        project_pairs.drop_duplicates()
+    )  # might count num of pairs with similarity >= thershold in the future
 
     for index, row in project_pairs.iterrows():
         project1_file_list = get_project_jar_list(
-           tested_software, row.project1_type, row.project1
+            tested_software, row.project1_type, row.project1
         )
         project2_file_list = get_project_jar_list(
-           tested_software, row.project2_type, row.project2
+            tested_software, row.project2_type, row.project2
         )
 
         output = run_pochi(
