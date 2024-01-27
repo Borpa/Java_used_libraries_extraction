@@ -1,15 +1,23 @@
+import csv
 import os
 import subprocess
 import sys
-import csv
 
 import pandas as pd
 
 
+git_bash_exec_path = r"C:\Program Files\Git\bin\bash.exe"
+
+similarity_data = "file_similarity.csv"
+birthmark_software = "D:/Study/phd_research/birthmark_extraction_software/"
+tested_software = "D:/Study/phd_research/tested_software/"
+
+similarity_threshold = 70
+similarity_pairs_num = 3
+
 def get_similar_pairs(threshold, num_of_pairs, similarity_data):
     df = pd.read_csv(similarity_data)
     project_groups = [x for _, x in df.groupby(["project1", "project2"])]
-
     top_results = []
 
     for group in project_groups:
@@ -24,9 +32,8 @@ def get_similar_pairs(threshold, num_of_pairs, similarity_data):
 
 
 def run_cmd_command(command):
-    # new_command  = "sh D:/Study/phd_research/birthmark_extraction_software/pochi-2.6.0/bin/pochi D:/Study/phd_research/birthmark_extraction_software/pochi-2.6.0/bin/extract_test_2.groovy D:/Study/phd_research/tested_software/text_editor/clopad_new/clopad/target/clopad-0.1.0-SNAPSHOT.jar D:/Study/phd_research/tested_software/ai_app/langchain4j-0.24.0/langchain4j-0.24.0/langchain4j/target/langchain4j-0.24.0.jar no-csv"
     output = subprocess.check_output(
-        command, shell=False, executable=r"C:\Program Files\Git\bin\bash.exe"
+        command, shell=False, executable=git_bash_exec_path
     )
     output = output.decode()
 
@@ -34,14 +41,17 @@ def run_cmd_command(command):
 
 
 def init_csv_file(filename, header, dir=None):
-    if not os.path.exists(dir):
-        os.makedirs(dir)
+    if dir is not None:
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        filename = dir + filename
     with open(filename, "w", encoding="UTF8", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(header)
 
 
-def append_csv_data(filename, data):
+def append_csv_data(filename, data, dir=None):
+    filename = dir + filename
     with open(filename, "a", encoding="UTF8", newline="") as f:
         for row in data:
             writer = csv.writer(f)
@@ -62,7 +72,6 @@ def run_pochi(
     extraction_script = full_path + "extract_test_2.groovy"
     output_filename = "__".join([project1, project2]) + ".csv"
     output_dir = "birthmarks/"
-    output_filename = output_dir + output_filename
 
     header = [
         "project1_file",
@@ -89,8 +98,8 @@ def run_pochi(
                     options,
                 ]
             )
-
             output = run_cmd_command(command)
+
             output = output.split("\r\n")
             for line in output:
                 if len(line) == 0:
@@ -101,7 +110,7 @@ def run_pochi(
                     os.path.basename(project2_file),
                 ] + line
                 pair_output.append(newline)
-            append_csv_data(output_filename, pair_output)
+            append_csv_data(output_filename, pair_output, output_dir)
 
 
 def run_stigmara(software_location, program_1, program_2, options):
@@ -126,11 +135,9 @@ def get_project_jar_list(main_dir, project_type, project_name):
 
 
 if __name__ == "__main__":
-    # option = sys.argv[0]
-
-    similarity_data = "file_similarity.csv"
-    birthmark_software = "D:/Study/phd_research/birthmark_extraction_software/"
-    tested_software = "D:/Study/phd_research/tested_software/"
+    output_option = "no-csv"
+    if len(sys.argv) > 0:
+        output_option = sys.argv[0]
 
     pochi_output_header = [
         "birthmark",
@@ -141,40 +148,25 @@ if __name__ == "__main__":
         "result",
     ]
 
-    similarity_groups = get_similar_pairs(70, 3, similarity_data)
+    similarity_groups = get_similar_pairs(similarity_threshold, similarity_pairs_num, similarity_data)
     project_pairs = similarity_groups[
         ["project1", "project2", "project1_type", "project2_type"]
     ]
-    project_pairs = project_pairs.drop_duplicates()
+    project_pairs = project_pairs.drop_duplicates() # might count num of pairs with similarity >= thershold in the future
 
-    # print(project_pairs)
+    for index, row in project_pairs.iterrows():
+        project1_file_list = get_project_jar_list(
+           tested_software, row.project1_type, row.project1
+        )
+        project2_file_list = get_project_jar_list(
+           tested_software, row.project2_type, row.project2
+        )
 
-    # for index, row in project_pairs.iterrows():
-    # project1_list = get_project_jar_list(
-    #    tested_software, row.project1_type, row.project1
-    # )
-    # project2_list = get_project_jar_list(
-    #    tested_software, row.project2_type, row.project2
-    # )
-
-    project1_file_list = get_project_jar_list(
-        tested_software, "/text_editor/", "clopad_new"
-    )
-    #project2_file_list = get_project_jar_list(
-    #    tested_software, "/ai_app/", "langchain4j-0.24.0"
-    #)
-    project2_file_list = get_project_jar_list(
-        tested_software, "/emulator_environment/", "coffee-gb-1.0.0"
-    )
-
-    output = run_pochi(
-        birthmark_software,
-        "clopad_new",
-        # row.project1,
-        project1_file_list,
-        "coffee-gb-1.0.0",
-        #"langchain4j-0.24.0",
-        # row.project2,
-        project2_file_list,
-        "no-csv",
-    )
+        output = run_pochi(
+            birthmark_software,
+            row.project1,
+            project1_file_list,
+            row.project2,
+            project2_file_list,
+            output_option,
+        )
