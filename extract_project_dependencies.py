@@ -9,6 +9,9 @@ import pandas as pd
 from bs4 import BeautifulSoup
 
 
+output_filename = "projects_dependencies.csv"
+
+
 def init_output_csv(header, filename):
     """
     Initialize output csv file for extracted dependencies
@@ -263,7 +266,6 @@ if __name__ == "__main__":
     target_dir = sys.argv[1]
 
     header = ["package", "project", "dependency", "project_type"]
-    output_filename = "projects_dependencies.csv"
 
     project_types = [
         "/ai_app/",

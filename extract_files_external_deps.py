@@ -4,6 +4,9 @@ import sys
 
 import pandas as pd
 
+projects_dep_file = "projects_dependencies.csv"
+output_filename = "files_dependencies.csv"
+
 
 def init_output_csv(header, filename):
     with open(filename, "w", encoding="UTF8", newline="") as f:
@@ -87,8 +90,6 @@ if __name__ == "__main__":
     target_dir = sys.argv[1]
 
     header = ["filename", "type", "project", "dependencies", "filepath"]
-    projects_dep_file = "projects_dependencies.csv"
-    output_filename = "files_dependencies.csv"
 
     init_output_csv(header, output_filename)
 
