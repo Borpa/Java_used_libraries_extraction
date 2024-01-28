@@ -5,14 +5,14 @@ import sys
 
 import pandas as pd
 
-git_bash_exec_path = "C:/Program Files/Git/bin/bash.exe"
+GIT_BASH_EXEC_PATH = "C:/Program Files/Git/bin/bash.exe"
 
-similarity_data = "file_similarity.csv"
-birthmark_software = "D:/Study/phd_research/birthmark_extraction_software/"
-tested_software = "D:/Study/phd_research/tested_software/"
+SIMILARITY_DATA = "file_similarity.csv"
+BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
+TESTED_SOFTWARE = "D:/Study/phd_research/tested_software/"
 
-similarity_threshold = 70
-similarity_pairs_num = 3
+SIMILARITY_THRESHOLD = 70
+SIMILARITY_PAIRS_NUM = 3
 
 
 def get_similar_pairs(threshold, num_of_pairs, similarity_data):
@@ -33,7 +33,7 @@ def get_similar_pairs(threshold, num_of_pairs, similarity_data):
 
 def run_cmd_command(command):
     output = subprocess.check_output(
-        command, shell=False, executable=git_bash_exec_path
+        command, shell=False, executable=GIT_BASH_EXEC_PATH
     )
     output = output.decode()
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     ]
 
     similarity_groups = get_similar_pairs(
-        similarity_threshold, similarity_pairs_num, similarity_data
+        SIMILARITY_THRESHOLD, SIMILARITY_PAIRS_NUM, SIMILARITY_DATA
     )
     project_pairs = similarity_groups[
         ["project1", "project2", "project1_type", "project2_type"]
@@ -160,14 +160,14 @@ if __name__ == "__main__":
 
     for index, row in project_pairs.iterrows():
         project1_file_list = get_project_jar_list(
-            tested_software, row.project1_type, row.project1
+            TESTED_SOFTWARE, row.project1_type, row.project1
         )
         project2_file_list = get_project_jar_list(
-            tested_software, row.project2_type, row.project2
+            TESTED_SOFTWARE, row.project2_type, row.project2
         )
 
         output = run_pochi(
-            birthmark_software,
+            BIRTHMARK_SOFTWARE,
             row.project1,
             project1_file_list,
             row.project2,

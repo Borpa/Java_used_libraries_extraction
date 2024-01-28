@@ -6,8 +6,8 @@ from multiprocessing import Pool, freeze_support
 import numpy as np
 from pandas import read_csv
 
-dependency_data = "files_dependencies.csv"
-similarity_output_filename = "file_similarity.csv"
+DEPENDENCY_DATA = "files_dependencies.csv"
+OUTPUT_FILENAME = "file_similarity.csv"
 
 
 def calculate_similarity(file_group, file_df):
@@ -71,7 +71,7 @@ def calculate_similarity(file_group, file_df):
 
 
 def main():
-    csv_data = read_csv(dependency_data)
+    csv_data = read_csv(DEPENDENCY_DATA)
 
     num_of_files = len(csv_data)
 
@@ -97,7 +97,7 @@ def main():
 
     result = list(itertools.chain.from_iterable(result))
 
-    with open(similarity_output_filename, "w", encoding="UTF8", newline="") as f:
+    with open(OUTPUT_FILENAME, "w", encoding="UTF8", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(header)
         for res in result:

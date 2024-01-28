@@ -9,7 +9,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 
 
-output_filename = "projects_dependencies.csv"
+OUTPUT_FILENAME = "projects_dependencies.csv"
 
 
 def init_output_csv(header, filename):
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     ]
     dir_name_stopwords = ["src", "target", "lib"]
 
-    init_output_csv(header, output_filename)
+    init_output_csv(header, OUTPUT_FILENAME)
 
     for root, dirs, files in os.walk(target_dir):
         if "pom.xml" in files:
@@ -296,14 +296,14 @@ if __name__ == "__main__":
 
             project_name = get_project_name(filepath, project_types)
 
-            if deps_extracted_check(output_filename, project_name):
+            if deps_extracted_check(OUTPUT_FILENAME, project_name):
                 continue
 
             dep_list = extract_deps_from_pom(filepath)
             project_type = get_project_type(filepath, project_types)
 
             append_new_entry(
-                output_filename,
+                OUTPUT_FILENAME,
                 create_entry_list(package_name, project_name, project_type, dep_list),
             )
             continue
@@ -319,7 +319,7 @@ if __name__ == "__main__":
 
                 project_name = get_project_name(filepath, project_types)
 
-                if deps_extracted_check(output_filename, project_name):
+                if deps_extracted_check(OUTPUT_FILENAME, project_name):
                     continue
 
                 filename = file.replace(".jar", "")
@@ -328,7 +328,7 @@ if __name__ == "__main__":
                 project_type = get_project_type(filepath, project_types)
 
                 append_new_entry(
-                    output_filename,
+                    OUTPUT_FILENAME,
                     create_entry_list(
                         package_name, project_name, project_type, dep_list
                     ),

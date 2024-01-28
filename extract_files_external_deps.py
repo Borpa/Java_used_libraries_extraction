@@ -4,8 +4,8 @@ import sys
 
 import pandas as pd
 
-projects_dep_file = "projects_dependencies.csv"
-output_filename = "files_dependencies.csv"
+PROJECTS_DEP_FILE = "projects_dependencies.csv"
+OUTPUT_FILENAME = "files_dependencies.csv"
 
 
 def init_output_csv(header, filename):
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     header = ["filename", "type", "project", "dependencies", "filepath"]
 
-    init_output_csv(header, output_filename)
+    init_output_csv(header, OUTPUT_FILENAME)
 
     project_list = get_projects_path_list(target_dir)
 
@@ -101,11 +101,11 @@ if __name__ == "__main__":
             filename = os.path.basename(file)
             filepath = file
             project_name = os.path.basename(project)
-            project_type = get_project_type(projects_dep_file, project_name)
+            project_type = get_project_type(PROJECTS_DEP_FILE, project_name)
             if project_type is None:
                 continue
-            dependencies = extract_files_external_deps(file, project, projects_dep_file)
+            dependencies = extract_files_external_deps(file, project, PROJECTS_DEP_FILE)
             if len(dependencies) == 0:
                 continue
             new_entry = [filename, project_type, project_name, dependencies, filepath]
-            append_new_entry(output_filename, new_entry)
+            append_new_entry(OUTPUT_FILENAME, new_entry)
