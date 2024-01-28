@@ -42,14 +42,17 @@ for (currentBirthmark in birthmarkList){
             matcher = pochi.matcher(currentMatcher)
             
             def result_lines = []
-            matcher.match(birthmarks_1, birthmarks_2)
+            current_settings = currentBirthmark + "," + currentComparator + "," + currentMatcher + ","
+
+            match_results = matcher.match(birthmarks_1, birthmarks_2)
                 .map(pair -> comparator.compare(pair))
                 .filter(either -> either.isRight())
                 .map(either -> either.get())
                 .filter(comparison -> comparison.isStolen(threshold))
-                .forEach(comparison -> result_lines.add(comparison))
+                .forEach(comparison -> println(current_settings + comparison))
 
             if (file_output_flag){
+                match_results.forEach(comparison -> result_lines.add(comparison))
                 newline = [currentBirthmark, currentComparator, currentMatcher]
                 for (result in result_lines){
                     data.add(newline + result)
