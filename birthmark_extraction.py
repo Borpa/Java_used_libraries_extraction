@@ -14,6 +14,10 @@ TESTED_SOFTWARE = "D:/Study/phd_research/tested_software/"
 SIMILARITY_THRESHOLD = 70
 SIMILARITY_PAIRS_NUM = 3
 
+POCHI_VERSION = "pochi-2.6.0"
+POCHI_OUTPUT_FILENAME = POCHI_VERSION + "_output.csv"
+OUTPUT_DIR = "birthmarks/"
+
 
 def get_similar_pairs(threshold, num_of_pairs, similarity_data):
     df = pd.read_csv(similarity_data)
@@ -66,29 +70,13 @@ def run_pochi(
     project2_file_list,
     options=None,
 ):
-    version = "pochi-2.6.0"
-    full_path = software_location + version + "/bin/"
+    full_path = software_location + POCHI_VERSION + "/bin/"
     pochi_script = "sh " + full_path + "pochi"
     extraction_script = full_path + "extract_test_2.groovy"
-    output_filename = "__".join([project1, project2]) + ".csv"
-    output_dir = "birthmarks/"
-
-    header = [
-        "project1_file",
-        "project2_file",
-        "birthmark",
-        "comparator",
-        "matcher",
-        "class1",
-        "class2",
-        "similarity",
-    ]
-    init_csv_file(output_filename, header, dir=output_dir)
+    total_result = []
 
     for project1_file in project1_file_list:
         for project2_file in project2_file_list:
-            pair_output = []
-
             command = " ".join(
                 [
                     pochi_script,
@@ -101,16 +89,22 @@ def run_pochi(
             output = run_cmd_command(command)
 
             output = output.split("\r\n")
+            pair_result = []
+
             for line in output:
                 if len(line) == 0:
                     continue
                 line = line.replace("\r\n", "").split(",")
                 newline = [
+                    project1,
+                    project2,
                     os.path.basename(project1_file),
                     os.path.basename(project2_file),
                 ] + line
-                pair_output.append(newline)
-            append_csv_data(output_filename, pair_output, output_dir)
+                pair_result.append(newline)
+            total_result.append(pair_result)
+
+    return total_result
 
 
 def run_stigmara(software_location, program_1, program_2, options):
@@ -140,12 +134,16 @@ if __name__ == "__main__":
         output_option = sys.argv[0]
 
     pochi_output_header = [
+        "project1",
+        "project2",
+        "project1_file",
+        "project2_file",
         "birthmark",
         "comparator",
         "matcher",
-        "file1",
-        "file2",
-        "result",
+        "class1",
+        "class2",
+        "similarity",
     ]
 
     similarity_groups = get_similar_pairs(
@@ -157,6 +155,8 @@ if __name__ == "__main__":
     project_pairs = (
         project_pairs.drop_duplicates()
     )  # might count num of pairs with similarity >= thershold in the future
+
+    init_csv_file(POCHI_OUTPUT_FILENAME, pochi_output_header, OUTPUT_DIR)
 
     for index, row in project_pairs.iterrows():
         project1_file_list = get_project_jar_list(
@@ -174,3 +174,6 @@ if __name__ == "__main__":
             project2_file_list,
             output_option,
         )
+
+        for row in output:
+            append_csv_data(POCHI_OUTPUT_FILENAME, row, OUTPUT_DIR)
