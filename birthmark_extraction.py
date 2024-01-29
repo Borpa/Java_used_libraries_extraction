@@ -89,7 +89,7 @@ def run_pochi(
             output = run_cmd_command(command)
 
             output = output.split("\r\n")
-            pair_result = []
+            file_pair_result = []
 
             for line in output:
                 if len(line) == 0:
@@ -101,8 +101,8 @@ def run_pochi(
                     os.path.basename(project1_file),
                     os.path.basename(project2_file),
                 ] + line
-                pair_result.append(newline)
-            total_result.append(pair_result)
+                file_pair_result.append(newline)
+            total_result.append(file_pair_result)
 
     return total_result
 
