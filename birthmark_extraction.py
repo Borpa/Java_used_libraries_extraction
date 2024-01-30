@@ -35,7 +35,7 @@ def get_similar_pairs(threshold, num_of_pairs, similarity_data):
     return pd.concat(top_results)
 
 
-def run_cmd_command(command):
+def run_bash_command(command):
     output = subprocess.check_output(
         command, shell=False, executable=GIT_BASH_EXEC_PATH
     )
@@ -86,7 +86,7 @@ def run_pochi(
                     options,
                 ]
             )
-            output = run_cmd_command(command)
+            output = run_bash_command(command)
 
             output = output.split("\r\n")
             file_pair_result = []
@@ -107,9 +107,22 @@ def run_pochi(
     return total_result
 
 
-def run_stigmara(software_location, program_1, program_2, options):
+def run_stigmara(
+    software_location,
+    project1,
+    project1_file_list,
+    project2,
+    project2_file_list,
+    options=None,
+):
     version = "stigmata-master/target/"
     full_path = software_location + version
+    command = " ".join(
+        [
+            "java -jar",
+            full_path,
+        ]
+    )
 
     return None
 
