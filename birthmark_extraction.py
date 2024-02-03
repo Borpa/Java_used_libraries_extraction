@@ -5,6 +5,8 @@ import sys
 
 import pandas as pd
 
+import run_stigmata as stigmata
+
 GIT_BASH_EXEC_PATH = "C:/Program Files/Git/bin/bash.exe"
 
 SIMILARITY_DATA = "file_similarity.csv"
@@ -107,24 +109,21 @@ def run_pochi(
     return total_result
 
 
-def run_stigmara(
-    software_location,
+def run_stigmata(
     project1,
     project1_file_list,
     project2,
     project2_file_list,
     options=None,
 ):
-    version = "stigmata-master/target/"
-    full_path = software_location + version
-    command = " ".join(
-        [
-            "java -jar",
-            full_path,
-        ]
-    )
+    total_result = []
+    for project1_file in project1_file_list:
+        for project2_file in project2_file_list:
+            #pair_result = stigmata.extract_compare_all(project1_file, project2_file)
+            pair_result = stigmata.extract_compare("kgram", project1_file, project2_file)
+            total_result.append(pair_result)
 
-    return None
+    return total_result
 
 
 def get_project_jar_list(main_dir, project_type, project_name):
