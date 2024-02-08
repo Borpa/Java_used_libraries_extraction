@@ -64,7 +64,7 @@ def append_csv_data(filename, data, dir=None):
             writer.writerow(row)
 
 
-def run_pochi(
+def pochi_extract_compare_all(
     software_location,
     project1,
     project1_file_list,
@@ -109,6 +109,10 @@ def run_pochi(
     return total_result
 
 
+def pochi_extract_birthmark():
+    return None
+
+
 def run_stigmata(
     project1,
     project1_file_list,
@@ -119,8 +123,10 @@ def run_stigmata(
     total_result = []
     for project1_file in project1_file_list:
         for project2_file in project2_file_list:
-            #pair_result = stigmata.extract_compare_all(project1_file, project2_file)
-            pair_result = stigmata.extract_compare("kgram", project1_file, project2_file)
+            # pair_result = stigmata.extract_compare_all(project1_file, project2_file)
+            pair_result = stigmata.extract_compare(
+                "kgram", project1_file, project2_file
+            )
             total_result.append(pair_result)
 
     return total_result
@@ -140,7 +146,7 @@ def get_project_jar_list(main_dir, project_type, project_name):
     return jar_list
 
 
-if __name__ == "__main__":
+def main():
     output_option = "no-csv"
     if len(sys.argv) > 0:
         output_option = sys.argv[0]
@@ -178,7 +184,7 @@ if __name__ == "__main__":
             TESTED_SOFTWARE, row.project2_type, row.project2
         )
 
-        output = run_pochi(
+        output = pochi_extract_compare_all(
             BIRTHMARK_SOFTWARE,
             row.project1,
             project1_file_list,
@@ -189,3 +195,7 @@ if __name__ == "__main__":
 
         for row in output:
             append_csv_data(POCHI_OUTPUT_FILENAME, row, OUTPUT_DIR)
+
+
+if __name__ == "__main__":
+    main()

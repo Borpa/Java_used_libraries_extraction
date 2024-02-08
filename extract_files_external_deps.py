@@ -83,7 +83,7 @@ def extract_files_external_deps(filepath, project_path, dep_filename):
     return external_deps
 
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) != 2:
         print("Incorrect number of arguments\n")
         exit()
@@ -109,3 +109,7 @@ if __name__ == "__main__":
                 continue
             new_entry = [filename, project_type, project_name, dependencies, filepath]
             append_new_entry(OUTPUT_FILENAME, new_entry)
+
+
+if __name__ == "__main__":
+    main()

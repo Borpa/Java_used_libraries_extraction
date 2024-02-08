@@ -43,7 +43,7 @@ def calculate_similarity(file_group, file_df):
 
             deps_ratio1 = len(same_deps) / len(file1_deps) * 100
             deps_ratio2 = len(same_deps) / len(file2_deps) * 100
-            # Note: might change to just the amount of similar dependencies to reduce the effect of the files with low general amount of imports 
+            # Note: might change to just the amount of similar dependencies to reduce the effect of the files with low general amount of imports
 
             ratio = max([deps_ratio1, deps_ratio2])
 

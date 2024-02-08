@@ -258,7 +258,7 @@ def get_project_name(filepath, project_types):
     return project_name
 
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) != 2:
         print("Incorrect number of arguments\n")
         exit()
@@ -333,3 +333,7 @@ if __name__ == "__main__":
                         package_name, project_name, project_type, dep_list
                     ),
                 )
+
+
+if __name__ == "__main__":
+    main()
