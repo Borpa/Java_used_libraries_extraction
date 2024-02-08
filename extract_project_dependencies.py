@@ -322,8 +322,6 @@ def main():
                 if deps_extracted_check(OUTPUT_FILENAME, project_name):
                     continue
 
-                filename = file.replace(".jar", "")
-
                 dep_list = extract_deps_from_jar(filepath)
                 project_type = get_project_type(filepath, project_types)
 
