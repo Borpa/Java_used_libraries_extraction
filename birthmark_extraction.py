@@ -109,25 +109,21 @@ def pochi_extract_compare_all(
     return total_result
 
 
-def pochi_extract_birthmark(software_location, project, project_files, birthmark):
+def pochi_extract_birthmark(software_location, project_file, birthmark):
     full_path = software_location + POCHI_VERSION + "/bin/"
     pochi_script = "sh " + full_path + "pochi"
     extraction_script = "pochi_scripts/" + "extract_birthmark.groovy"
-    result = []
+    command = " ".join(
+        [
+            pochi_script,
+            extraction_script,
+            birthmark,
+            project_file,
+        ]
+    )
+    output = run_bash_command(command).split("\r\n")
 
-    for project_file in project_files:
-        command = " ".join(
-            [
-                pochi_script,
-                extraction_script,
-                birthmark,
-                project_file,
-            ]
-        )
-        output = run_bash_command(command).split("\r\n")
-        result += output
-
-    return result
+    return output
 
 
 def run_stigmata(
