@@ -109,13 +109,10 @@ def pochi_extract_compare_all(
     return total_result
 
 
-def pochi_extract_birthmark(software_location, project, birthmark):
+def pochi_extract_birthmark(software_location, project, project_files, birthmark):
     full_path = software_location + POCHI_VERSION + "/bin/"
     pochi_script = "sh " + full_path + "pochi"
     extraction_script = "pochi_scripts/" + "extract_birthmark.groovy"
-
-    project_files = get_project_jar_list(project)
-
     result = []
 
     for project_file in project_files:
