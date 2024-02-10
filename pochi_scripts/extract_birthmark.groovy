@@ -23,7 +23,8 @@ if (file_output_flag){
     birthmarks.forEach(birthmark -> data.add(birthmark))
 
     directoryName = "birthmarks/"
-    filename = args[0].split("/")[-1] + "_" +args[1].split("/")[-1] + ".csv"
+    filename = args[1].split("/")[-1] + args[0] + ".csv"
     def file = new File(directoryName + filename)
-    file.text = data*.join(",").join(System.lineSeparator())
+    file.text = data
+    //file.text = data*.join(",").join(System.lineSeparator())
 }
