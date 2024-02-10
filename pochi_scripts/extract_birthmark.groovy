@@ -1,4 +1,3 @@
-import jp.cafebabe.birthmarks.comparators.Threshold;
 import jp.cafebabe.birthmarks.entities.Birthmarks;
 
 def extract(path, extractor) {
