@@ -4,8 +4,13 @@ import subprocess
 import sys
 
 import pandas as pd
+import numpy as np
 
 import run_stigmata as stigmata
+
+from itertools import repeat
+from multiprocessing import Pool, freeze_support
+
 
 GIT_BASH_EXEC_PATH = "C:/Program Files/Git/bin/bash.exe"
 
@@ -159,6 +164,40 @@ def get_project_jar_list(main_dir, project_type, project_name):
     return jar_list
 
 
+def multiproc_run(proj_pair_group, output_option):
+    result = []
+    for index, row in proj_pair_group.iterrows():
+        project1_file_list = get_project_jar_list(
+            TESTED_SOFTWARE, row.project1_type, row.project1
+        )
+        project2_file_list = get_project_jar_list(
+            TESTED_SOFTWARE, row.project2_type, row.project2
+        )
+
+        output = pochi_extract_compare_all(
+            BIRTHMARK_SOFTWARE,
+            row.project1,
+            project1_file_list,
+            row.project2,
+            project2_file_list,
+            output_option,
+        )
+        result.append(output)
+
+    return result
+
+
+def run_multiproc(project_pairs, output_option):
+    proj_pair_groups = np.array_split(project_pairs, 4)
+
+    with Pool() as pool:
+        result = pool.starmap(
+            multiproc_run, zip(proj_pair_groups, repeat(output_option))
+        )
+
+    return result
+
+
 def main():
     output_option = "no-csv"
     if len(sys.argv) > 0:
@@ -211,4 +250,5 @@ def main():
 
 
 if __name__ == "__main__":
+    freeze_support()
     main()
