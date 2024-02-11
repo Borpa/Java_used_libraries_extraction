@@ -18,7 +18,7 @@ def header = ["birthmark", "comparator", "matcher", "file1", "file2", "result"]
 def data = []
 data.add(header)
 
-file_output_flag = True
+file_output_flag = False
 
 if (args.size() > 2){
     if (args[2] == "no-csv"){
