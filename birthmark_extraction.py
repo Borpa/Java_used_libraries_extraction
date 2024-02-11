@@ -79,7 +79,8 @@ def pochi_extract_compare_all(
 ):
     full_path = software_location + POCHI_VERSION + "/bin/"
     pochi_script = "sh " + full_path + "pochi"
-    extraction_script = full_path + "extract_test_2.groovy"
+    #extraction_script = full_path + "extract_test_2.groovy"
+    extraction_script = "pochi_scripts/" + "extract-compare_all.groovy"
     total_result = []
 
     for project1_file in project1_file_list:
@@ -237,7 +238,7 @@ def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
 
 
 def run_pochi_for_pair(
-    project1, project1_type, project2, project2_type, output_option="no-csv"
+    project1, project1_type, project2, project2_type, options="no-csv"
 ):
     project1_file_list = get_project_jar_list(TESTED_SOFTWARE, project1_type, project1)
     project2_file_list = get_project_jar_list(TESTED_SOFTWARE, project2_type, project2)
@@ -248,15 +249,12 @@ def run_pochi_for_pair(
         project1_file_list,
         project2,
         project2_file_list,
-        output_option,
+        options,
     )
     return output
 
 
 def main():
-    if len(sys.argv) > 0:
-        output_option = sys.argv[0]
-
     pochi_output_header = [
         "project1",
         "project2",
@@ -270,11 +268,12 @@ def main():
         "similarity",
     ]
     # run_pochi_for_similar_proj()
-    project1 = "LastCalc-master"
-    project1_type = "/calculator/"
-    project2 = "clopad_new"
-    project2_type = "/text_editor/"
-    output = run_pochi_for_pair(project1, project1_type, project2, project2_type)
+    project1 = "Cypher-Notepad-master"
+    project1_type = "/text_editor/"
+    project2 = "ChatGPT-1.0.2"
+    project2_type = "/ai_app/"
+    option = "fuc"
+    output = run_pochi_for_pair(project1, project1_type, project2, project2_type, option)
     output_filename = project1 + "_" + project2 + ".csv"
 
     init_csv_file(output_filename, pochi_output_header, OUTPUT_DIR)
