@@ -198,24 +198,7 @@ def run_multiproc(project_pairs, output_option):
     return result
 
 
-def main():
-    output_option = "no-csv"
-    if len(sys.argv) > 0:
-        output_option = sys.argv[0]
-
-    pochi_output_header = [
-        "project1",
-        "project2",
-        "project1_file",
-        "project2_file",
-        "birthmark",
-        "comparator",
-        "matcher",
-        "class1",
-        "class2",
-        "similarity",
-    ]
-
+def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
     similarity_groups = get_similar_pairs(
         SIMILARITY_THRESHOLD, SIMILARITY_PAIRS_NUM, SIMILARITY_DATA
     )
@@ -226,8 +209,11 @@ def main():
         project_pairs.drop_duplicates()
     )  # might count num of pairs with similarity >= thershold in the future
 
-    init_csv_file(POCHI_OUTPUT_FILENAME, pochi_output_header, OUTPUT_DIR)
+    if is_multiproc:
+        result = run_multiproc(project_pairs, output_option)
+        return result
 
+    total_output = []
     for index, row in project_pairs.iterrows():
         project1_file_list = get_project_jar_list(
             TESTED_SOFTWARE, row.project1_type, row.project1
@@ -245,8 +231,55 @@ def main():
             output_option,
         )
 
-        for row in output:
-            append_csv_data(POCHI_OUTPUT_FILENAME, row, OUTPUT_DIR)
+        total_output += output
+
+    return total_output
+
+
+def run_pochi_for_pair(
+    project1, project1_type, project2, project2_type, output_option="no-csv"
+):
+    project1_file_list = get_project_jar_list(TESTED_SOFTWARE, project1_type, project1)
+    project2_file_list = get_project_jar_list(TESTED_SOFTWARE, project2_type, project2)
+
+    output = pochi_extract_compare_all(
+        BIRTHMARK_SOFTWARE,
+        project1,
+        project1_file_list,
+        project2,
+        project2_file_list,
+        output_option,
+    )
+    return output
+
+
+def main():
+    if len(sys.argv) > 0:
+        output_option = sys.argv[0]
+
+    pochi_output_header = [
+        "project1",
+        "project2",
+        "project1_file",
+        "project2_file",
+        "birthmark",
+        "comparator",
+        "matcher",
+        "class1",
+        "class2",
+        "similarity",
+    ]
+    # run_pochi_for_similar_proj()
+    project1 = "LastCalc-master"
+    project1_type = "/calculator/"
+    project2 = "clopad_new"
+    project2_type = "/text_editor/"
+    output = run_pochi_for_pair(project1, project1_type, project2, project2_type)
+    output_filename = project1 + "_" + project2 + ".csv"
+
+    init_csv_file(output_filename, pochi_output_header, OUTPUT_DIR)
+    for row in output:
+        append_csv_data(output_filename, row, OUTPUT_DIR)
 
 
 if __name__ == "__main__":
