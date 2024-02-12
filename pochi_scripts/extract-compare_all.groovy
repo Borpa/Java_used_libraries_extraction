@@ -11,20 +11,13 @@ def extract(path, extractor) {
     return extractor.extract(source)
 }
 
-threshold = Threshold.DEFAULT // default threshold (0.75): 0.75 originality, 0.25 similarity
-//threshold = new Threshold(0.25)
-
-def header = ["birthmark", "comparator", "matcher", "file1", "file2", "result"]
-def data = []
-data.add(header)
-
-file_output_flag = False
 
 if (args.size() > 2){
-    if (args[2] == "no-csv"){
-        file_output_flag = False
-    }
+    birthmarkList = [args[2]]
 }
+
+threshold = Threshold.DEFAULT // default threshold (0.75): 0.75 originality, 0.25 similarity
+//threshold = new Threshold(0.25)
 
 for (currentBirthmark in birthmarkList){
     extractor = pochi.extractor(currentBirthmark)
@@ -41,7 +34,6 @@ for (currentBirthmark in birthmarkList){
         for (currentMatcher in matcherList){
             matcher = pochi.matcher(currentMatcher)
             
-            def result_lines = []
             current_settings = currentBirthmark + "," + currentComparator + "," + currentMatcher + ","
 
             match_results = matcher.match(birthmarks_1, birthmarks_2)
@@ -49,22 +41,8 @@ for (currentBirthmark in birthmarkList){
                 .filter(either -> either.isRight())
                 .map(either -> either.get())
                 .filter(comparison -> comparison.isStolen(threshold))
-                .forEach(comparison -> println(current_settings + comparison))
 
-            if (file_output_flag){
-                match_results.forEach(comparison -> result_lines.add(comparison))
-                newline = [currentBirthmark, currentComparator, currentMatcher]
-                for (result in result_lines){
-                    data.add(newline + result)
-                }
-            }
+            match_results.forEach(comparison -> println(current_settings + comparison))
         }
     }
-}
-
-if (file_output_flag){
-    directoryName = "birthmarks/"
-    filename = args[0].split("/")[-1] + "_" +args[1].split("/")[-1] + ".csv"
-    def file = new File(directoryName + filename)
-    file.text = data*.join(",").join(System.lineSeparator())
 }
