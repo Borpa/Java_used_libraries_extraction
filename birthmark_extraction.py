@@ -69,7 +69,7 @@ def append_csv_data(filename, data, dir=None):
             writer.writerow(row)
 
 
-def pochi_extract_compare_all(
+def pochi_extract_compare(
     software_location,
     project1,
     project1_file_list,
@@ -80,7 +80,7 @@ def pochi_extract_compare_all(
     full_path = software_location + POCHI_VERSION + "/bin/"
     pochi_script = "sh " + full_path + "pochi"
     #extraction_script = full_path + "extract_test_2.groovy"
-    extraction_script = "pochi_scripts/" + "extract-compare_all.groovy"
+    extraction_script = "pochi_scripts/" + "extract-compare.groovy"
     total_result = []
 
     for project1_file in project1_file_list:
@@ -175,7 +175,7 @@ def multiproc_run(proj_pair_group, output_option):
             TESTED_SOFTWARE, row.project2_type, row.project2
         )
 
-        output = pochi_extract_compare_all(
+        output = pochi_extract_compare(
             BIRTHMARK_SOFTWARE,
             row.project1,
             project1_file_list,
@@ -223,7 +223,7 @@ def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
             TESTED_SOFTWARE, row.project2_type, row.project2
         )
 
-        output = pochi_extract_compare_all(
+        output = pochi_extract_compare(
             BIRTHMARK_SOFTWARE,
             row.project1,
             project1_file_list,
@@ -243,7 +243,7 @@ def run_pochi_for_pair(
     project1_file_list = get_project_jar_list(TESTED_SOFTWARE, project1_type, project1)
     project2_file_list = get_project_jar_list(TESTED_SOFTWARE, project2_type, project2)
 
-    output = pochi_extract_compare_all(
+    output = pochi_extract_compare(
         BIRTHMARK_SOFTWARE,
         project1,
         project1_file_list,
