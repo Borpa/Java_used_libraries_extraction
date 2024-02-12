@@ -1,7 +1,6 @@
 import csv
 import os
 import subprocess
-import sys
 
 import pandas as pd
 import numpy as np
