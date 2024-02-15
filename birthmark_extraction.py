@@ -78,7 +78,6 @@ def pochi_extract_compare(
 ):
     full_path = software_location + POCHI_VERSION + "/bin/"
     pochi_script = "sh " + full_path + "pochi"
-    #extraction_script = full_path + "extract_test_2.groovy"
     extraction_script = "pochi_scripts/" + "extract-compare.groovy"
     total_result = []
 
