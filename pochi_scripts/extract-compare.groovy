@@ -4,7 +4,9 @@ import jp.cafebabe.birthmarks.entities.Birthmarks;
 
 def birthmarkList = ["1-gram", "2-gram", "3-gram", "4-gram", "5-gram", "6-gram", "fuc", "uc"] //vom doesnt work 
 def comparatorList = ["Cosine", "DiceIndex", "EditDistance", "JaccardIndex", "SimpsonIndex"]
-def matcherList = ["Guessed", "RoundRobin", "RoundRobinWithSamePair", "Specified"]
+//def matcherList = ["Guessed", "RoundRobin", "RoundRobinWithSamePair", "Specified"]
+
+def matcherList = ["RoundRobin"]
 
 def extract(path, extractor) {
     source = pochi.source(path)
