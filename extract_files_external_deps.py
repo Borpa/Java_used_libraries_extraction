@@ -53,6 +53,7 @@ def get_projects_path_list(target_dir):
 
 
 def get_projects_filelist(project_path):
+    #TODO: add version as a second input
     filelist = []
     for root, dirs, files in os.walk(project_path):
         for file in files:
@@ -96,6 +97,7 @@ def main():
     project_list = get_projects_path_list(target_dir)
 
     for project in project_list:
+        #TODO: add function to get the list of versions
         project_files = get_projects_filelist(project)
         for file in project_files:
             filename = os.path.basename(file)

@@ -25,6 +25,7 @@ POCHI_OUTPUT_FILENAME = POCHI_VERSION + "_output.csv"
 OUTPUT_DIR = "birthmarks/"
 
 
+# TODO: add version information in groupby method
 def get_similar_pairs(threshold, num_of_pairs, similarity_data):
     df = pd.read_csv(similarity_data)
     project_groups = [x for _, x in df.groupby(["project1", "project2"])]
@@ -149,6 +150,7 @@ def run_stigmata(
     return total_result
 
 
+# TODO: add version information as input
 def get_project_jar_list(main_dir, project_type, project_name):
     project_type = project_type.replace("/", "")
     target_dir = main_dir + project_type + "/" + project_name + "/"
@@ -202,7 +204,15 @@ def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
         SIMILARITY_THRESHOLD, SIMILARITY_PAIRS_NUM, SIMILARITY_DATA
     )
     project_pairs = similarity_groups[
-        ["project1", "project2", "project1_type", "project2_type"]
+        # ["project1", "project2", "project1_type", "project2_type"]
+        [
+            "project1",
+            "project2",
+            "project1_type",
+            "project2_type",
+            "project1_ver",
+            "project2_ver",
+        ]
     ]
     project_pairs = (
         project_pairs.drop_duplicates()
@@ -234,7 +244,7 @@ def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
 
     return total_output
 
-
+#TODO: add ver information
 def run_pochi_for_pair(
     project1, project1_type, project2, project2_type, options="no-csv"
 ):
@@ -256,6 +266,8 @@ def main():
     pochi_output_header = [
         "project1",
         "project2",
+        "project1_ver",
+        "project2_ver",
         "project1_file",
         "project2_file",
         "birthmark",
@@ -271,7 +283,9 @@ def main():
     project2 = "ChatGPT-1.0.2"
     project2_type = "/ai_app/"
     option = "fuc"
-    output = run_pochi_for_pair(project1, project1_type, project2, project2_type, option)
+    output = run_pochi_for_pair(
+        project1, project1_type, project2, project2_type, option
+    )
     output_filename = project1 + "_" + project2 + ".csv"
 
     init_csv_file(output_filename, pochi_output_header, OUTPUT_DIR)

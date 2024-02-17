@@ -9,7 +9,7 @@ from pandas import read_csv
 DEPENDENCY_DATA = "files_dependencies.csv"
 OUTPUT_FILENAME = "file_similarity.csv"
 
-
+#TODO: include version information
 def calculate_similarity(file_group, file_df):
     result = list()
 
