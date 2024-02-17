@@ -245,9 +245,9 @@ def extract_deps_from_jar(filepath):
 
 def get_project_name(filepath, project_types):
     project_name = filepath
-    for type in project_types:
-        if type in project_name:
-            project_name_start = project_name.index(type) + len(type)
+    for project_type in project_types:
+        if project_type in project_name:
+            project_name_start = project_name.index(project_type) + len(project_type)
             project_name = project_name[project_name_start:]
             try:
                 project_name_end = project_name.index("/")
@@ -256,6 +256,17 @@ def get_project_name(filepath, project_types):
                 project_name = project_name
             break
     return project_name
+
+
+def get_project_ver(filepath, project_name):
+    project_ver_start = filepath.index(project_name) + len(project_name)
+    project_ver = filepath[project_ver_start:]
+    try:
+        project_ver_end = project_ver.index("/")
+        project_ver = project_ver[:project_ver_end]
+    except IndexError:
+        project_ver = project_ver
+    return project_ver
 
 
 def main():
