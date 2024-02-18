@@ -48,7 +48,7 @@ def main():
 
     header = ["filename", "type", "project", "dependencies", "filepath"]
 
-    cm.init_output_csv(header, OUTPUT_FILENAME)
+    cm.init_csv_file(header, OUTPUT_FILENAME)
 
     project_list = pi.get_projects_path_list(target_dir)
 
@@ -66,7 +66,7 @@ def main():
             if len(dependencies) == 0:
                 continue
             new_entry = [filename, project_type, project_name, dependencies, filepath]
-            cm.append_new_entry(OUTPUT_FILENAME, new_entry)
+            cm.append_single_entry(OUTPUT_FILENAME, new_entry)
 
 
 if __name__ == "__main__":

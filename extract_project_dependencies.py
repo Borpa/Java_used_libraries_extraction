@@ -1,4 +1,3 @@
-import csv
 import io
 import os
 import re
@@ -200,7 +199,7 @@ def main():
     ]
     dir_name_stopwords = ["src", "target", "lib"]
 
-    cm.init_output_csv(header, OUTPUT_FILENAME)
+    cm.init_csv_file(header, OUTPUT_FILENAME)
 
     for root, dirs, files in os.walk(target_dir):
         if "pom.xml" in files:
@@ -220,7 +219,7 @@ def main():
             dep_list = extract_deps_from_pom(filepath)
             project_type = pi.get_project_type(filepath, project_types)
 
-            cm.append_new_entry_list(
+            cm.append_csv_data(
                 OUTPUT_FILENAME,
                 create_entry_list(package_name, project_name, project_type, dep_list),
             )
@@ -243,7 +242,7 @@ def main():
                 dep_list = extract_deps_from_jar(filepath)
                 project_type = pi.get_project_type(filepath, project_types)
 
-                cm.append_new_entry_list(
+                cm.append_csv_data(
                     OUTPUT_FILENAME,
                     create_entry_list(
                         package_name, project_name, project_type, dep_list
