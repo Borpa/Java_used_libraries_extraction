@@ -12,11 +12,9 @@ from itertools import repeat
 from multiprocessing import Pool, freeze_support
 
 
-GIT_BASH_EXEC_PATH = "C:/Program Files/Git/bin/bash.exe"
-
 SIMILARITY_DATA = "file_similarity.csv"
 BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
-TESTED_SOFTWARE = "D:/Study/phd_research/tested_software/"
+TESTED_SOFTWARE_DIR = "D:/Study/phd_research/test_software/"
 
 SIMILARITY_THRESHOLD = 70
 SIMILARITY_PAIRS_NUM = 3
@@ -128,10 +126,10 @@ def multiproc_run(proj_pair_group, output_option):
     result = []
     for index, row in proj_pair_group.iterrows():
         project1_file_list = pi.get_project_jar_list(
-            TESTED_SOFTWARE, row.project1_type, row.project1
+            TESTED_SOFTWARE_DIR, row.project1_type, row.project1
         )
         project2_file_list = pi.get_project_jar_list(
-            TESTED_SOFTWARE, row.project2_type, row.project2
+            TESTED_SOFTWARE_DIR, row.project2_type, row.project2
         )
 
         output = pochi_extract_compare(
@@ -184,10 +182,10 @@ def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
     total_output = []
     for index, row in project_pairs.iterrows():
         project1_file_list = pi.get_project_jar_list(
-            TESTED_SOFTWARE, row.project1_type, row.project1
+            TESTED_SOFTWARE_DIR, row.project1_type, row.project1
         )
         project2_file_list = pi.get_project_jar_list(
-            TESTED_SOFTWARE, row.project2_type, row.project2
+            TESTED_SOFTWARE_DIR, row.project2_type, row.project2
         )
 
         output = pochi_extract_compare(
@@ -212,10 +210,10 @@ def run_pochi_for_pair(
     project2_versions = None
 
     project1_file_list = pi.get_project_jar_list(
-        TESTED_SOFTWARE, project1_type, project1
+        TESTED_SOFTWARE_DIR, project1_type, project1
     )
     project2_file_list = pi.get_project_jar_list(
-        TESTED_SOFTWARE, project2_type, project2
+        TESTED_SOFTWARE_DIR, project2_type, project2
     )
 
     output = pochi_extract_compare(
@@ -229,13 +227,61 @@ def run_pochi_for_pair(
     return output
 
 
+def create_project_pairs(dataframe):
+    row_count = len(dataframe.index)
+    column_names = [
+        "project1_name",
+        "project1_type",
+        "project1_ver",
+        "project1_file",
+        "project2_name",
+        "project2_type",
+        "project2_ver",
+        "project2_file",
+    ]
+    result_list = []
+
+    for i in range(0, row_count):
+        for j in range(1, row_count):
+            if i == j:
+                continue
+
+            project1_line = dataframe.iloc[i]
+            project2_line = dataframe.iloc[j]
+
+            project1_part = [
+                project1_line.project_name,
+                project1_line.project_type,
+                project1_line.project_ver,
+                project1_line.jar,
+            ]
+
+            project2_part = [
+                project2_line.project_name,
+                project2_line.project_type,
+                project2_line.project_ver,
+                project2_line.jar,
+            ]
+
+            newline = project1_part + project2_part
+            mirrored_line = project2_part + project1_part
+            
+            if (mirrored_line not in result_list):
+                result_list.append(newline)
+
+    result_df = pd.DataFrame(result_list, columns=column_names)
+    result_df = result_df.drop_duplicates()
+
+    return result_df
+
+
 # TODO: add function to run extraction for all projects in a dir
 def run_pochi_for_all(dir, output_option="no-csv", is_multiproc=False):
-    full_jar_list = pi.get_full_jar_list(TESTED_SOFTWARE)
+    full_jar_list = pi.get_full_jar_list(dir)
     project_files_data = []
     for jar in full_jar_list:
         project_type = pi.get_project_type(jar)
-        project_name = pi.get_project_name(jar, project_type)
+        project_name = pi.get_project_name(jar)
         project_ver = pi.get_project_ver_from_filepath(jar, project_name)
         project_files_data.append(
             [
@@ -251,9 +297,9 @@ def run_pochi_for_all(dir, output_option="no-csv", is_multiproc=False):
         columns=["project_name", "project_type", "project_ver", "jar"],
     )
 
-    df = df.groupby(["project_name", "project_ver"])
+    # groupby_data = df.groupby(["project_name", "project_ver"])
 
-    return None
+    return create_project_pairs(df)
 
 
 def main():
