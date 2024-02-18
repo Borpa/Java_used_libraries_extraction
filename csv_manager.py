@@ -1,5 +1,6 @@
 import csv
 
+
 def init_output_csv(header, filename):
     """
     Initialize output csv file for extracted dependencies
@@ -17,6 +18,12 @@ def init_output_csv(header, filename):
     with open(filename, "w", encoding="UTF8", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(header)
+
+
+def append_new_entry(filename, entry):
+    with open(filename, "a", encoding="UTF8", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(entry)
 
 
 def append_new_entry_list(filename, entry_list):
