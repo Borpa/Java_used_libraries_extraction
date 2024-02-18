@@ -48,6 +48,8 @@ def pochi_extract_compare(
     project2,
     project2_file_list,
     options=None,
+    project1_ver=None,
+    project2_ver=None,
 ):
     full_path = software_location + POCHI_VERSION + "/bin/"
     pochi_script = "sh " + full_path + "pochi"
@@ -77,6 +79,8 @@ def pochi_extract_compare(
                 newline = [
                     project1,
                     project2,
+                    project1_ver,
+                    project2_ver,
                     os.path.basename(project1_file),
                     os.path.basename(project2_file),
                 ] + line
@@ -265,12 +269,11 @@ def create_project_pairs(dataframe):
 
             newline = project1_part + project2_part
             mirrored_line = project2_part + project1_part
-            
-            if (mirrored_line not in result_list):
+
+            if mirrored_line not in result_list:
                 result_list.append(newline)
 
     result_df = pd.DataFrame(result_list, columns=column_names)
-    result_df = result_df.drop_duplicates()
 
     return result_df
 
@@ -297,9 +300,27 @@ def run_pochi_for_all(dir, output_option="no-csv", is_multiproc=False):
         columns=["project_name", "project_type", "project_ver", "jar"],
     )
 
-    # groupby_data = df.groupby(["project_name", "project_ver"])
+    pairs_df = create_project_pairs(df)
 
-    return create_project_pairs(df)
+    if is_multiproc:
+        result = run_multiproc(pairs_df, output_option)
+        return result
+
+    total_output = []
+    for index, row in pairs_df.iterrows():
+        output = pochi_extract_compare(
+            software_location=BIRTHMARK_SOFTWARE,
+            project1=row.project1_name,
+            project1_file_list=[row.project1_file],
+            project2=row.project2_name,
+            project2_file_list=[row.project2_file],
+            options=output_option,
+            project1_ver=row.project1_ver,
+            project2_ver=row.project2_ver,
+        )
+        total_output += output
+
+    return total_output
 
 
 def main():
