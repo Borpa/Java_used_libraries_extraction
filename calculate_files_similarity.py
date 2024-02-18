@@ -1,4 +1,3 @@
-import csv
 import itertools
 from itertools import repeat
 from multiprocessing import Pool, freeze_support
