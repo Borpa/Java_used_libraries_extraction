@@ -1,6 +1,5 @@
 import os
 
-#TODO: move functions like get project type, get project name etc. to here
 
 PROJECT_TYPES = [
     "/ai_app/",
@@ -15,6 +14,7 @@ PROJECT_TYPES = [
     "/text_editor/",
     "/text_voice_chat/",
 ]
+
 
 def get_full_jar_list(dir):
     jar_path_list = []
@@ -49,8 +49,8 @@ def get_project_name(filepath, project_types=PROJECT_TYPES):
 
 
 def get_project_versions(main_dir, project_name, project_type):
-
     return None
+
 
 def get_project_ver_from_filepath(filepath, project_name):
     project_name = project_name + "/"
@@ -87,8 +87,8 @@ def get_project_type(filepath, type_list=PROJECT_TYPES):
     return project_type
 
 
-def get_projects_filelist(project_path):
-    #TODO: add version as a second input
+def get_projects_filelist(project_path, project_ver=None):
+    project_path = project_path + project_ver
     filelist = []
     for root, dirs, files in os.walk(project_path):
         for file in files:
@@ -116,9 +116,9 @@ def get_projects_path_list(target_dir):
 
 
 # TODO: add version information as input
-def get_project_jar_list(main_dir, project_type, project_name):
+def get_project_jar_list(main_dir, project_type, project_name, project_ver=None):
     project_type = project_type.replace("/", "")
-    target_dir = main_dir + project_type + "/" + project_name + "/"
+    target_dir = main_dir + project_type + "/" + project_name + "/" + project_ver
     jar_list = []
 
     for root, dirs, files in os.walk(target_dir):
