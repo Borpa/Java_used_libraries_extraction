@@ -1,11 +1,11 @@
-import csv
 import os
-import subprocess
 
 import pandas as pd
 import numpy as np
 
 import run_stigmata as stigmata
+import command_runner as cr
+import csv_manager as cm
 
 from itertools import repeat
 from multiprocessing import Pool, freeze_support
@@ -42,33 +42,6 @@ def get_similar_pairs(threshold, num_of_pairs, similarity_data):
     return pd.concat(top_results)
 
 
-def run_bash_command(command):
-    output = subprocess.check_output(
-        command, shell=False, executable=GIT_BASH_EXEC_PATH
-    )
-    output = output.decode()
-
-    return output
-
-
-def init_csv_file(filename, header, dir=None):
-    if dir is not None:
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-        filename = dir + filename
-    with open(filename, "w", encoding="UTF8", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(header)
-
-
-def append_csv_data(filename, data, dir=None):
-    filename = dir + filename
-    with open(filename, "a", encoding="UTF8", newline="") as f:
-        for row in data:
-            writer = csv.writer(f)
-            writer.writerow(row)
-
-
 def pochi_extract_compare(
     software_location,
     project1,
@@ -93,7 +66,7 @@ def pochi_extract_compare(
                     options,
                 ]
             )
-            output = run_bash_command(command)
+            output = cr.run_bash_command(command)
 
             output = output.split("\r\n")
             file_pair_result = []
@@ -126,7 +99,7 @@ def pochi_extract_birthmark(software_location, project_file, birthmark):
             project_file,
         ]
     )
-    output = run_bash_command(command).split("\r\n")
+    output = cr.run_bash_command(command).split("\r\n")
 
     return output
 
@@ -244,10 +217,14 @@ def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
 
     return total_output
 
-#TODO: add ver information
+
+# TODO: add ver information
 def run_pochi_for_pair(
     project1, project1_type, project2, project2_type, options="no-csv"
 ):
+    project1_versions = None
+    project2_versions = None
+
     project1_file_list = get_project_jar_list(TESTED_SOFTWARE, project1_type, project1)
     project2_file_list = get_project_jar_list(TESTED_SOFTWARE, project2_type, project2)
 
@@ -260,6 +237,12 @@ def run_pochi_for_pair(
         options,
     )
     return output
+
+
+# TODO: add function to run extraction for all projects in a dir
+def run_pochi_for_all(dir, output_option="no-csv", is_multiproc=False):
+    return None
+    
 
 
 def main():
@@ -288,9 +271,9 @@ def main():
     )
     output_filename = project1 + "_" + project2 + ".csv"
 
-    init_csv_file(output_filename, pochi_output_header, OUTPUT_DIR)
+    cm.init_csv_file(output_filename, pochi_output_header, OUTPUT_DIR)
     for row in output:
-        append_csv_data(output_filename, row, OUTPUT_DIR)
+        cm.append_csv_data(output_filename, row, OUTPUT_DIR)
 
 
 if __name__ == "__main__":
