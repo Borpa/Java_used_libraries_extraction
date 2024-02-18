@@ -14,14 +14,22 @@ def init_csv_file(filename, header, dir=None):
 
 def append_single_entry(filename, entry, dir=None):
     filename = dir + filename
-    with open(filename, "a", encoding="UTF8", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(entry)
+    try:
+        with open(filename, "a", encoding="UTF8", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(entry)
+    except FileNotFoundError:
+        print("File not found")
+        return
 
 
 def append_csv_data(filename, data, dir=None):
     filename = dir + filename
-    with open(filename, "a", encoding="UTF8", newline="") as f:
-        writer = csv.writer(f)
-        for row in data:
-            writer.writerow(row)
+    try:
+        with open(filename, "a", encoding="UTF8", newline="") as f:
+            writer = csv.writer(f)
+            for row in data:
+                writer.writerow(row)
+    except FileNotFoundError:
+        print(FileNotFoundError)
+        return
