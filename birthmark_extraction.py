@@ -6,6 +6,7 @@ import numpy as np
 import run_stigmata as stigmata
 import command_runner as cr
 import csv_manager as cm
+import project_inspector as pi
 
 from itertools import repeat
 from multiprocessing import Pool, freeze_support
@@ -123,28 +124,13 @@ def run_stigmata(
     return total_result
 
 
-# TODO: add version information as input
-def get_project_jar_list(main_dir, project_type, project_name):
-    project_type = project_type.replace("/", "")
-    target_dir = main_dir + project_type + "/" + project_name + "/"
-    jar_list = []
-
-    for root, dirs, files in os.walk(target_dir):
-        for file in files:
-            if file.endswith(".jar"):
-                if "src" not in root and "lib" not in root:
-                    filepath = os.path.join(root, file).replace("\\", "/")
-                    jar_list.append(filepath)
-    return jar_list
-
-
 def multiproc_run(proj_pair_group, output_option):
     result = []
     for index, row in proj_pair_group.iterrows():
-        project1_file_list = get_project_jar_list(
+        project1_file_list = pi.get_project_jar_list(
             TESTED_SOFTWARE, row.project1_type, row.project1
         )
-        project2_file_list = get_project_jar_list(
+        project2_file_list = pi.get_project_jar_list(
             TESTED_SOFTWARE, row.project2_type, row.project2
         )
 
@@ -197,10 +183,10 @@ def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
 
     total_output = []
     for index, row in project_pairs.iterrows():
-        project1_file_list = get_project_jar_list(
+        project1_file_list = pi.get_project_jar_list(
             TESTED_SOFTWARE, row.project1_type, row.project1
         )
-        project2_file_list = get_project_jar_list(
+        project2_file_list = pi.get_project_jar_list(
             TESTED_SOFTWARE, row.project2_type, row.project2
         )
 
@@ -225,8 +211,12 @@ def run_pochi_for_pair(
     project1_versions = None
     project2_versions = None
 
-    project1_file_list = get_project_jar_list(TESTED_SOFTWARE, project1_type, project1)
-    project2_file_list = get_project_jar_list(TESTED_SOFTWARE, project2_type, project2)
+    project1_file_list = pi.get_project_jar_list(
+        TESTED_SOFTWARE, project1_type, project1
+    )
+    project2_file_list = pi.get_project_jar_list(
+        TESTED_SOFTWARE, project2_type, project2
+    )
 
     output = pochi_extract_compare(
         BIRTHMARK_SOFTWARE,
@@ -242,7 +232,6 @@ def run_pochi_for_pair(
 # TODO: add function to run extraction for all projects in a dir
 def run_pochi_for_all(dir, output_option="no-csv", is_multiproc=False):
     return None
-    
 
 
 def main():
