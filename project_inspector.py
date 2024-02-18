@@ -115,7 +115,6 @@ def get_projects_path_list(target_dir):
     return project_list
 
 
-# TODO: add version information as input
 def get_project_jar_list(main_dir, project_type, project_name, project_ver=None):
     project_type = project_type.replace("/", "")
     target_dir = main_dir + project_type + "/" + project_name + "/" + project_ver
