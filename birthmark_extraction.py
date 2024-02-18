@@ -231,6 +231,28 @@ def run_pochi_for_pair(
 
 # TODO: add function to run extraction for all projects in a dir
 def run_pochi_for_all(dir, output_option="no-csv", is_multiproc=False):
+    full_jar_list = pi.get_full_jar_list(TESTED_SOFTWARE)
+    project_files_data = []
+    for jar in full_jar_list:
+        project_type = pi.get_project_type(jar)
+        project_name = pi.get_project_name(jar, project_type)
+        project_ver = pi.get_project_ver_from_filepath(jar, project_name)
+        project_files_data.append(
+            [
+                project_name,
+                project_type,
+                project_ver,
+                jar,
+            ]
+        )
+
+    df = pd.DataFrame(
+        project_files_data,
+        columns=["project_name", "project_type", "project_ver", "jar"],
+    )
+
+    df = df.groupby(["project_name", "project_ver"])
+
     return None
 
 

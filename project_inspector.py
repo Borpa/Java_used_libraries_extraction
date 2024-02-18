@@ -16,6 +16,16 @@ PROJECT_TYPES = [
     "/text_voice_chat/",
 ]
 
+def get_full_jar_list(dir):
+    jar_path_list = []
+    for root, dirs, files in os.walk(dir):
+        for file in files:
+            if file.endswith(".jar"):
+                if "src" not in root and "lib" not in root:
+                    filepath = os.path.join(root, file).replace("\\", "/")
+                    jar_path_list.append(filepath)
+    return jar_path_list
+
 
 def get_project_name(filepath, project_types=PROJECT_TYPES):
     project_name = filepath
@@ -32,7 +42,12 @@ def get_project_name(filepath, project_types=PROJECT_TYPES):
     return project_name
 
 
-def get_project_ver(filepath, project_name):
+def get_project_versions(main_dir, project_name, project_type):
+
+    return None
+
+def get_project_ver_from_filepath(filepath, project_name):
+    project_name = project_name + "/"
     project_ver_start = filepath.index(project_name) + len(project_name)
     project_ver = filepath[project_ver_start:]
     try:
