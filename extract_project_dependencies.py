@@ -2,11 +2,13 @@ import csv
 import io
 import os
 import re
-import subprocess
 import sys
 
 import pandas as pd
 from bs4 import BeautifulSoup
+
+import project_inspector as pi
+import command_runner as cr
 
 
 OUTPUT_FILENAME = "projects_dependencies.csv"
@@ -70,29 +72,6 @@ def deps_extracted_check(output_filename, project_name):
     return project_name in df["project"].unique().tolist()
 
 
-def get_project_type(filepath, type_list):
-    """
-    Get the type of the project from provided list of types.
-    Returns "empty_project" if not found.
-
-    Parameters:
-    ----------
-
-    filepath : str
-        filepath to the project file
-
-    type_list : list(str)
-        list of possible project types
-
-    """
-    project_type = "/empty_type/"
-    for typ in type_list:
-        if typ in filepath:
-            project_type = typ
-            break
-    return project_type
-
-
 def create_entry_list(package_name, project_name, project_type, dep_list):
     """
     Create list of entries for the output csv file.
@@ -116,25 +95,6 @@ def create_entry_list(package_name, project_name, project_type, dep_list):
     for dep in dep_list:
         entry_list.append([package_name, project_name, dep, project_type])
     return entry_list
-
-
-def run_cmd_command(command):
-    """
-    Run cmd command and return the output.
-
-    Parameters:
-    ----------
-
-    command : str
-        cmd command
-
-    """
-    proc = subprocess.Popen(
-        command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE
-    )
-    out, err = proc.communicate()
-    output = out.decode()
-    return output
 
 
 def is_dep_local_check(dir_path, dep_name):
@@ -201,13 +161,13 @@ def extract_deps_from_jar(filepath):
     """
     jar_filename = os.path.basename(filepath)
     command = "jdeps -R --print-module-deps {}".format(filepath)
-    output = run_cmd_command(command)
+    output = cr.run_cmd_command(command)
 
     if (
         "Error: Missing dependencies:" not in output
     ):  # check if .jar contains the dependencies
         command = "jdeps -R {}".format(filepath)
-        output = run_cmd_command(command)
+        output = cr.run_cmd_command(command)
 
     buffer = io.StringIO(output)
     line = buffer.readline()
@@ -241,21 +201,6 @@ def extract_deps_from_jar(filepath):
 
     # print("extracted dependencies from {}".format(filepath))
     return set(dep_list)
-
-
-def get_project_name(filepath, project_types):
-    project_name = filepath
-    for project_type in project_types:
-        if project_type in project_name:
-            project_name_start = project_name.index(project_type) + len(project_type)
-            project_name = project_name[project_name_start:]
-            try:
-                project_name_end = project_name.index("/")
-                project_name = project_name[:project_name_end]
-            except IndexError:
-                project_name = project_name
-            break
-    return project_name
 
 
 def get_project_ver(filepath, project_name):
@@ -305,13 +250,13 @@ def main():
             if package_name in dir_name_stopwords:
                 continue
 
-            project_name = get_project_name(filepath, project_types)
+            project_name = pi.get_project_name(filepath, project_types)
 
             if deps_extracted_check(OUTPUT_FILENAME, project_name):
                 continue
 
             dep_list = extract_deps_from_pom(filepath)
-            project_type = get_project_type(filepath, project_types)
+            project_type = pi.get_project_type(filepath, project_types)
 
             append_new_entry(
                 OUTPUT_FILENAME,
@@ -328,13 +273,13 @@ def main():
                 if package_name in dir_name_stopwords:
                     continue
 
-                project_name = get_project_name(filepath, project_types)
+                project_name = pi.get_project_name(filepath, project_types)
 
                 if deps_extracted_check(OUTPUT_FILENAME, project_name):
                     continue
 
                 dep_list = extract_deps_from_jar(filepath)
-                project_type = get_project_type(filepath, project_types)
+                project_type = pi.get_project_type(filepath, project_types)
 
                 append_new_entry(
                     OUTPUT_FILENAME,
