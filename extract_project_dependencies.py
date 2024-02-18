@@ -9,48 +9,10 @@ from bs4 import BeautifulSoup
 
 import project_inspector as pi
 import command_runner as cr
+import csv_manager as cm
 
 
 OUTPUT_FILENAME = "projects_dependencies.csv"
-
-
-def init_output_csv(header, filename):
-    """
-    Initialize output csv file for extracted dependencies
-
-    Parameters:
-    ----------
-
-    header : str
-        The header of the output csv
-
-    filename : str
-        output csv filename
-
-    """
-    with open(filename, "w", encoding="UTF8", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(header)
-
-
-def append_new_entry(filename, entry_list):
-    """
-    Append new values to the output csv file
-
-    Parameters:
-    ----------
-
-    filename : str
-        output csv filename
-
-    entry_list : list(list(str))
-        list of new entries to the output file
-
-    """
-    with open(filename, "a", encoding="UTF8", newline="") as f:
-        writer = csv.writer(f)
-        for entry in entry_list:
-            writer.writerow(entry)
 
 
 def deps_extracted_check(output_filename, project_name):
@@ -238,7 +200,7 @@ def main():
     ]
     dir_name_stopwords = ["src", "target", "lib"]
 
-    init_output_csv(header, OUTPUT_FILENAME)
+    cm.init_output_csv(header, OUTPUT_FILENAME)
 
     for root, dirs, files in os.walk(target_dir):
         if "pom.xml" in files:
@@ -258,7 +220,7 @@ def main():
             dep_list = extract_deps_from_pom(filepath)
             project_type = pi.get_project_type(filepath, project_types)
 
-            append_new_entry(
+            cm.append_new_entry_list(
                 OUTPUT_FILENAME,
                 create_entry_list(package_name, project_name, project_type, dep_list),
             )
@@ -281,7 +243,7 @@ def main():
                 dep_list = extract_deps_from_jar(filepath)
                 project_type = pi.get_project_type(filepath, project_types)
 
-                append_new_entry(
+                cm.append_new_entry_list(
                     OUTPUT_FILENAME,
                     create_entry_list(
                         package_name, project_name, project_type, dep_list
