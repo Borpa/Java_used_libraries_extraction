@@ -184,19 +184,6 @@ def main():
 
     header = ["package", "project", "dependency", "project_type"]
 
-    project_types = [
-        "/ai_app/",
-        "/book_reader/",
-        "/web_file_browser/",
-        "/calculator/",
-        "/emulator_environment/",
-        "/graphic_editor/",
-        "/dev_environment/",
-        "/media_player/",
-        "/terminal_interface/",
-        "/text_editor/",
-        "/text_voice_chat/",
-    ]
     dir_name_stopwords = ["src", "target", "lib"]
 
     cm.init_csv_file(header, OUTPUT_FILENAME)
@@ -211,13 +198,13 @@ def main():
             if package_name in dir_name_stopwords:
                 continue
 
-            project_name = pi.get_project_name(filepath, project_types)
+            project_name = pi.get_project_name(filepath)
 
             if deps_extracted_check(OUTPUT_FILENAME, project_name):
                 continue
 
             dep_list = extract_deps_from_pom(filepath)
-            project_type = pi.get_project_type(filepath, project_types)
+            project_type = pi.get_project_type(filepath)
 
             cm.append_csv_data(
                 OUTPUT_FILENAME,
@@ -234,13 +221,13 @@ def main():
                 if package_name in dir_name_stopwords:
                     continue
 
-                project_name = pi.get_project_name(filepath, project_types)
+                project_name = pi.get_project_name(filepath)
 
                 if deps_extracted_check(OUTPUT_FILENAME, project_name):
                     continue
 
                 dep_list = extract_deps_from_jar(filepath)
-                project_type = pi.get_project_type(filepath, project_types)
+                project_type = pi.get_project_type(filepath)
 
                 cm.append_csv_data(
                     OUTPUT_FILENAME,
