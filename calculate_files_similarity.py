@@ -6,10 +6,13 @@ from multiprocessing import Pool, freeze_support
 import numpy as np
 from pandas import read_csv
 
+import csv_manager as cm
+
 DEPENDENCY_DATA = "files_dependencies.csv"
 OUTPUT_FILENAME = "file_similarity.csv"
 
-#TODO: include version information
+
+# TODO: include version information
 def calculate_similarity(file_group, file_df):
     result = list()
 
@@ -97,11 +100,8 @@ def main():
 
     result = list(itertools.chain.from_iterable(result))
 
-    with open(OUTPUT_FILENAME, "w", encoding="UTF8", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(header)
-        for res in result:
-            writer.writerow(res)
+    cm.init_csv_file(OUTPUT_FILENAME, header)
+    cm.append_csv_data(OUTPUT_FILENAME, result)
 
 
 if __name__ == "__main__":
