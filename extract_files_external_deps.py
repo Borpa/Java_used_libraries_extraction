@@ -48,7 +48,6 @@ def main():
     project_list = pi.get_projects_path_list(TESTED_SOFTWARE_DIR)
 
     for project in project_list:
-        # TODO: add function to get the list of versions
         project_files = pi.get_projects_filelist(project)
         for file in project_files:
             filename = os.path.basename(file)
