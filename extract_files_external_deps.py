@@ -1,10 +1,10 @@
 import os
-import sys
 
 import pandas as pd
 
 import csv_manager as cm
 import project_inspector as pi
+from birthmark_extraction import TESTED_SOFTWARE_DIR
 
 PROJECTS_DEP_FILE = "projects_dependencies.csv"
 OUTPUT_FILENAME = "files_dependencies.csv"
@@ -41,16 +41,11 @@ def extract_files_external_deps(filepath, project_path, dep_filename):
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Incorrect number of arguments\n")
-        exit()
-    target_dir = sys.argv[1]
-
-    header = ["filename", "type", "project", "dependencies", "filepath"]
+    header = ["filename", "type", "project", "project_ver", "dependencies", "filepath"]
 
     cm.init_csv_file(header, OUTPUT_FILENAME)
 
-    project_list = pi.get_projects_path_list(target_dir)
+    project_list = pi.get_projects_path_list(TESTED_SOFTWARE_DIR)
 
     for project in project_list:
         # TODO: add function to get the list of versions
@@ -58,14 +53,24 @@ def main():
         for file in project_files:
             filename = os.path.basename(file)
             filepath = file
-            project_name = os.path.basename(project)
+            project_name = pi.get_project_name(filepath)
+            project_ver = pi.get_project_ver(filepath, project_name)
+
             project_type = get_project_type_from_file(PROJECTS_DEP_FILE, project_name)
             if project_type is None:
                 continue
+
             dependencies = extract_files_external_deps(file, project, PROJECTS_DEP_FILE)
             if len(dependencies) == 0:
                 continue
-            new_entry = [filename, project_type, project_name, dependencies, filepath]
+            new_entry = [
+                filename,
+                project_type,
+                project_name,
+                project_ver,
+                dependencies,
+                filepath,
+            ]
             cm.append_single_entry(OUTPUT_FILENAME, new_entry)
 
 
