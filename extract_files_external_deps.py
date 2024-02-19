@@ -10,7 +10,7 @@ PROJECTS_DEP_FILE = "projects_dependencies.csv"
 OUTPUT_FILENAME = "files_dependencies.csv"
 
 
-def get_project_type(dep_filename, project_name):
+def get_project_type_from_file(dep_filename, project_name):
     df = pd.read_csv(dep_filename)
     try:
         type = df[df.project == project_name].iloc[0]["project_type"]
@@ -59,7 +59,7 @@ def main():
             filename = os.path.basename(file)
             filepath = file
             project_name = os.path.basename(project)
-            project_type = get_project_type(PROJECTS_DEP_FILE, project_name)
+            project_type = get_project_type_from_file(PROJECTS_DEP_FILE, project_name)
             if project_type is None:
                 continue
             dependencies = extract_files_external_deps(file, project, PROJECTS_DEP_FILE)
