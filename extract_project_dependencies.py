@@ -6,10 +6,9 @@ import sys
 import pandas as pd
 from bs4 import BeautifulSoup
 
-import project_inspector as pi
 import command_runner as cr
 import csv_manager as cm
-
+import project_inspector as pi
 
 OUTPUT_FILENAME = "projects_dependencies.csv"
 
@@ -182,7 +181,7 @@ def main():
 
     target_dir = sys.argv[1]
 
-    header = ["package", "project", "dependency", "project_type"]
+    header = ["package", "project", "project_ver", "dependency", "project_type"]
 
     dir_name_stopwords = ["src", "target", "lib"]
 
@@ -205,10 +204,13 @@ def main():
 
             dep_list = extract_deps_from_pom(filepath)
             project_type = pi.get_project_type(filepath)
+            project_ver = pi.get_project_ver_from_filepath(filepath, project_name)
 
             cm.append_csv_data(
                 OUTPUT_FILENAME,
-                create_entry_list(package_name, project_name, project_type, dep_list),
+                create_entry_list(
+                    package_name, project_name, project_ver, project_type, dep_list
+                ),
             )
             continue
 
