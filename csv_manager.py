@@ -19,7 +19,7 @@ def append_single_entry(filename, entry, dir=None):
             writer = csv.writer(f)
             writer.writerow(entry)
     except FileNotFoundError:
-        print("File not found")
+        print(FileNotFoundError)
         return
 
 
