@@ -52,7 +52,7 @@ def get_project_versions(main_dir, project_name, project_type):
     return None
 
 
-def get_project_ver_from_filepath(filepath, project_name):
+def get_project_ver(filepath, project_name):
     project_name = project_name + "/"
     project_ver_start = filepath.index(project_name) + len(project_name)
     project_ver = filepath[project_ver_start:]

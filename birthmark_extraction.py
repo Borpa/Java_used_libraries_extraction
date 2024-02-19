@@ -285,7 +285,7 @@ def run_pochi_for_all(dir, output_option="no-csv", is_multiproc=False):
     for jar in full_jar_list:
         project_type = pi.get_project_type(jar)
         project_name = pi.get_project_name(jar)
-        project_ver = pi.get_project_ver_from_filepath(jar, project_name)
+        project_ver = pi.get_project_ver(jar, project_name)
         project_files_data.append(
             [
                 project_name,

@@ -204,7 +204,7 @@ def main():
 
             dep_list = extract_deps_from_pom(filepath)
             project_type = pi.get_project_type(filepath)
-            project_ver = pi.get_project_ver_from_filepath(filepath, project_name)
+            project_ver = pi.get_project_ver(filepath, project_name)
 
             cm.append_csv_data(
                 OUTPUT_FILENAME,
