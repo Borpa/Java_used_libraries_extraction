@@ -7,8 +7,9 @@ from pandas import read_csv
 
 import csv_manager as cm
 
-DEPENDENCY_DATA = "files_dependencies.csv"
-OUTPUT_FILENAME = "file_similarity.csv"
+from extract_files_external_deps import FILES_DEP
+
+FILES_SIM = "file_similarity.csv"
 
 
 # TODO: include version information
@@ -22,8 +23,13 @@ def calculate_similarity(file_group, file_df):
 
             file1_project = file1.project
             file2_project = file2.project
+            file1_project_ver = file1.project_ver
+            file2_project_ver = file2.project_ver
 
-            if file1_project == file2_project:
+            if (
+                file1_project == file2_project
+                and file1_project_ver == file2_project_ver
+            ):
                 continue
 
             file1_name = file1.filename
@@ -64,6 +70,8 @@ def calculate_similarity(file_group, file_df):
                     ratio,
                     file1_project,
                     file2_project,
+                    file1_project_ver,
+                    file2_project_ver,
                     file1_path,
                     file2_path,
                 ]
@@ -73,7 +81,7 @@ def calculate_similarity(file_group, file_df):
 
 
 def main():
-    csv_data = read_csv(DEPENDENCY_DATA)
+    csv_data = read_csv(FILES_DEP)
 
     num_of_files = len(csv_data)
 
@@ -93,14 +101,16 @@ def main():
         "dependency_ratio",
         "project1",
         "project2",
+        "project1_ver",
+        "project2_ver",
         "filepath1",
         "filepath2",
     ]
 
     result = list(itertools.chain.from_iterable(result))
 
-    cm.init_csv_file(OUTPUT_FILENAME, header)
-    cm.append_csv_data(OUTPUT_FILENAME, result)
+    cm.init_csv_file(FILES_SIM, header)
+    cm.append_csv_data(FILES_SIM, result)
 
 
 if __name__ == "__main__":

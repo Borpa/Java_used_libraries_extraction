@@ -1,18 +1,16 @@
 import os
-
-import pandas as pd
-import numpy as np
-
-import run_stigmata as stigmata
-import command_runner as cr
-import csv_manager as cm
-import project_inspector as pi
-
 from itertools import repeat
 from multiprocessing import Pool, freeze_support
 
+import numpy as np
+import pandas as pd
 
-SIMILARITY_DATA = "file_similarity.csv"
+import command_runner as cr
+import csv_manager as cm
+import project_inspector as pi
+import run_stigmata as stigmata
+from calculate_files_similarity import FILES_SIM
+
 BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
 TESTED_SOFTWARE_DIR = "D:/Study/phd_research/test_software/"
 
@@ -162,7 +160,7 @@ def run_multiproc(project_pairs, output_option):
 
 def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
     similarity_groups = get_similar_pairs(
-        SIMILARITY_THRESHOLD, SIMILARITY_PAIRS_NUM, SIMILARITY_DATA
+        SIMILARITY_THRESHOLD, SIMILARITY_PAIRS_NUM, FILES_SIM
     )
     project_pairs = similarity_groups[
         # ["project1", "project2", "project1_type", "project2_type"]

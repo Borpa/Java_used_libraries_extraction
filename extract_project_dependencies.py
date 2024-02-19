@@ -10,7 +10,7 @@ import command_runner as cr
 import csv_manager as cm
 import project_inspector as pi
 
-OUTPUT_FILENAME = "projects_dependencies.csv"
+PROJECTS_DEP = "projects_dependencies.csv"
 
 
 def deps_extracted_check(output_filename, project_name):
@@ -185,7 +185,7 @@ def main():
 
     dir_name_stopwords = ["src", "target", "lib"]
 
-    cm.init_csv_file(header, OUTPUT_FILENAME)
+    cm.init_csv_file(header, PROJECTS_DEP)
 
     for root, dirs, files in os.walk(target_dir):
         if "pom.xml" in files:
@@ -199,7 +199,7 @@ def main():
 
             project_name = pi.get_project_name(filepath)
 
-            if deps_extracted_check(OUTPUT_FILENAME, project_name):
+            if deps_extracted_check(PROJECTS_DEP, project_name):
                 continue
 
             dep_list = extract_deps_from_pom(filepath)
@@ -207,7 +207,7 @@ def main():
             project_ver = pi.get_project_ver(filepath, project_name)
 
             cm.append_csv_data(
-                OUTPUT_FILENAME,
+                PROJECTS_DEP,
                 create_entry_list(
                     package_name, project_name, project_ver, project_type, dep_list
                 ),
@@ -225,14 +225,14 @@ def main():
 
                 project_name = pi.get_project_name(filepath)
 
-                if deps_extracted_check(OUTPUT_FILENAME, project_name):
+                if deps_extracted_check(PROJECTS_DEP, project_name):
                     continue
 
                 dep_list = extract_deps_from_jar(filepath)
                 project_type = pi.get_project_type(filepath)
 
                 cm.append_csv_data(
-                    OUTPUT_FILENAME,
+                    PROJECTS_DEP,
                     create_entry_list(
                         package_name, project_name, project_type, dep_list
                     ),

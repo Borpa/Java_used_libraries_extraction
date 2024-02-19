@@ -5,9 +5,9 @@ import pandas as pd
 import csv_manager as cm
 import project_inspector as pi
 from birthmark_extraction import TESTED_SOFTWARE_DIR
+from extract_project_dependencies import PROJECTS_DEP
 
-PROJECTS_DEP_FILE = "projects_dependencies.csv"
-OUTPUT_FILENAME = "files_dependencies.csv"
+FILES_DEP = "files_dependencies.csv"
 
 
 def get_project_type_from_file(dep_filename, project_name):
@@ -43,7 +43,7 @@ def extract_files_external_deps(filepath, project_path, dep_filename):
 def main():
     header = ["filename", "type", "project", "project_ver", "dependencies", "filepath"]
 
-    cm.init_csv_file(header, OUTPUT_FILENAME)
+    cm.init_csv_file(header, FILES_DEP)
 
     project_list = pi.get_projects_path_list(TESTED_SOFTWARE_DIR)
 
@@ -55,11 +55,11 @@ def main():
             project_name = pi.get_project_name(filepath)
             project_ver = pi.get_project_ver(filepath, project_name)
 
-            project_type = get_project_type_from_file(PROJECTS_DEP_FILE, project_name)
+            project_type = get_project_type_from_file(PROJECTS_DEP, project_name)
             if project_type is None:
                 continue
 
-            dependencies = extract_files_external_deps(file, project, PROJECTS_DEP_FILE)
+            dependencies = extract_files_external_deps(file, project, PROJECTS_DEP)
             if len(dependencies) == 0:
                 continue
             new_entry = [
@@ -70,7 +70,7 @@ def main():
                 dependencies,
                 filepath,
             ]
-            cm.append_single_entry(OUTPUT_FILENAME, new_entry)
+            cm.append_single_entry(FILES_DEP, new_entry)
 
 
 if __name__ == "__main__":
