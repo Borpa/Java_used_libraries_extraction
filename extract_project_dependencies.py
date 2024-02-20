@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 import command_runner as cr
 import csv_manager as cm
 import project_inspector as pi
-
 from birthmark_extraction import TESTED_SOFTWARE_DIR
 
 PROJECTS_DEP = "projects_dependencies.csv"
