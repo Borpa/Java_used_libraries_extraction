@@ -163,7 +163,6 @@ def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
         SIMILARITY_THRESHOLD, SIMILARITY_PAIRS_NUM, FILES_SIM
     )
     project_pairs = similarity_groups[
-        # ["project1", "project2", "project1_type", "project2_type"]
         [
             "project1",
             "project2",
