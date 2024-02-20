@@ -1,7 +1,6 @@
 import io
 import os
 import re
-import sys
 
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -9,6 +8,8 @@ from bs4 import BeautifulSoup
 import command_runner as cr
 import csv_manager as cm
 import project_inspector as pi
+
+from birthmark_extraction import TESTED_SOFTWARE_DIR
 
 PROJECTS_DEP = "projects_dependencies.csv"
 
@@ -175,11 +176,7 @@ def get_project_ver(filepath, project_name):
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Incorrect number of arguments\n")
-        exit()
-
-    target_dir = sys.argv[1]
+    target_dir = TESTED_SOFTWARE_DIR
 
     header = ["package", "project", "project_ver", "dependency", "project_type"]
 
