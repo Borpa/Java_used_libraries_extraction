@@ -175,15 +175,13 @@ def get_project_ver(filepath, project_name):
 
 
 def main():
-    target_dir = TESTED_SOFTWARE_DIR
-
     header = ["package", "project", "project_ver", "dependency", "project_type"]
 
     dir_name_stopwords = ["src", "target", "lib"]
 
     cm.init_csv_file(header, PROJECTS_DEP)
 
-    for root, dirs, files in os.walk(target_dir):
+    for root, dirs, files in os.walk(TESTED_SOFTWARE_DIR):
         if "pom.xml" in files:
             file = "pom.xml"
             filepath = os.path.join(root, file).replace("\\", "/")
