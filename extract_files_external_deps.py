@@ -4,8 +4,7 @@ import pandas as pd
 
 import csv_manager as cm
 import project_inspector as pi
-from birthmark_extraction import TESTED_SOFTWARE_DIR
-from extract_project_dependencies import DEP_DIR, PROJECTS_DEP
+from extract_project_dependencies import DEP_DIR, PROJECTS_DEP, TESTED_SOFTWARE_DIR
 
 FILES_DEP = "files_dependencies.csv"
 
