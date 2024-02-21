@@ -10,9 +10,9 @@ import csv_manager as cm
 import project_inspector as pi
 import run_stigmata as stigmata
 from calculate_files_similarity import FILES_SIM
+from extract_project_dependencies import TESTED_SOFTWARE_DIR
 
 BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
-TESTED_SOFTWARE_DIR = "D:/Study/phd_research/test_software/"
 
 SIMILARITY_THRESHOLD = 70
 SIMILARITY_PAIRS_NUM = 3

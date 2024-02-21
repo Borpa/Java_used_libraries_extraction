@@ -6,8 +6,8 @@ import numpy as np
 from pandas import read_csv
 
 import csv_manager as cm
-
 from extract_files_external_deps import FILES_DEP
+from extract_project_dependencies import DEP_DIR
 
 FILES_SIM = "file_similarity.csv"
 
@@ -81,7 +81,7 @@ def calculate_similarity(file_group, file_df):
 
 
 def main():
-    csv_data = read_csv(FILES_DEP)
+    csv_data = read_csv(DEP_DIR + FILES_DEP)
 
     num_of_files = len(csv_data)
 

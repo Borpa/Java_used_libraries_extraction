@@ -8,9 +8,10 @@ from bs4 import BeautifulSoup
 import command_runner as cr
 import csv_manager as cm
 import project_inspector as pi
-from birthmark_extraction import TESTED_SOFTWARE_DIR
 
+TESTED_SOFTWARE_DIR = "D:/Study/phd_research/test_projects/"
 PROJECTS_DEP = "projects_dependencies.csv"
+DEP_DIR = "./dependencies/"
 
 
 def deps_extracted_check(output_filename, project_name):
@@ -32,7 +33,7 @@ def deps_extracted_check(output_filename, project_name):
     return project_name in df["project"].unique().tolist()
 
 
-def create_entry_list(package_name, project_name, project_type, dep_list):
+def create_entry_list(package_name, project_name, project_ver, project_type, dep_list):
     """
     Create list of entries for the output csv file.
 
@@ -53,7 +54,7 @@ def create_entry_list(package_name, project_name, project_type, dep_list):
     """
     entry_list = []
     for dep in dep_list:
-        entry_list.append([package_name, project_name, dep, project_type])
+        entry_list.append([package_name, project_name, project_ver, project_type, dep])
     return entry_list
 
 
@@ -175,11 +176,11 @@ def get_project_ver(filepath, project_name):
 
 
 def main():
-    header = ["package", "project", "project_ver", "dependency", "project_type"]
+    header = ["package", "project", "project_ver", "project_type", "dependency"]
 
-    dir_name_stopwords = ["src", "target", "lib"]
+    dir_name_stopwords = ["src", "lib", ".mvn"]
 
-    cm.init_csv_file(header, PROJECTS_DEP)
+    cm.init_csv_file(PROJECTS_DEP, header, DEP_DIR)
 
     for root, dirs, files in os.walk(TESTED_SOFTWARE_DIR):
         if "pom.xml" in files:
@@ -205,6 +206,7 @@ def main():
                 create_entry_list(
                     package_name, project_name, project_ver, project_type, dep_list
                 ),
+                DEP_DIR,
             )
             continue
 
@@ -224,12 +226,14 @@ def main():
 
                 dep_list = extract_deps_from_jar(filepath)
                 project_type = pi.get_project_type(filepath)
+                project_ver = pi.get_project_ver(filepath, project_name)
 
                 cm.append_csv_data(
                     PROJECTS_DEP,
                     create_entry_list(
-                        package_name, project_name, project_type, dep_list
+                        package_name, project_name, project_ver, project_type, dep_list
                     ),
+                    DEP_DIR,
                 )
 
 
