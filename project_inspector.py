@@ -88,7 +88,8 @@ def get_project_type(filepath, type_list=PROJECT_TYPES):
 
 
 def get_projects_filelist(project_path, project_ver=None):
-    project_path = project_path + project_ver
+    if project_ver is not None:
+        project_path = project_path + project_ver
     filelist = []
     for root, dirs, files in os.walk(project_path):
         for file in files:
