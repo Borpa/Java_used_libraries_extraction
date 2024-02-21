@@ -18,6 +18,12 @@ def get_project_type_from_file(dep_filename, project_name):
     return type
 
 
+def get_project_external_deps(dep_filename, project_name):
+    df = pd.read_csv(dep_filename)
+    external_deps = df.loc[df["project"] == project_name]["dependency"].tolist()
+    return external_deps
+
+
 def extract_files_external_deps(filepath, project_path, dep_filename):
     project_name = os.path.basename(project_path)
     project_deps = pi.get_project_external_deps(dep_filename, project_name)
