@@ -26,7 +26,7 @@ def get_project_external_deps(dep_filename, project_name):
 
 def extract_files_external_deps(filepath, project_path, dep_filename):
     project_name = os.path.basename(project_path)
-    project_deps = pi.get_project_external_deps(dep_filename, project_name)
+    project_deps = get_project_external_deps(dep_filename, project_name)
     external_deps = []
 
     with open(filepath, "r", errors="replace") as f:
