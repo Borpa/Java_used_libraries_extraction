@@ -42,7 +42,7 @@ def extract_files_external_deps(filepath, project_path, dep_filename):
 def main():
     header = ["filename", "type", "project", "project_ver", "dependencies", "filepath"]
 
-    cm.init_csv_file(header, FILES_DEP, DEP_DIR)
+    cm.init_csv_file(FILES_DEP, header, DEP_DIR)
 
     project_list = pi.get_projects_path_list(TESTED_SOFTWARE_DIR)
 
