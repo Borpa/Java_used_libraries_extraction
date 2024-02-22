@@ -109,8 +109,8 @@ def main():
 
     result = list(itertools.chain.from_iterable(result))
 
-    cm.init_csv_file(FILES_SIM, header)
-    cm.append_csv_data(FILES_SIM, result)
+    cm.init_csv_file(FILES_SIM, header, DEP_DIR)
+    cm.append_csv_data(FILES_SIM, result, DEP_DIR)
 
 
 if __name__ == "__main__":
