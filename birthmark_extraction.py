@@ -335,9 +335,9 @@ def run_pochi_for_all(dir, output_option=None, is_multiproc=False):
         )
         output = pochi_extract_compare(
             software_location=BIRTHMARK_SOFTWARE,
-            project1=row.project1_name,
+            project1=row.project1,
             project1_file_list=project1_file_list,
-            project2=row.project2_name,
+            project2=row.project2,
             project2_file_list=project2_file_list,
             options=output_option,
             project1_ver=row.project1_ver,
@@ -381,7 +381,7 @@ def main():
     #)
     #output_filename = project1 + "_" + project2 + ".csv"
 
-    output = run_pochi_for_all(dir=TESTED_SOFTWARE_DIR, is_multiproc=True)
+    output = run_pochi_for_all(dir=TESTED_SOFTWARE_DIR)
     cm.init_csv_file(POCHI_OUTPUT_FILENAME, pochi_output_header, OUTPUT_DIR)
     for row in output:
         cm.append_csv_data(POCHI_OUTPUT_FILENAME, row, OUTPUT_DIR)
