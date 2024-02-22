@@ -12,7 +12,6 @@ from extract_project_dependencies import DEP_DIR
 FILES_SIM = "file_similarity.csv"
 
 
-# TODO: include version information
 def calculate_similarity(file_group, file_df):
     result = list()
 
