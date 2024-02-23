@@ -277,13 +277,13 @@ def create_project_pairs(dataframe, distinct_projects):
 
             project1_line = dataframe.iloc[i]
             project2_line = dataframe.iloc[j]
-
-            if distinct_projects and project1_line.project == project2_line.project:
-                continue
-            elif (
-                not distinct_projects and project1_line.project != project2_line.project
-            ):
-                continue
+            if distinct_projects is not None:
+                if distinct_projects and project1_line.project == project2_line.project:
+                    continue
+                elif (
+                    not distinct_projects and project1_line.project != project2_line.project
+                ):
+                    continue
 
             newline = [
                 project1_line.project,
@@ -313,7 +313,7 @@ def create_project_pairs(dataframe, distinct_projects):
 
 # TODO: add function to run extraction for all projects in a dir
 def run_pochi_for_all(
-    dir, output_option=None, is_multiproc=False, distinct_projects=True
+    dir, output_option=None, is_multiproc=False, distinct_projects=None
 ):
     full_jar_list = pi.get_full_jar_list(dir)
     project_files_data = []
