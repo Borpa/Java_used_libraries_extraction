@@ -142,7 +142,7 @@ def run_stigmata(
 def multiproc_run(proj_pair_group, output_option):
     pid = current_process().pid
     temp_file = str(pid) + ".csv"
-    cm.init_csv_file(temp_file, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
+    cm.init_csv_file(temp_file, POCHI_OUTPUT_HEADER, MULTIPROC_TEMP_DIR)
 
     for index, row in proj_pair_group.iterrows():
         project1_file_list = pi.get_project_jar_list(
@@ -389,7 +389,7 @@ def main():
     # )
     # output_filename = project1 + "_" + project2 + ".csv"
 
-    run_pochi_for_all(dir=TESTED_SOFTWARE_DIR, is_multiproc=False)
+    run_pochi_for_all(dir=TESTED_SOFTWARE_DIR, is_multiproc=True)
 
 
 if __name__ == "__main__":
