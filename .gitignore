@@ -4,3 +4,4 @@ test.py
 file_similarity.csv
 /__pycache__/
 /dependencies/
+/temp/
