@@ -1,6 +1,6 @@
 import os
 from itertools import repeat
-from multiprocessing import Pool, freeze_support, current_process
+from multiprocessing import Pool, current_process, freeze_support
 
 import numpy as np
 import pandas as pd
@@ -177,9 +177,7 @@ def run_multiproc(project_pairs, output_option):
     proj_pair_groups = np.array_split(project_pairs, 4)
 
     with Pool() as pool:
-        pool.starmap(
-            multiproc_run, zip(proj_pair_groups, repeat(output_option))
-        )
+        pool.starmap(multiproc_run, zip(proj_pair_groups, repeat(output_option)))
 
 
 def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
@@ -297,7 +295,7 @@ def create_project_pairs(dataframe):
                 project2_line.project,
                 project1_line.project,
                 project2_line.project_type,
-                project2_line.project_type,
+                project1_line.project_type,
                 project2_line.project_ver,
                 project1_line.project_ver,
             ]
@@ -332,12 +330,11 @@ def run_pochi_for_all(dir, output_option=None, is_multiproc=False):
     )
 
     pairs_df = create_project_pairs(df)
-    
+
     if is_multiproc:
         run_multiproc(pairs_df, output_option)
         # TODO: combine temp files
         return
-
 
     cm.init_csv_file(POCHI_OUTPUT_FILENAME, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
 
@@ -371,21 +368,21 @@ def run_pochi_for_all(dir, output_option=None, is_multiproc=False):
 def main():
     # run_pochi_for_similar_proj()
 
-    #project1 = "FrankCYB_JavaGPT"
-    #project1_type = "/ai_app/"
-    #project1_ver = "v1.3.2"
-    #project2 = "LiLittleCat_ChatGPT"
-    #project2_type = "/ai_app/"
-    #project2_ver = "v1.0.3"
-    #output = run_pochi_for_pair(
+    # project1 = "FrankCYB_JavaGPT"
+    # project1_type = "/ai_app/"
+    # project1_ver = "v1.3.2"
+    # project2 = "LiLittleCat_ChatGPT"
+    # project2_type = "/ai_app/"
+    # project2_ver = "v1.0.3"
+    # output = run_pochi_for_pair(
     #    project1,
     #    project1_type,
     #    project2,
     #    project2_type,
     #    project1_version=project1_ver,
     #    project2_version=project2_ver,
-    #)
-    #output_filename = project1 + "_" + project2 + ".csv"
+    # )
+    # output_filename = project1 + "_" + project2 + ".csv"
 
     run_pochi_for_all(dir=TESTED_SOFTWARE_DIR, is_multiproc=True)
 
