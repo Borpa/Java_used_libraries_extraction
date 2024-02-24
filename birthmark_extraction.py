@@ -58,11 +58,11 @@ def get_similar_pairs(threshold, num_of_pairs, similarity_data):
 
 
 def pochi_extract_compare(
-    software_location,
     project1,
     project2,
     project1_file_list,
     project2_file_list,
+    software_location=BIRTHMARK_SOFTWARE,
     options=None,
     project1_ver=None,
     project2_ver=None,
@@ -123,6 +123,36 @@ def pochi_extract_birthmark(software_location, project_file, birthmark):
     return output
 
 
+def run_pochi_for_dataframe(
+    dataframe, options=None, output_filename=POCHI_OUTPUT_FILENAME, output_dir=OUTPUT_DIR
+):
+    for index, row in dataframe.iterrows():
+        project1_file_list = pi.get_project_jar_list(
+            TESTED_SOFTWARE_DIR,
+            row.project1_type,
+            row.project1,
+            row.project1_ver,
+        )
+        project2_file_list = pi.get_project_jar_list(
+            TESTED_SOFTWARE_DIR,
+            row.project2_type,
+            row.project2,
+            row.project2_ver,
+        )
+
+        pochi_extract_compare(
+            project1=row.project1,
+            project2=row.project2,
+            project1_ver=row.project1_ver,
+            project2_ver=row.project2_ver,
+            project1_file_list=project1_file_list,
+            project2_file_list=project2_file_list,
+            options=options,
+            output_filename=output_filename,
+            output_dir=output_dir,
+        )
+
+
 def run_stigmata(
     project1,
     project1_file_list,
@@ -142,44 +172,24 @@ def run_stigmata(
     return total_result
 
 
-def multiproc_run(proj_pair_group, output_option):
+def multiproc_run_iteration(proj_pair_group, output_option):
     pid = current_process().pid
-    temp_file = str(pid) + ".csv"
-    cm.init_csv_file(temp_file, POCHI_OUTPUT_HEADER, MULTIPROC_TEMP_DIR)
+    temp_file_name = str(pid) + ".csv"
+    cm.init_csv_file(temp_file_name, POCHI_OUTPUT_HEADER, MULTIPROC_TEMP_DIR)
 
-    for index, row in proj_pair_group.iterrows():
-        project1_file_list = pi.get_project_jar_list(
-            TESTED_SOFTWARE_DIR,
-            row.project1_type,
-            row.project1,
-            row.project1_ver,
-        )
-        project2_file_list = pi.get_project_jar_list(
-            TESTED_SOFTWARE_DIR,
-            row.project2_type,
-            row.project2,
-            row.project2_ver,
-        )
-
-        pochi_extract_compare(
-            software_location=BIRTHMARK_SOFTWARE,
-            project1=row.project1,
-            project2=row.project2,
-            project1_ver=row.project1_ver,
-            project2_ver=row.project2_ver,
-            project1_file_list=project1_file_list,
-            project2_file_list=project2_file_list,
-            options=output_option,
-            output_filename=temp_file,
-            output_dir=MULTIPROC_TEMP_DIR,
-        )
+    run_pochi_for_dataframe(
+        dataframe=proj_pair_group,
+        options=output_option,
+        output_filename=temp_file_name,
+        output_dir=MULTIPROC_TEMP_DIR,
+    )
 
 
 def run_multiproc(project_pairs, output_option):
     proj_pair_groups = np.array_split(project_pairs, 3)
 
     with Pool() as pool:
-        pool.starmap(multiproc_run, zip(proj_pair_groups, repeat(output_option)))
+        pool.starmap(multiproc_run_iteration, zip(proj_pair_groups, repeat(output_option)))
 
 
 def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
@@ -205,22 +215,8 @@ def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
         return
 
     cm.init_csv_file(POCHI_OUTPUT_FILENAME, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
-    for index, row in project_pairs.iterrows():
-        project1_file_list = pi.get_project_jar_list(
-            TESTED_SOFTWARE_DIR, row.project1_type, row.project1
-        )
-        project2_file_list = pi.get_project_jar_list(
-            TESTED_SOFTWARE_DIR, row.project2_type, row.project2
-        )
 
-        pochi_extract_compare(
-            software_location=BIRTHMARK_SOFTWARE,
-            project1=row.project1,
-            project1_file_list=project1_file_list,
-            project2=row.project2,
-            project2_file_list=project2_file_list,
-            options=output_option,
-        )
+    run_pochi_for_dataframe(dataframe=project_pairs, options=output_option)
 
 
 def run_pochi_for_pair(
@@ -248,11 +244,10 @@ def run_pochi_for_pair(
     cm.init_csv_file(output_filename, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
 
     pochi_extract_compare(
-        software_location=BIRTHMARK_SOFTWARE,
         project1=project1,
+        project2=project2,
         project1_ver=project1_version,
         project2_ver=project2_version,
-        project2=project2,
         project1_file_list=project1_file_list,
         project2_file_list=project2_file_list,
         output_filename=output_filename,
@@ -325,7 +320,9 @@ def run_pochi_for_all(
     for project_type in project_types:
         project_list = pi.get_project_list(TESTED_SOFTWARE_DIR, project_type)
         for project_name in project_list:
-            version_list = pi.get_project_version_list(TESTED_SOFTWARE_DIR, project_name, project_type)
+            version_list = pi.get_project_version_list(
+                TESTED_SOFTWARE_DIR, project_name, project_type
+            )
             for project_ver in version_list:
                 new_entry = [
                     project_name,
@@ -347,29 +344,7 @@ def run_pochi_for_all(
 
     cm.init_csv_file(POCHI_OUTPUT_FILENAME, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
 
-    for index, row in pairs_df.iterrows():
-        project1_file_list = pi.get_project_jar_list(
-            TESTED_SOFTWARE_DIR,
-            row.project1_type,
-            row.project1,
-            row.project1_ver,
-        )
-        project2_file_list = pi.get_project_jar_list(
-            TESTED_SOFTWARE_DIR,
-            row.project2_type,
-            row.project2,
-            row.project2_ver,
-        )
-        pochi_extract_compare(
-            software_location=BIRTHMARK_SOFTWARE,
-            project1=row.project1,
-            project1_ver=row.project1_ver,
-            project2_ver=row.project2_ver,
-            project2=row.project2,
-            project1_file_list=project1_file_list,
-            project2_file_list=project2_file_list,
-            options=output_option,
-        )
+    run_pochi_for_dataframe(dataframe=pairs_df, options=output_option)
 
 
 def run_pochi_single_project(project_name, project_type):
@@ -392,35 +367,37 @@ def run_pochi_single_project(project_name, project_type):
     )
     pairs_df = create_project_pairs(df)
 
-    output_filename = project_name + "_versions.csv"
+    output_filename = POCHI_VERSION + "_" + project_name + "_versions.csv"
 
-    for index, row in pairs_df.iterrows():
-        project1_file_list = pi.get_project_jar_list(
-            TESTED_SOFTWARE_DIR,
-            row.project1_type,
-            row.project1,
-            row.project1_ver,
-        )
-        project2_file_list = pi.get_project_jar_list(
-            TESTED_SOFTWARE_DIR,
-            row.project2_type,
-            row.project2,
-            row.project2_ver,
-        )
-        pochi_extract_compare(
-            software_location=BIRTHMARK_SOFTWARE,
-            project1=row.project1,
-            project1_file_list=project1_file_list,
-            project2=row.project2,
-            project2_file_list=project2_file_list,
-            project1_ver=row.project1_ver,
-            project2_ver=row.project2_ver,
-            output_filename=output_filename,
-        )
+    run_pochi_for_dataframe(dataframe=pairs_df, output_filename=output_filename)
 
 
-def run_pochi_single_category():
-    return None
+def run_pochi_single_category(project_type):
+    project_files_data = []
+    project_list = pi.get_project_list(TESTED_SOFTWARE_DIR, project_type)
+
+    for project_name in project_list:
+        project_versions = pi.get_project_version_list(
+            TESTED_SOFTWARE_DIR, project_name
+        )
+        for project_ver in project_versions:
+            new_entry = [
+                project_name,
+                project_type,
+                project_ver,
+            ]
+            project_files_data.append(new_entry)
+
+    df = pd.DataFrame(
+        project_files_data,
+        columns=["project", "project_type", "project_ver"],
+    )
+    pairs_df = create_project_pairs(df)
+
+    project_type = project_type.replace("/", "")
+    output_filename = POCHI_VERSION + "_" + project_type + "_output.csv"
+
+    run_pochi_for_dataframe(pairs_df, output_filename=output_filename)
 
 
 def run_pochi_category_pair():
@@ -444,7 +421,6 @@ def main():
     #    project1_version=project1_ver,
     #    project2_version=project2_ver,
     # )
-    # output_filename = project1 + "_" + project2 + ".csv"
 
     run_pochi_for_all(dir=TESTED_SOFTWARE_DIR, is_multiproc=True)
     # run_pochi_single_project("pH-7_Simple-Java-Calculator", "/calculator/")
