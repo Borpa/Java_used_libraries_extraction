@@ -116,7 +116,7 @@ def get_projects_path_list(target_dir):
     return project_list
 
 
-def get_project_jar_list(main_dir, project_type, project_name, project_ver=None):
+def get_project_jar_list(main_dir, project_type, project_name, project_ver=""):
     project_type = project_type.replace("/", "")
     target_dir = main_dir + project_type + "/" + project_name + "/" + project_ver
     jar_list = []
