@@ -60,7 +60,7 @@ def multiproc_run_iteration(proj_pair_group, output_option):
     temp_file_name = str(pid) + ".csv"
     cm.init_csv_file(temp_file_name, POCHI_OUTPUT_HEADER, MULTIPROC_TEMP_DIR)
 
-    run_pochi_for_pairs_dataframe(
+    run_pochi_pairs_dataframe(
         pairs_dataframe=proj_pair_group,
         options=output_option,
         output_filename=temp_file_name,
@@ -198,7 +198,7 @@ def pochi_extract_birthmark(software_location, project_file, birthmark):
     return output
 
 
-def run_pochi_for_pairs_dataframe(
+def run_pochi_pairs_dataframe(
     pairs_dataframe,
     options=None,
     output_filename=POCHI_OUTPUT_FILENAME,
@@ -231,7 +231,7 @@ def run_pochi_for_pairs_dataframe(
         )
 
 
-def run_pochi_for_similar_projects(output_option="no-csv", is_multiproc=False):
+def run_pochi_similar_projects(output_option="no-csv", is_multiproc=False):
     similarity_groups = get_similar_projects_pairs(
         SIMILARITY_THRESHOLD, SIMILARITY_PAIRS_NUM, FILES_SIM
     )
@@ -255,10 +255,10 @@ def run_pochi_for_similar_projects(output_option="no-csv", is_multiproc=False):
 
     cm.init_csv_file(POCHI_OUTPUT_FILENAME, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
 
-    run_pochi_for_pairs_dataframe(pairs_dataframe=project_pairs, options=output_option)
+    run_pochi_pairs_dataframe(pairs_dataframe=project_pairs, options=output_option)
 
 
-def run_pochi_for_pair(
+def run_pochi_project_pair(
     project1,
     project1_type,
     project2,
@@ -294,7 +294,7 @@ def run_pochi_for_pair(
     )
 
 
-def run_pochi_for_all(
+def run_pochi_all(
     dir, output_option=None, is_multiproc=False, distinct_projects=True
 ):
     project_files_data = []
@@ -327,7 +327,7 @@ def run_pochi_for_all(
 
     cm.init_csv_file(POCHI_OUTPUT_FILENAME, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
 
-    run_pochi_for_pairs_dataframe(pairs_dataframe=pairs_df, options=output_option)
+    run_pochi_pairs_dataframe(pairs_dataframe=pairs_df, options=output_option)
 
 
 def run_pochi_single_project(project_name, project_type):
@@ -352,7 +352,7 @@ def run_pochi_single_project(project_name, project_type):
 
     output_filename = POCHI_VERSION + "_" + project_name + "_versions.csv"
 
-    run_pochi_for_pairs_dataframe(
+    run_pochi_pairs_dataframe(
         pairs_dataframe=pairs_df, output_filename=output_filename
     )
 
@@ -382,7 +382,7 @@ def run_pochi_single_category(project_type):
     project_type = project_type.replace("/", "")
     output_filename = POCHI_VERSION + "_" + project_type + "_output.csv"
 
-    run_pochi_for_pairs_dataframe(pairs_df, output_filename=output_filename)
+    run_pochi_pairs_dataframe(pairs_df, output_filename=output_filename)
 
 
 def run_pochi_category_pair(project_type1, project_type2, distinct_projects=True):
@@ -425,6 +425,6 @@ def run_pochi_category_pair(project_type1, project_type2, distinct_projects=True
         [POCHI_VERSION, project_type1, project_type2, "output.csv"]
     )
 
-    run_pochi_for_pairs_dataframe(
+    run_pochi_pairs_dataframe(
         pairs_dataframe=pairs_df, output_filename=output_filename
     )
