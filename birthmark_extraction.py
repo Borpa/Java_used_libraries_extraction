@@ -375,17 +375,16 @@ def run_pochi_for_all(
 
 
 def run_pochi_single_project(project_name, project_type):
-    project_file_list = pi.get_project_jar_list(
-        TESTED_SOFTWARE_DIR, project_type, project_name
+    project_ver_list = pi.get_project_version_list(
+        TESTED_SOFTWARE_DIR, project_name, project_type
     )
     project_files_data = []
 
-    for file in project_file_list:
-        project_ver = pi.get_project_ver(file, project_name)
+    for ver in project_ver_list:
         new_entry = [
             project_name,
             project_type,
-            project_ver,
+            ver,
         ]
         project_files_data.append(new_entry)
 
@@ -393,7 +392,6 @@ def run_pochi_single_project(project_name, project_type):
         project_files_data,
         columns=["project", "project_type", "project_ver"],
     )
-    df = df.drop_duplicates()
     pairs_df = create_project_pairs(df)
 
     output_filename = project_name + "_versions.csv"
