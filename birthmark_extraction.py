@@ -319,27 +319,25 @@ def create_project_pairs(dataframe, distinct_projects=None):
 def run_pochi_for_all(
     dir, output_option=None, is_multiproc=False, distinct_projects=True
 ):
-    full_jar_list = pi.get_full_jar_list(dir)
     project_files_data = []
-    for jar in full_jar_list:
-        project_type = pi.get_project_type(jar)
-        project_name = pi.get_project_name(jar)
-        project_ver = pi.get_project_ver(jar, project_name)
+    project_types = pi.get_project_types_list()
 
-        new_entry = [
-            project_name,
-            project_type,
-            project_ver,
-        ]
-
-        project_files_data.append(new_entry)
+    for project_type in project_types:
+        project_list = pi.get_project_list(TESTED_SOFTWARE_DIR, project_type)
+        for project_name in project_list:
+            version_list = pi.get_project_version_list(TESTED_SOFTWARE_DIR, project_name, project_type)
+            for project_ver in version_list:
+                new_entry = [
+                    project_name,
+                    project_type,
+                    project_ver,
+                ]
+                project_files_data.append(new_entry)
 
     df = pd.DataFrame(
         project_files_data,
         columns=["project", "project_type", "project_ver"],
     )
-    df = df.drop_duplicates()
-
     pairs_df = create_project_pairs(df, distinct_projects)
 
     if is_multiproc:
@@ -448,8 +446,8 @@ def main():
     # )
     # output_filename = project1 + "_" + project2 + ".csv"
 
-    # run_pochi_for_all(dir=TESTED_SOFTWARE_DIR, is_multiproc=True)
-    run_pochi_single_project("pH-7_Simple-Java-Calculator", "/calculator/")
+    run_pochi_for_all(dir=TESTED_SOFTWARE_DIR, is_multiproc=True)
+    # run_pochi_single_project("pH-7_Simple-Java-Calculator", "/calculator/")
 
 
 if __name__ == "__main__":
