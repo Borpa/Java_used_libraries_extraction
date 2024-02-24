@@ -60,8 +60,8 @@ def get_similar_pairs(threshold, num_of_pairs, similarity_data):
 def pochi_extract_compare(
     software_location,
     project1,
-    project1_file_list,
     project2,
+    project1_file_list,
     project2_file_list,
     options=None,
     project1_ver=None,
@@ -162,14 +162,14 @@ def multiproc_run(proj_pair_group, output_option):
         )
 
         pochi_extract_compare(
-            BIRTHMARK_SOFTWARE,
-            row.project1,
-            project1_file_list,
-            row.project2,
-            project2_file_list,
-            output_option,
-            row.project1_ver,
-            row.project2_ver,
+            software_location=BIRTHMARK_SOFTWARE,
+            project1=row.project1,
+            project2=row.project2,
+            project1_ver=row.project1_ver,
+            project2_ver=row.project2_ver,
+            project1_file_list=project1_file_list,
+            project2_file_list=project2_file_list,
+            options=output_option,
             output_filename=temp_file,
             output_dir=MULTIPROC_TEMP_DIR,
         )
@@ -214,12 +214,12 @@ def run_pochi_for_similar_proj(output_option="no-csv", is_multiproc=False):
         )
 
         pochi_extract_compare(
-            BIRTHMARK_SOFTWARE,
-            row.project1,
-            project1_file_list,
-            row.project2,
-            project2_file_list,
-            output_option,
+            software_location=BIRTHMARK_SOFTWARE,
+            project1=row.project1,
+            project1_file_list=project1_file_list,
+            project2=row.project2,
+            project2_file_list=project2_file_list,
+            options=output_option,
         )
 
 
@@ -248,15 +248,15 @@ def run_pochi_for_pair(
     cm.init_csv_file(output_filename, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
 
     pochi_extract_compare(
-        BIRTHMARK_SOFTWARE,
-        project1,
-        project1_file_list,
-        project2,
-        project2_file_list,
-        options,
-        project1_version,
-        project2_version,
+        software_location=BIRTHMARK_SOFTWARE,
+        project1=project1,
+        project1_ver=project1_version,
+        project2_ver=project2_version,
+        project2=project2,
+        project1_file_list=project1_file_list,
+        project2_file_list=project2_file_list,
         output_filename=output_filename,
+        options=options,
     )
 
 
@@ -317,7 +317,7 @@ def create_project_pairs(dataframe, distinct_projects=None):
 
 # TODO: add function to run extraction for all projects in a dir
 def run_pochi_for_all(
-    dir, output_option=None, is_multiproc=False, distinct_projects=None
+    dir, output_option=None, is_multiproc=False, distinct_projects=True
 ):
     full_jar_list = pi.get_full_jar_list(dir)
     project_files_data = []
@@ -365,12 +365,12 @@ def run_pochi_for_all(
         pochi_extract_compare(
             software_location=BIRTHMARK_SOFTWARE,
             project1=row.project1,
-            project1_file_list=project1_file_list,
-            project2=row.project2,
-            project2_file_list=project2_file_list,
-            options=output_option,
             project1_ver=row.project1_ver,
             project2_ver=row.project2_ver,
+            project2=row.project2,
+            project1_file_list=project1_file_list,
+            project2_file_list=project2_file_list,
+            options=output_option,
         )
 
 
@@ -450,7 +450,7 @@ def main():
     # )
     # output_filename = project1 + "_" + project2 + ".csv"
 
-    #run_pochi_for_all(dir=TESTED_SOFTWARE_DIR, is_multiproc=True)
+    # run_pochi_for_all(dir=TESTED_SOFTWARE_DIR, is_multiproc=True)
     run_pochi_single_project("pH-7_Simple-Java-Calculator", "/calculator/")
 
 
