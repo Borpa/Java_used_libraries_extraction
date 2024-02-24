@@ -363,7 +363,7 @@ def run_pochi_single_category(project_type):
 
     for project_name in project_list:
         project_versions = pi.get_project_version_list(
-            TESTED_SOFTWARE_DIR, project_name
+            TESTED_SOFTWARE_DIR, project_name, project_type
         )
         for project_ver in project_versions:
             new_entry = [
@@ -392,7 +392,7 @@ def run_pochi_category_pair(project_type1, project_type2, distinct_projects=True
 
     for project_name in project_list1:
         project_versions = pi.get_project_version_list(
-            TESTED_SOFTWARE_DIR, project_name
+            TESTED_SOFTWARE_DIR, project_name, project_type1
         )
         for project_ver in project_versions:
             new_entry = [
@@ -404,7 +404,7 @@ def run_pochi_category_pair(project_type1, project_type2, distinct_projects=True
 
     for project_name in project_list2:
         project_versions = pi.get_project_version_list(
-            TESTED_SOFTWARE_DIR, project_name
+            TESTED_SOFTWARE_DIR, project_name, project_type2
         )
         for project_ver in project_versions:
             new_entry = [
@@ -422,7 +422,7 @@ def run_pochi_category_pair(project_type1, project_type2, distinct_projects=True
     project_type1 = project_type1.replace("/", "")
     project_type2 = project_type2.replace("/", "")
     output_filename = "_".join(
-        [POCHI_VERSION, project_type1, project_type2, "_output.csv"]
+        [POCHI_VERSION, project_type1, project_type2, "output.csv"]
     )
 
     run_pochi_for_pairs_dataframe(
