@@ -1,6 +1,5 @@
 import os
 
-
 PROJECT_TYPES = [
     "/ai_app/",
     "/book_reader/",
@@ -48,8 +47,16 @@ def get_project_name(filepath, project_types=PROJECT_TYPES):
     return project_name
 
 
-def get_project_versions(main_dir, project_name, project_type):
-    return None
+def get_project_list(main_dir, project_type):
+    project_type = project_type.replace("/", "")
+    full_path = main_dir + project_type
+    return os.listdir(full_path)
+
+
+def get_project_version_list(main_dir, project_name, project_type):
+    project_type = project_type.replace("/", "")
+    full_path = main_dir + project_type + "/" + project_name
+    return os.listdir(full_path)
 
 
 def get_project_ver(filepath, project_name):
