@@ -135,3 +135,7 @@ def get_project_jar_list(main_dir, project_type, project_name, project_ver=""):
                     filepath = os.path.join(root, file).replace("\\", "/")
                     jar_list.append(filepath)
     return jar_list
+
+
+def get_project_types_list():
+    return PROJECT_TYPES
