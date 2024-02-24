@@ -70,3 +70,21 @@ def extract_compare_all(file1, file2):
         result.append(comparison)
 
     return result
+
+def run_stigmata(
+    project1,
+    project1_file_list,
+    project2,
+    project2_file_list,
+    options=None,
+):
+    total_result = []
+    for project1_file in project1_file_list:
+        for project2_file in project2_file_list:
+            # pair_result = stigmata.extract_compare_all(project1_file, project2_file)
+            pair_result = extract_compare(
+                "kgram", project1_file, project2_file
+            )
+            total_result.append(pair_result)
+
+    return total_result
