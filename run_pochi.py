@@ -294,9 +294,7 @@ def run_pochi_project_pair(
     )
 
 
-def run_pochi_all(
-    dir, output_option=None, is_multiproc=False, distinct_projects=True
-):
+def run_pochi_all(dir, output_option=None, is_multiproc=False, distinct_projects=True):
     project_files_data = []
     project_types = pi.get_project_types_list()
 
@@ -352,9 +350,7 @@ def run_pochi_single_project(project_name, project_type):
 
     output_filename = POCHI_VERSION + "_" + project_name + "_versions.csv"
 
-    run_pochi_pairs_dataframe(
-        pairs_dataframe=pairs_df, output_filename=output_filename
-    )
+    run_pochi_pairs_dataframe(pairs_dataframe=pairs_df, output_filename=output_filename)
 
 
 def run_pochi_single_category(project_type):
@@ -425,6 +421,4 @@ def run_pochi_category_pair(project_type1, project_type2, distinct_projects=True
         [POCHI_VERSION, project_type1, project_type2, "output.csv"]
     )
 
-    run_pochi_pairs_dataframe(
-        pairs_dataframe=pairs_df, output_filename=output_filename
-    )
+    run_pochi_pairs_dataframe(pairs_dataframe=pairs_df, output_filename=output_filename)
