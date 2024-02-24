@@ -36,7 +36,6 @@ POCHI_OUTPUT_HEADER = [
 ]
 
 
-# TODO: add version information in groupby method
 def get_similar_pairs(threshold, num_of_pairs, similarity_data):
     df = pd.read_csv(similarity_data)
     project_groups = [
@@ -295,7 +294,6 @@ def run_pochi_for_pair(
     )
 
 
-# TODO: add function to run extraction for all projects in a dir
 def run_pochi_for_all(
     dir, output_option=None, is_multiproc=False, distinct_projects=True
 ):
