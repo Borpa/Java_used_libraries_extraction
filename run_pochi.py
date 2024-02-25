@@ -55,6 +55,21 @@ def get_similar_projects_pairs(threshold, num_of_pairs, similarity_data):
     return pd.concat(top_results)
 
 
+def combine_temp_files():
+    temp_files = os.listdir("./" + MULTIPROC_TEMP_DIR)
+    df_list = []
+
+    for temp_file in temp_files:
+        df = pd.read_csv(temp_file)
+        df_list.append(df)
+    result_df = pd.concat(df_list)
+
+    return result_df
+
+
+def drop_temp_files():
+    os.rmdir(MULTIPROC_TEMP_DIR)
+
 def multiproc_run_iteration(proj_pair_group, output_option):
     pid = current_process().pid
     temp_file_name = str(pid) + ".csv"
@@ -320,7 +335,9 @@ def run_pochi_all(dir, output_option=None, is_multiproc=False, distinct_projects
 
     if is_multiproc:
         run_multiproc(pairs_df, output_option)
-        # TODO: combine temp files
+        result_df = combine_temp_files()
+        drop_temp_files()
+        result_df.to_csv(OUTPUT_DIR + POCHI_OUTPUT_FILENAME)
         return
 
     cm.init_csv_file(POCHI_OUTPUT_FILENAME, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
