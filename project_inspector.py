@@ -9,9 +9,10 @@ PROJECT_TYPES = [
     "/graphic_editor/",
     "/dev_environment/",
     "/media_player/",
-    "/terminal_interface/",
+    "/terminal_app/",
     "/text_editor/",
     "/text_voice_chat/",
+    "/ebook_manager/",
 ]
 
 
