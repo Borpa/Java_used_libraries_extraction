@@ -36,7 +36,7 @@ POCHI_OUTPUT_HEADER = [
 ]
 
 
-def get_similar_projects_pairs(threshold, num_of_pairs, similarity_data):
+def __get_similar_projects_pairs(threshold, num_of_pairs, similarity_data):
     df = pd.read_csv(similarity_data)
     project_groups = [
         x
@@ -55,22 +55,22 @@ def get_similar_projects_pairs(threshold, num_of_pairs, similarity_data):
     return pd.concat(top_results)
 
 
-def combine_temp_files():
+def __combine_temp_files():
     temp_files = os.listdir("./" + MULTIPROC_TEMP_DIR)
     df_list = []
 
     for temp_file in temp_files:
-        df = pd.read_csv(temp_file)
+        df = pd.read_csv(MULTIPROC_TEMP_DIR + temp_file)
         df_list.append(df)
     result_df = pd.concat(df_list)
 
     return result_df
 
 
-def drop_temp_files():
+def __drop_temp_files():
     os.rmdir(MULTIPROC_TEMP_DIR)
 
-def multiproc_run_iteration(proj_pair_group, output_option):
+def __multiproc_run_iteration(proj_pair_group, output_option):
     pid = current_process().pid
     temp_file_name = str(pid) + ".csv"
     cm.init_csv_file(temp_file_name, POCHI_OUTPUT_HEADER, MULTIPROC_TEMP_DIR)
@@ -83,16 +83,16 @@ def multiproc_run_iteration(proj_pair_group, output_option):
     )
 
 
-def run_multiproc(project_pairs, output_option):
+def __run_multiproc(project_pairs, output_option):
     proj_pair_groups = np.array_split(project_pairs, 3)
 
     with Pool() as pool:
         pool.starmap(
-            multiproc_run_iteration, zip(proj_pair_groups, repeat(output_option))
+            __multiproc_run_iteration, zip(proj_pair_groups, repeat(output_option))
         )
 
 
-def create_project_pairs(dataframe, distinct_projects=None):
+def __create_project_pairs(dataframe, distinct_projects=None):
     row_count = len(dataframe.index)
     column_names = [
         "project1",
@@ -247,7 +247,7 @@ def run_pochi_pairs_dataframe(
 
 
 def run_pochi_similar_projects(output_option="no-csv", is_multiproc=False):
-    similarity_groups = get_similar_projects_pairs(
+    similarity_groups = __get_similar_projects_pairs(
         SIMILARITY_THRESHOLD, SIMILARITY_PAIRS_NUM, FILES_SIM
     )
     project_pairs = similarity_groups[
@@ -265,7 +265,7 @@ def run_pochi_similar_projects(output_option="no-csv", is_multiproc=False):
     )  # might count num of pairs with similarity >= thershold in the future
 
     if is_multiproc:
-        run_multiproc(project_pairs, output_option)
+        __run_multiproc(project_pairs, output_option)
         return
 
     cm.init_csv_file(POCHI_OUTPUT_FILENAME, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
@@ -331,12 +331,12 @@ def run_pochi_all(dir, output_option=None, is_multiproc=False, distinct_projects
         project_files_data,
         columns=["project", "project_type", "project_ver"],
     )
-    pairs_df = create_project_pairs(df, distinct_projects)
+    pairs_df = __create_project_pairs(df, distinct_projects)
 
     if is_multiproc:
-        run_multiproc(pairs_df, output_option)
-        result_df = combine_temp_files()
-        drop_temp_files()
+        __run_multiproc(pairs_df, output_option)
+        result_df = __combine_temp_files()
+        __drop_temp_files()
         result_df.to_csv(OUTPUT_DIR + POCHI_OUTPUT_FILENAME)
         return
 
@@ -363,7 +363,7 @@ def run_pochi_single_project(project_name, project_type):
         project_files_data,
         columns=["project", "project_type", "project_ver"],
     )
-    pairs_df = create_project_pairs(df)
+    pairs_df = __create_project_pairs(df)
 
     output_filename = POCHI_VERSION + "_" + project_name + "_versions.csv"
 
@@ -390,7 +390,7 @@ def run_pochi_single_category(project_type):
         project_files_data,
         columns=["project", "project_type", "project_ver"],
     )
-    pairs_df = create_project_pairs(df)
+    pairs_df = __create_project_pairs(df)
 
     project_type = project_type.replace("/", "")
     output_filename = POCHI_VERSION + "_" + project_type + "_output.csv"
@@ -431,7 +431,7 @@ def run_pochi_category_pair(project_type1, project_type2, distinct_projects=True
         project_files_data,
         columns=["project", "project_type", "project_ver"],
     )
-    pairs_df = create_project_pairs(df, distinct_projects)
+    pairs_df = __create_project_pairs(df, distinct_projects)
     project_type1 = project_type1.replace("/", "")
     project_type2 = project_type2.replace("/", "")
     output_filename = "_".join(
