@@ -370,7 +370,7 @@ def run_pochi_single_project(project_name, project_type):
     run_pochi_pairs_dataframe(pairs_dataframe=pairs_df, output_filename=output_filename)
 
 
-def run_pochi_single_category(project_type):
+def run_pochi_single_category(project_type, distinct_projects=True):
     project_files_data = []
     project_list = pi.get_project_list(TESTED_SOFTWARE_DIR, project_type)
 
@@ -390,7 +390,7 @@ def run_pochi_single_category(project_type):
         project_files_data,
         columns=["project", "project_type", "project_ver"],
     )
-    pairs_df = __create_project_pairs(df)
+    pairs_df = __create_project_pairs(df, distinct_projects)
 
     project_type = project_type.replace("/", "")
     output_filename = POCHI_VERSION + "_" + project_type + "_output.csv"
