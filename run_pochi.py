@@ -196,7 +196,7 @@ def pochi_extract_compare(
             cm.append_csv_data(output_filename, file_pair_result, output_dir)
 
 
-def pochi_extract_birthmark(software_location, project_file, birthmark):
+def pochi_extract_birthmark(project_file, birthmark, software_location=BIRTHMARK_SOFTWARE):
     full_path = software_location + POCHI_VERSION + "/bin/"
     pochi_script = "sh " + full_path + "pochi"
     extraction_script = "pochi_scripts/" + "extract_birthmark.groovy"
