@@ -178,7 +178,7 @@ def get_project_ver(filepath, project_name):
 def main():
     header = ["package", "project", "project_ver", "project_type", "dependency"]
 
-    dir_name_stopwords = ["src", "lib", ".mvn"]
+    dir_name_stopwords = pi.JAR_STOPWORDS
 
     cm.init_csv_file(PROJECTS_DEP, header, DEP_DIR)
 

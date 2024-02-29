@@ -15,16 +15,17 @@ PROJECT_TYPES = [
     "/ebook_manager/",
 ]
 
+JAR_STOPWORDS = ["src", "lib", ".mvn", "dist"]
+
 
 def get_full_jar_list(dir):
     jar_path_list = []
-    stopwords = ["src", "lib", ".mvn"]
 
     for root, dirs, files in os.walk(dir):
         for file in files:
             if file.endswith(".jar"):
                 stopword_flag = False
-                for stopword in stopwords:
+                for stopword in JAR_STOPWORDS:
                     if stopword in root:
                         stopword_flag = True
                         break
