@@ -14,7 +14,7 @@ PROJECTS_DEP = "projects_dependencies.csv"
 DEP_DIR = "./dependencies/"
 
 
-def deps_extracted_check(output_filename, project_name):
+def deps_extracted_check(output_filename, project_name, dir=None):
     """
     Check if the dependencies have already been extracted
       from the project by checking the entries of the output file
@@ -29,6 +29,10 @@ def deps_extracted_check(output_filename, project_name):
         name of the project
 
     """
+
+    if dir is not None:
+        output_filename = dir + output_filename
+
     df = pd.read_csv(output_filename)
     return project_name in df["project"].unique().tolist()
 
@@ -164,6 +168,30 @@ def extract_deps_from_jar(filepath):
     return set(dep_list)
 
 
+def extract_deps_from_gradle(filepath):  # build.gradle
+    # dependencies {
+    #   implementation()
+    # skip "project" implementation - internal dep
+    dep_list = []
+    with open(filepath, "r") as f:
+        line = f.readline()
+        while line:
+            if "implementation" in line:
+                if "project" in line:
+                    line = f.readline()
+                    continue
+                line = line.replace("implementation(", "")
+                line = line[0:-1]
+
+                if "$" in line:
+                    index = line.index("$")
+                    line = line[0 : (index - 1)]
+
+                dep_list.append(line)
+            line = f.readline()
+    return None
+
+
 def get_project_ver(filepath, project_name):
     project_ver_start = filepath.index(project_name) + len(project_name)
     project_ver = filepath[project_ver_start:]
@@ -194,7 +222,7 @@ def main():
 
             project_name = pi.get_project_name(filepath)
 
-            if deps_extracted_check(PROJECTS_DEP, project_name):
+            if deps_extracted_check(PROJECTS_DEP, project_name, DEP_DIR):
                 continue
 
             dep_list = extract_deps_from_pom(filepath)
@@ -221,7 +249,7 @@ def main():
 
                 project_name = pi.get_project_name(filepath)
 
-                if deps_extracted_check(PROJECTS_DEP, project_name):
+                if deps_extracted_check(PROJECTS_DEP, project_name, DEP_DIR):
                     continue
 
                 dep_list = extract_deps_from_jar(filepath)
