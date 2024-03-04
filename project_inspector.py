@@ -15,7 +15,7 @@ PROJECT_TYPES = [
     "/ebook_manager/",
 ]
 
-JAR_STOPWORDS = ["src", "lib", ".mvn", "dist", "gradle"]
+JAR_STOPWORDS = ["src", "lib", ".mvn", "dist", "gradle", "platform", "webcommon"]
 
 
 def get_full_jar_list(dir):
