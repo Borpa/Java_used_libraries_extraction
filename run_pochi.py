@@ -1,4 +1,5 @@
 import os
+import gc
 from itertools import repeat
 from multiprocessing import Pool, current_process
 
@@ -70,6 +71,7 @@ def __combine_temp_files():
 def __drop_temp_files():
     os.rmdir(MULTIPROC_TEMP_DIR)
 
+
 def __multiproc_run_iteration(proj_pair_group, output_option):
     pid = current_process().pid
     temp_file_name = str(pid) + ".csv"
@@ -83,7 +85,7 @@ def __multiproc_run_iteration(proj_pair_group, output_option):
     )
 
 
-def __run_multiproc(project_pairs, output_option):
+def __run_multiproc(project_pairs, output_option=None):
     proj_pair_groups = np.array_split(project_pairs, 3)
 
     with Pool() as pool:
@@ -143,7 +145,6 @@ def __create_project_pairs(dataframe, distinct_projects=None):
                 result_list.append(newline)
 
     result_df = pd.DataFrame(result_list, columns=column_names)
-
     return result_df
 
 
@@ -194,9 +195,12 @@ def pochi_extract_compare(
                 file_pair_result.append(newline)
 
             cm.append_csv_data(output_filename, file_pair_result, output_dir)
+            gc.collect()
 
 
-def pochi_extract_birthmark(project_file, birthmark, software_location=BIRTHMARK_SOFTWARE):
+def pochi_extract_birthmark(
+    project_file, birthmark, software_location=BIRTHMARK_SOFTWARE
+):
     full_path = software_location + POCHI_VERSION + "/bin/"
     pochi_script = "sh " + full_path + "pochi"
     extraction_script = "pochi_scripts/" + "extract_birthmark.groovy"
@@ -340,8 +344,9 @@ def run_pochi_all(dir, output_option=None, is_multiproc=False, distinct_projects
         result_df.to_csv(OUTPUT_DIR + POCHI_OUTPUT_FILENAME)
         return
 
-    cm.init_csv_file(POCHI_OUTPUT_FILENAME, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
+    gc.collect()
 
+    cm.init_csv_file(POCHI_OUTPUT_FILENAME, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
     run_pochi_pairs_dataframe(pairs_dataframe=pairs_df, options=output_option)
 
 
@@ -366,11 +371,11 @@ def run_pochi_single_project(project_name, project_type):
     pairs_df = __create_project_pairs(df)
 
     output_filename = POCHI_VERSION + "_" + project_name + "_versions.csv"
-
+    cm.init_csv_file(output_filename, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
     run_pochi_pairs_dataframe(pairs_dataframe=pairs_df, output_filename=output_filename)
 
 
-def run_pochi_single_category(project_type, distinct_projects=True):
+def run_pochi_single_category(project_type, distinct_projects=True, is_multiproc=False):
     project_files_data = []
     project_list = pi.get_project_list(TESTED_SOFTWARE_DIR, project_type)
 
@@ -393,9 +398,33 @@ def run_pochi_single_category(project_type, distinct_projects=True):
     pairs_df = __create_project_pairs(df, distinct_projects)
 
     project_type = project_type.replace("/", "")
-    output_filename = POCHI_VERSION + "_" + project_type + "_output.csv"
+
+    filename_suffix = ""
+
+    match distinct_projects:
+        case None:
+            filename_suffix = "all"
+        case True:
+            filename_suffix = "distinct"
+        case False:
+            filename_suffix = "single"
+
+    output_filename = "_".join([POCHI_VERSION, project_type, filename_suffix, "output.csv"])
+
+    if is_multiproc:
+        __run_multiproc(pairs_df)
+        result_df = __combine_temp_files()
+        __drop_temp_files()
+        result_df.to_csv(OUTPUT_DIR + output_filename)
+        return
 
     run_pochi_pairs_dataframe(pairs_df, output_filename=output_filename)
+
+
+def run_pochi_for_each_category(distinct_projects=True):
+    type_list = pi.get_project_types_list()
+    for project_type in type_list:
+        run_pochi_single_category(project_type, distinct_projects)
 
 
 def run_pochi_category_pair(project_type1, project_type2, distinct_projects=True):
