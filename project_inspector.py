@@ -15,7 +15,7 @@ PROJECT_TYPES = [
     "/ebook_manager/",
 ]
 
-JAR_STOPWORDS = ["src", "lib", ".mvn", "dist", "gradle", "platform", "webcommon"]
+JAR_STOPWORDS = ["src", "lib", ".mvn", "dist", "gradle", "platform", "webcommon", "wrapper"]
 
 
 def get_full_jar_list(dir):
@@ -133,7 +133,12 @@ def get_project_jar_list(main_dir, project_type, project_name, project_ver=""):
     for root, dirs, files in os.walk(target_dir):
         for file in files:
             if file.endswith(".jar"):
-                if "src" not in root and "lib" not in root:
+                stopword_flag = False
+                for stopword in JAR_STOPWORDS:
+                    if stopword in root:
+                        stopword_flag = True
+                        break
+                if not stopword_flag:
                     filepath = os.path.join(root, file).replace("\\", "/")
                     jar_list.append(filepath)
     return jar_list
