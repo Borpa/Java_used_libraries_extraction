@@ -69,8 +69,9 @@ def __combine_temp_files():
 
 
 def __drop_temp_files():
-    os.rmdir(MULTIPROC_TEMP_DIR)
-
+    temp_files = os.listdir("./" + MULTIPROC_TEMP_DIR)
+    for temp_file in temp_files:
+        os.remove(MULTIPROC_TEMP_DIR + temp_file)
 
 def __multiproc_run_iteration(proj_pair_group, output_option):
     pid = current_process().pid
@@ -407,11 +408,12 @@ def run_pochi_single_category(project_type, distinct_projects=True, is_multiproc
         case True:
             filename_suffix = "distinct"
         case False:
-            filename_suffix = "single"
+            filename_suffix = "versions"
 
     output_filename = "_".join([POCHI_VERSION, project_type, filename_suffix, "output.csv"])
 
     if is_multiproc:
+        __drop_temp_files()
         __run_multiproc(pairs_df)
         result_df = __combine_temp_files()
         __drop_temp_files()
