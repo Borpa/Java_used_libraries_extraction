@@ -21,6 +21,12 @@ def extract(path, extractor) {
 
 threshold = Threshold.DEFAULT // default threshold (0.75): 0.75 originality, 0.25 similarity
 //threshold = new Threshold(0.8)
+Random random = new Random()
+randomNum = random.nextInt(10 ** 5)
+outputFilename = "./temp/temp_output_${randomNum}.csv"
+File outputFile = new File(outputFilename)
+header = "file1,file2,currentBirthmark,currentComparator,currentMatcher,class1,class2,similarity"
+outputFile.append(header + "\n")
 
 for (currentBirthmark in birthmarkList){
     extractor = pochi.extractor(currentBirthmark)
@@ -37,7 +43,7 @@ for (currentBirthmark in birthmarkList){
         for (currentMatcher in matcherList){
             matcher = pochi.matcher(currentMatcher)
             
-            current_settings = currentBirthmark + "," + currentComparator + "," + currentMatcher + ","
+            current_settings = args[0] + "," + args[1] + "," + currentBirthmark + "," + currentComparator + "," + currentMatcher + ","
 
             match_results = matcher.match(birthmarks_1, birthmarks_2)
                 .map(pair -> comparator.compare(pair))
@@ -45,7 +51,10 @@ for (currentBirthmark in birthmarkList){
                 .map(either -> either.get())
                 .filter(comparison -> comparison.isStolen(threshold))
 
-            match_results.forEach(comparison -> println(current_settings + comparison))
+            // TODO: randomize name
+            match_results.forEach(comparison -> outputFile.append(current_settings + comparison + "\n"))
+            //match_results.forEach(comparison -> println(current_settings + comparison))
+            // TODO: implement saving results to a temp file
         }
     }
 }
