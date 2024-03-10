@@ -20,7 +20,7 @@ SIMILARITY_PAIRS_NUM = 3
 POCHI_VERSION = "pochi-2.6.0"
 POCHI_OUTPUT_FILENAME = POCHI_VERSION + "_output_w_ver.csv"
 OUTPUT_DIR = "birthmarks/"
-MULTIPROC_TEMP_DIR = "temp/"
+MULTIPROC_TEMP_DIR = "./temp/"
 POCHI_OUTPUT_HEADER = [
     "project1",
     "project2",
@@ -56,22 +56,22 @@ def __get_similar_projects_pairs(threshold, num_of_pairs, similarity_data):
     return pd.concat(top_results)
 
 
-def __combine_temp_files():
-    temp_files = os.listdir("./" + MULTIPROC_TEMP_DIR)
+def __combine_temp_files(temp_dir=MULTIPROC_TEMP_DIR):
+    temp_files = os.listdir(temp_dir)
     df_list = []
 
     for temp_file in temp_files:
-        df = pd.read_csv(MULTIPROC_TEMP_DIR + temp_file)
+        df = pd.read_csv(temp_dir + temp_file)
         df_list.append(df)
     result_df = pd.concat(df_list)
 
     return result_df
 
 
-def __drop_temp_files():
-    temp_files = os.listdir("./" + MULTIPROC_TEMP_DIR)
+def __drop_temp_files(temp_dir=MULTIPROC_TEMP_DIR):
+    temp_files = os.listdir(temp_dir)
     for temp_file in temp_files:
-        os.remove(MULTIPROC_TEMP_DIR + temp_file)
+        os.remove(temp_dir + temp_file)
 
 
 def __multiproc_run_iteration_script_output(proj_pair_group, output_option):
@@ -533,10 +533,12 @@ def run_pochi_single_category_script_output(
     )
 
     if is_multiproc:
-        __drop_temp_files()
+        temp_folder = "F:/temp/"
+
+        __drop_temp_files(temp_folder)
         __run_multiproc_script_output(pairs_df)
-        result_df = __combine_temp_files()
-        __drop_temp_files()
+        result_df = __combine_temp_files(temp_folder)
+        __drop_temp_files(temp_folder)
         result_df.to_csv(OUTPUT_DIR + output_filename, index=False)
         return
 
