@@ -12,7 +12,8 @@ import project_inspector as pi
 from calculate_files_similarity import FILES_SIM
 from extract_project_dependencies import TESTED_SOFTWARE_DIR
 
-BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
+
+BIRTHMARK_SOFTWARE = "C:/Users/FedorovNikolay/source/Study/birthmark_extraction_software/"
 
 SIMILARITY_THRESHOLD = 70
 SIMILARITY_PAIRS_NUM = 3
@@ -187,7 +188,7 @@ def pochi_extract_compare_script_output(
 ):
     full_path = software_location + POCHI_VERSION + "/bin/"
     pochi_script = "sh " + full_path + "pochi"
-    extraction_script = "./pochi_scripts/" + "extract-compare_w_output.groovy"
+    extraction_script = "./pochi_scripts/" + "extract-compare.groovy"
 
     for project1_file in project1_file_list:
         for project2_file in project2_file_list:
@@ -197,6 +198,8 @@ def pochi_extract_compare_script_output(
                     extraction_script,
                     project1_file,
                     project2_file,
+                    ">",
+                    output_dir + output_filename,
                     # options,
                 ]
             )
@@ -533,13 +536,13 @@ def run_pochi_single_category_script_output(
     )
 
     if is_multiproc:
-        temp_folder = "F:/temp/"
+        #temp_folder = "F:/temp/"
 
-        __drop_temp_files(temp_folder)
+        __drop_temp_files()
         __run_multiproc_script_output(pairs_df)
-        result_df = __combine_temp_files(temp_folder)
-        __drop_temp_files(temp_folder)
-        result_df.to_csv(OUTPUT_DIR + output_filename, index=False)
+        #result_df = __combine_temp_files()
+        #__drop_temp_files()
+        #result_df.to_csv(OUTPUT_DIR + output_filename, index=False)
         return
 
     run_pochi_pairs_dataframe_script_output(pairs_df, output_filename=output_filename)

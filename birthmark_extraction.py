@@ -42,18 +42,23 @@ def main():
     #    f.write(str(output))
 
 
-    category_list = ["/ebook_manager/", "/text_editor/", "/web_file_browser/", "/ai_app/", "/terminal_app/"]
 
-    for category in category_list:
-        start = time.time()
-        pochi.run_pochi_single_category_script_output(category, True, True)
-        end = time.time()
-        print("{} distinct runtime: ".format(category), end - start)
+    category = "/calculator/"
+    start = time.time()
+    pochi.run_pochi_single_category_script_output(category, True, True)
+    end = time.time()
+    print("{} distinct runtime: ".format(category), end - start)
 
-        start = time.time()
-        pochi.run_pochi_single_category_script_output(category, False, True)
-        end = time.time()
-        print("{} versions runtime: ".format(category), end - start)
+    #category_list = ["/ebook_manager/", "/text_editor/", "/web_file_browser/", "/ai_app/", "/terminal_app/"]
+    #for category in category_list:
+    #    start = time.time()
+    #    pochi.run_pochi_single_category_script_output(category, True, True)
+    #    end = time.time()
+    #    print("{} distinct runtime: ".format(category), end - start)
+    #    start = time.time()
+    #    pochi.run_pochi_single_category_script_output(category, False, True)
+    #    end = time.time()
+    #    print("{} versions runtime: ".format(category), end - start)
 
 if __name__ == "__main__":
     freeze_support()
