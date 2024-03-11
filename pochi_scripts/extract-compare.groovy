@@ -5,9 +5,10 @@ import jp.cafebabe.birthmarks.entities.Birthmarks;
 //def comparatorList = ["Cosine", "DiceIndex", "EditDistance", "JaccardIndex", "SimpsonIndex"]
 //def matcherList = ["Guessed", "RoundRobin", "RoundRobinWithSamePair", "Specified"]
 
-def comparatorList = ["Cosine", "DiceIndex", "EditDistance"]
+//def comparatorList = ["SimpsonIndex"]
+def comparatorList = ["Cosine", "DiceIndex", "JaccardIndex", "SimpsonIndex"]
 def birthmarkList = ["3-gram", "6-gram", "fuc", "uc"]
-def matcherList = ["RoundRobin"]
+def matcherList = ["RoundRobinWithSamePair"]
 
 def extract(path, extractor) {
     source = pochi.source(path)

@@ -41,15 +41,19 @@ def main():
     #with open("test", mode="w") as f:
     #    f.write(str(output))
 
-    start = time.time()
-    pochi.run_pochi_single_category_script_output("/calculator/", True, True)
-    end = time.time()
-    print("New version: ", end - start)
 
-    start = time.time()
-    pochi.run_pochi_single_category("/calculator/", True, True)
-    end = time.time()
-    print("old version: ", end - start)
+    category_list = ["/ebook_manager/", "/text_editor/", "/web_file_browser/", "/ai_app/", "/terminal_app/"]
+
+    for category in category_list:
+        start = time.time()
+        pochi.run_pochi_single_category_script_output(category, True, True)
+        end = time.time()
+        print("{} distinct runtime: ".format(category), end - start)
+
+        start = time.time()
+        pochi.run_pochi_single_category_script_output(category, False, True)
+        end = time.time()
+        print("{} versions runtime: ".format(category), end - start)
 
 if __name__ == "__main__":
     freeze_support()

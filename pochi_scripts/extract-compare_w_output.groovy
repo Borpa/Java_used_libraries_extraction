@@ -5,9 +5,9 @@ import jp.cafebabe.birthmarks.entities.Birthmarks;
 //def comparatorList = ["Cosine", "DiceIndex", "EditDistance", "JaccardIndex", "SimpsonIndex"]
 //def matcherList = ["Guessed", "RoundRobin", "RoundRobinWithSamePair", "Specified"]
 
-def comparatorList = ["Cosine", "DiceIndex", "EditDistance"]
+def comparatorList = ["Cosine", "DiceIndex", "JaccardIndex", "SimpsonIndex"]
 def birthmarkList = ["3-gram", "6-gram", "fuc", "uc"]
-def matcherList = ["RoundRobin"]
+def matcherList = ["RoundRobinWithSamePair"]
 
 def extract(path, extractor) {
     source = pochi.source(path)
@@ -23,7 +23,7 @@ threshold = Threshold.DEFAULT // default threshold (0.75): 0.75 originality, 0.2
 //threshold = new Threshold(0.8)
 Random random = new Random()
 randomNum = random.nextInt(10 ** 5)
-outputFilename = "./temp/temp_output_${randomNum}.csv"
+outputFilename = "F:/temp/temp_output_${randomNum}.csv"
 File outputFile = new File(outputFilename)
 header = "file1,file2,currentBirthmark,currentComparator,currentMatcher,class1,class2,similarity"
 outputFile.append(header + "\n")
