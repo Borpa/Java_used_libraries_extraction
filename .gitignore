@@ -4,3 +4,5 @@ test.py
 file_similarity.csv
 /__pycache__/
 /temp/
+/birthmarks/
+/birthmarks_group_data/
