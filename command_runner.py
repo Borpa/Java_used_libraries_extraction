@@ -24,8 +24,16 @@ def run_cmd_command(command):
 
 def run_bash_command(command):
     output = subprocess.check_output(
-        command, shell=False, executable=GIT_BASH_EXEC_PATH
+        command, shell=False, executable=GIT_BASH_EXEC_PATH,
     )
     output = output.decode()
 
     return output
+
+
+def run_bash_command_file_output(command, filename, filemode):
+    file = open(filename, filemode)
+    proc = subprocess.Popen(
+        command, shell=False, stdin=subprocess.PIPE, stdout=file, executable=GIT_BASH_EXEC_PATH
+    )
+    out, err = proc.communicate()
