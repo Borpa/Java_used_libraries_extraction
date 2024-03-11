@@ -10,6 +10,7 @@ import csv_manager as cm
 import project_inspector as pi
 
 TESTED_SOFTWARE_DIR = "D:/Study/phd_research/test_projects/"
+#TESTED_SOFTWARE_DIR = "C:/Users/FedorovNikolay/source/Study/test_projects/"
 PROJECTS_DEP = "projects_dependencies.csv"
 DEP_DIR = "./dependencies/"
 
