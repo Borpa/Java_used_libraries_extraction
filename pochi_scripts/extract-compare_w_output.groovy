@@ -23,7 +23,7 @@ threshold = Threshold.DEFAULT // default threshold (0.75): 0.75 originality, 0.2
 //threshold = new Threshold(0.8)
 Random random = new Random()
 randomNum = random.nextInt(10 ** 5)
-outputFilename = "F:/temp/temp_output_${randomNum}.csv"
+outputFilename = "./temp/temp_output_${randomNum}.csv"
 File outputFile = new File(outputFilename)
 header = "file1,file2,currentBirthmark,currentComparator,currentMatcher,class1,class2,similarity"
 outputFile.append(header + "\n")
@@ -39,6 +39,7 @@ for (currentBirthmark in birthmarkList){
 
     for (currentComparator in comparatorList){
         comparator = pochi.comparator(currentComparator)
+        match_list = []
 
         for (currentMatcher in matcherList){
             matcher = pochi.matcher(currentMatcher)
@@ -51,10 +52,16 @@ for (currentBirthmark in birthmarkList){
                 .map(either -> either.get())
                 .filter(comparison -> comparison.isStolen(threshold))
 
+            match_list.add(match_results)
+
             // TODO: randomize name
-            match_results.forEach(comparison -> outputFile.append(current_settings + comparison + "\n"))
+            //match_results.forEach(comparison -> outputFile.append(current_settings + comparison + "\n"))
             //match_results.forEach(comparison -> println(current_settings + comparison))
             // TODO: implement saving results to a temp file
+        }
+
+        for (match in match_list){
+            match.forEach(comparison -> outputFile.append(current_settings + comparison + "\n"))
         }
     }
 }
