@@ -43,22 +43,33 @@ def main():
 
 
 
-    category = "/calculator/"
-    start = time.time()
-    pochi.run_pochi_single_category_script_output(category, True, True)
-    end = time.time()
-    print("{} distinct runtime: ".format(category), end - start)
+    #category = "/calculator/"
+    #start = time.time()
+    #pochi.run_pochi_single_category_script_output(category, True, True)
+    #end = time.time()
+    #print("{} distinct runtime: ".format(category), end - start)
+    #
+    #start = time.time()
+    #pochi.run_pochi_single_category(category, True, True)
+    #end = time.time()
+    #print("{} distinct runtime for standard: ".format(category), end - start)
 
-    #category_list = ["/ebook_manager/", "/text_editor/", "/web_file_browser/", "/ai_app/", "/terminal_app/"]
-    #for category in category_list:
-    #    start = time.time()
-    #    pochi.run_pochi_single_category_script_output(category, True, True)
-    #    end = time.time()
-    #    print("{} distinct runtime: ".format(category), end - start)
-    #    start = time.time()
-    #    pochi.run_pochi_single_category_script_output(category, False, True)
-    #    end = time.time()
-    #    print("{} versions runtime: ".format(category), end - start)
+    category_list = ["/text_editor/", "/web_file_browser/", "/ai_app/", "/terminal_app/", "/ebook_manager/"]
+    for category in category_list:
+        start = time.time()
+        try:
+            pochi.run_pochi_single_category(category, True, True)
+        except Exception as e:
+            print(e)
+        end = time.time()
+        print("{} distinct runtime: ".format(category), end - start)
+        start = time.time()
+        try:
+            pochi.run_pochi_single_category(category, False, True)
+        except Exception as e:
+            print(e)
+        end = time.time()
+        print("{} versions runtime: ".format(category), end - start)
 
 if __name__ == "__main__":
     freeze_support()
