@@ -54,7 +54,29 @@ def main():
     #end = time.time()
     #print("{} distinct runtime for standard: ".format(category), end - start)
 
-    category_list = ["/text_editor/", "/web_file_browser/", "/ai_app/", "/terminal_app/", "/ebook_manager/"]
+    #category_list = ["/text_editor/", "/web_file_browser/", "/ai_app/", "/terminal_app/", "/ebook_manager/"]
+    category_list = ["/web_file_browser/", "/ai_app/"]
+    for category in category_list:
+        start = time.time()
+        try:
+            pochi.run_pochi_single_category(category, False, True)
+        except Exception as e:
+            print(e)
+        end = time.time()
+        print("{} versions runtime: ".format(category), end - start)
+
+    category_list = ["/graphic_editor/"]
+    for category in category_list:
+        start = time.time()
+        try:
+            pochi.run_pochi_single_category(category, True, True)
+        except Exception as e:
+            print(e)
+        end = time.time()
+        print("{} distinct runtime: ".format(category), end - start)
+
+
+    category_list = ["/emulator_environment/"]
     for category in category_list:
         start = time.time()
         try:
