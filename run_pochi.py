@@ -71,16 +71,32 @@ def __get_similar_projects_pairs(threshold, num_of_pairs, similarity_data):
     return pd.concat(top_results)
 
 
-def __combine_temp_files(temp_dir=MULTIPROC_TEMP_DIR):
+def combine_temp_files(temp_dir=MULTIPROC_TEMP_DIR):
     temp_files = os.listdir(temp_dir)
     df_list = []
 
     for temp_file in temp_files:
         df = pd.read_csv(temp_dir + temp_file)
         df_list.append(df)
-    result_df = pd.concat(df_list)
+    return pd.concat(df_list)
 
-    return result_df
+
+def combine_temp_files_alt(
+    temp_dir=MULTIPROC_TEMP_DIR,
+    output_filename="pochi.csv",
+    output_dir=MULTIPROC_TEMP_DIR,
+):
+    temp_files = os.listdir(temp_dir)
+    chunksize = 1000000
+
+    with open(output_dir + output_filename, "a") as f:
+        for chunk in pd.read_csv(temp_dir + temp_files[0], chunksize=chunksize):
+            chunk.to_csv(f, index=False)
+
+    for temp_file in temp_files[1::]:
+        with open(output_dir + output_filename, "a") as f:
+            for chunk in pd.read_csv(temp_dir + temp_file, chunksize=chunksize):
+                chunk.to_csv(f, header=False, index=False)
 
 
 def __drop_temp_files(temp_dir=MULTIPROC_TEMP_DIR):
@@ -443,7 +459,7 @@ def run_pochi_all(dir, output_option=None, is_multiproc=False, distinct_projects
 
     if is_multiproc:
         __run_multiproc_script_output(pairs_df, output_option)
-        result_df = __combine_temp_files()
+        result_df = combine_temp_files()
         __drop_temp_files()
         result_df.to_csv(OUTPUT_DIR + POCHI_OUTPUT_FILENAME)
         return
@@ -502,7 +518,7 @@ def run_pochi_single_project(project_name, project_type):
     # cm.init_csv_file(output_filename, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
     __drop_temp_files()
     run_pochi_pairs_dataframe(pairs_dataframe=pairs_df, output_filename=output_filename)
-    result_df = __combine_temp_files()
+    result_df = combine_temp_files()
     __drop_temp_files()
     result_df.to_csv(OUTPUT_DIR + output_filename)
 
@@ -552,7 +568,7 @@ def run_pochi_single_category_script_output(
 
         __drop_temp_files()
         __run_multiproc_script_output(pairs_df)
-        result_df = __combine_temp_files()
+        result_df = combine_temp_files()
         __drop_temp_files()
         result_df.to_csv(OUTPUT_DIR + output_filename, index=False)
         return
@@ -601,7 +617,7 @@ def run_pochi_single_category(project_type, distinct_projects=True, is_multiproc
     if is_multiproc:
         __drop_temp_files()
         __run_multiproc(pairs_df)
-        result_df = __combine_temp_files()
+        result_df = combine_temp_files()
         __drop_temp_files()
         result_df.to_csv(OUTPUT_DIR + output_filename, index=False)
         return
