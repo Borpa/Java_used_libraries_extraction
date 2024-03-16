@@ -568,9 +568,10 @@ def run_pochi_single_category_script_output(
 
         __drop_temp_files()
         __run_multiproc_script_output(pairs_df)
-        result_df = combine_temp_files()
-        __drop_temp_files()
-        result_df.to_csv(OUTPUT_DIR + output_filename, index=False)
+        combine_temp_files_alt(output_filename=output_filename, output_dir=OUTPUT_DIR)
+        #result_df = combine_temp_files()
+        #__drop_temp_files()
+        #result_df.to_csv(OUTPUT_DIR + output_filename, index=False)
         return
 
     run_pochi_pairs_dataframe_script_output(pairs_df, output_filename=output_filename)
@@ -617,9 +618,10 @@ def run_pochi_single_category(project_type, distinct_projects=True, is_multiproc
     if is_multiproc:
         __drop_temp_files()
         __run_multiproc(pairs_df)
-        result_df = combine_temp_files()
-        __drop_temp_files()
-        result_df.to_csv(OUTPUT_DIR + output_filename, index=False)
+        combine_temp_files_alt(output_filename=output_filename, output_dir=OUTPUT_DIR)
+        # result_df = combine_temp_files()
+        # __drop_temp_files()
+        # result_df.to_csv(OUTPUT_DIR + output_filename, index=False)
         return
 
     run_pochi_pairs_dataframe(pairs_df, output_filename=output_filename)
