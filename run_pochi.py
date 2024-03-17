@@ -88,11 +88,13 @@ def combine_temp_files_alt(
 ):
     temp_files = os.listdir(temp_dir)
     chunksize = 1000000
+    header_check = True
 
     for temp_file in temp_files:
         with open(output_dir + output_filename, "a") as f:
             for chunk in pd.read_csv(temp_dir + temp_file, chunksize=chunksize):
-                chunk.to_csv(f, index=False)
+                chunk.to_csv(f, index=False, header=header_check)
+                header_check = False
 
 
 def __drop_temp_files(temp_dir=MULTIPROC_TEMP_DIR):
