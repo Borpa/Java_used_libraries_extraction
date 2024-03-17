@@ -91,7 +91,7 @@ def combine_temp_files_alt(
     chunksize = 1000000
 
     with open(output_dir + output_filename, "w") as f:
-        f.write(header)
+        f.write(",".join(header) + "\n")
 
     for temp_file in temp_files:
         with open(output_dir + output_filename, "a") as f:
