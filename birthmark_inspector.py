@@ -20,7 +20,7 @@ def update_columns(file):
     chunksize = 100000
     output_filename = file.replace(".csv", "_new_header.csv")
 
-    #with open(output_filename, "w") as f:
+    # with open(output_filename, "w") as f:
     #    f.write(",".join(POCHI_OUTPUT_HEADER) + "\n")
 
     with open(output_filename, "a") as f:
@@ -99,21 +99,27 @@ def calculate_avg_similarity(file, output_filename=AVG_SIMILARITY_OUTPUT_FILENAM
         "birthmark",
         "comparator",
         "matcher",
-        "similarity",
     ]
+    chunksize = 1000000
+    column_list_full = column_list + ["similarity"]
 
-    dataframe = pd.read_csv(file)[column_list]
-    column_list.remove("similarity")
+    header_check = True
 
-    avg_values = dataframe.groupby([*column_list]).mean("similarity")
-    count_values = (
-        dataframe.groupby([*column_list])["similarity"]
-        .count()
-        .reset_index(name="count")
-    )
+    for chunk in pd.read_csv(file, chunksize=chunksize):
+        chunk = chunk[column_list_full]
+        avg_values = chunk.groupby([*column_list]).mean("similarity")
+        count_values = (
+            chunk.groupby([*column_list])["similarity"]
+            .count()
+            .reset_index(name="count")
+        )
+        result = pd.merge(avg_values, count_values, on=[*column_list])
 
-    result = pd.merge(avg_values, count_values, on=[*column_list])
-    result.to_csv(OUTPUT_DIR + output_filename + ".csv")
+        with open(OUTPUT_DIR + output_filename, "a") as f:
+            result.to_csv(f, index=False, header=header_check)
+        
+        header_check = False
+        
 
     # with open(OUTPUT_DIR + output_filename, mode="w") as f:
     #    f.write(result.to_string())
@@ -140,11 +146,11 @@ def calculate_groups_count(dataframe, output_filename):
 
 
 def main():
-    if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
-    else:
-        for file in os.listdir(OUTPUT_DIR):
-            os.remove(OUTPUT_DIR + file)
+    #if not os.path.exists(OUTPUT_DIR):
+    #    os.makedirs(OUTPUT_DIR)
+    #else:
+    #    for file in os.listdir(OUTPUT_DIR):
+    #        os.remove(OUTPUT_DIR + file)
 
     birthmark_dir = "G:/Study/phd_research/birthmarks/"
 
@@ -152,9 +158,8 @@ def main():
     for file in birthmark_files:
         if not file.endswith(".csv"):
             continue
-
-        similarity_output_filename = file.replace(".csv", "") + "_avg_similarity"
-        calculate_avg_similarity(file, similarity_output_filename)
+        similarity_output_filename = file.replace(".csv", "") + "_avg_similarity.csv"
+        calculate_avg_similarity(birthmark_dir + file, similarity_output_filename)
         # count_output_filename = file.replace(".csv", "") + "_count"
         # calculate_groups_count(dataframe, count_output_filename)
 
