@@ -13,8 +13,6 @@ OUTPUT_DIR = "./birthmarks_group_data/"
 def full_column_names_check(file):
     chunksize = 1000000
     for chunk in pd.read_csv(file, chunksize=chunksize):
-        print(chunk.head(10))
-        print(chunk.columns)
         return "project1" in chunk.columns.to_list()
 
 
