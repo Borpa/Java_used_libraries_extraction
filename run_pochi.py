@@ -85,15 +85,15 @@ def combine_temp_files_alt(
     temp_dir=MULTIPROC_TEMP_DIR,
     output_filename="pochi.csv",
     output_dir=MULTIPROC_TEMP_DIR,
+    header=POCHI_OUTPUT_HEADER,
 ):
     temp_files = os.listdir(temp_dir)
     chunksize = 1000000
 
-    with open(output_dir + output_filename, "a") as f:
-        for chunk in pd.read_csv(temp_dir + temp_files[0], chunksize=chunksize):
-            chunk.to_csv(f, index=False)
+    with open(output_dir + output_filename, "w") as f:
+        f.write(header)
 
-    for temp_file in temp_files[1::]:
+    for temp_file in temp_files:
         with open(output_dir + output_filename, "a") as f:
             for chunk in pd.read_csv(temp_dir + temp_file, chunksize=chunksize):
                 chunk.to_csv(f, header=False, index=False)
@@ -568,10 +568,14 @@ def run_pochi_single_category_script_output(
 
         __drop_temp_files()
         __run_multiproc_script_output(pairs_df)
-        combine_temp_files_alt(output_filename=output_filename, output_dir=OUTPUT_DIR)
-        #result_df = combine_temp_files()
-        #__drop_temp_files()
-        #result_df.to_csv(OUTPUT_DIR + output_filename, index=False)
+        combine_temp_files_alt(
+            output_filename=output_filename,
+            output_dir=OUTPUT_DIR,
+            header=POCHI_OUTPUT_HEADER_ALT,
+        )
+        # result_df = combine_temp_files()
+        # __drop_temp_files()
+        # result_df.to_csv(OUTPUT_DIR + output_filename, index=False)
         return
 
     run_pochi_pairs_dataframe_script_output(pairs_df, output_filename=output_filename)
