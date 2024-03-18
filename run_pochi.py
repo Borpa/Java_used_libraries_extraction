@@ -13,8 +13,8 @@ from calculate_files_similarity import FILES_SIM
 from extract_project_dependencies import TESTED_SOFTWARE_DIR
 
 
-# BIRTHMARK_SOFTWARE = "C:/Users/FedorovNikolay/source/Study/birthmark_extraction_software/"
-BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
+BIRTHMARK_SOFTWARE = "C:/Users/FedorovNikolay/source/Study/birthmark_extraction_software/"
+# BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
 
 SIMILARITY_THRESHOLD = 70
 SIMILARITY_PAIRS_NUM = 3
@@ -22,7 +22,9 @@ SIMILARITY_PAIRS_NUM = 3
 POCHI_VERSION = "pochi-2.6.0"
 POCHI_OUTPUT_FILENAME = POCHI_VERSION + "_output_w_ver.csv"
 OUTPUT_DIR = "./birthmarks/"
-MULTIPROC_TEMP_DIR = "D:/Study/phd_research/library_extraction/temp/"
+
+NUM_OF_PROC = 2
+MULTIPROC_TEMP_DIR = "./temp/"
 MULTIPROC_TEMP_DIR_SHORT = "./temp/"
 POCHI_OUTPUT_HEADER = [
     "project1",
@@ -128,7 +130,7 @@ def __multiproc_run_iteration(proj_pair_group, output_option):
 
 
 def __run_multiproc_script_output(project_pairs, output_option=None):
-    proj_pair_groups = np.array_split(project_pairs, 3)
+    proj_pair_groups = np.array_split(project_pairs, NUM_OF_PROC)
 
     with Pool() as pool:
         pool.starmap(
@@ -138,7 +140,7 @@ def __run_multiproc_script_output(project_pairs, output_option=None):
 
 
 def __run_multiproc(project_pairs, output_option=None):
-    proj_pair_groups = np.array_split(project_pairs, 3)
+    proj_pair_groups = np.array_split(project_pairs, NUM_OF_PROC)
 
     with Pool() as pool:
         pool.starmap(
