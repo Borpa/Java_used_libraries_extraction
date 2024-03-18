@@ -25,6 +25,7 @@ JAR_STOPWORDS = [
     "webcommon",
     "wrapper",
     "mediaplayer_lib",
+    "plugins",
 ]
 
 
