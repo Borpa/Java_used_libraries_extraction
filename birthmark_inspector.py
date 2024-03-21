@@ -106,6 +106,7 @@ def calculate_avg_similarity(file, output_filename=AVG_SIMILARITY_OUTPUT_FILENAM
     header_check = True
 
     for chunk in pd.read_csv(file, chunksize=chunksize):
+        chunk = chunk[chunk.project1 != "project1"]
         chunk = chunk[column_list_full]
         avg_values = chunk.groupby([*column_list]).mean("similarity")
         count_values = (
