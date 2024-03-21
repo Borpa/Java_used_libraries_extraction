@@ -146,3 +146,18 @@ def get_project_jar_list(main_dir, project_type, project_name, project_ver=""):
 
 def get_project_types_list():
     return PROJECT_TYPES
+
+
+def get_src_dir(project_file):
+    file_dir = os.path.dirname(project_file)
+    for dir in os.listdir(file_dir):
+        if dir == "src":
+            return file_dir + "/src"
+    
+    #check if src dir is in the parent dir
+    file_dir = os.path.dirname(file_dir)
+    for dir in os.listdir(file_dir):
+        if dir == "src":
+            return file_dir + "/src"
+
+    return None

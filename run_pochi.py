@@ -202,6 +202,19 @@ def __create_project_pairs(dataframe, distinct_projects=None):
     return result_df
 
 
+def check_classfile_size(project_file, classfile):
+    classfile = classfile.split("$")[0] # pochi output for file sctruct: <path>$<classname>
+    src_dir = pi.get_src_dir(project_file)
+    classpath = classfile.replace(".", "/")
+    fullpath = src_dir + classpath + ".java"
+
+    if not os.path.isfile(fullpath):
+        return False # dep is not present in src -> skip 
+    
+    filesize = os.path.getsize(fullpath)
+    return filesize > (3 * 1024) # ignore file if filesize is under 3 KB
+
+
 def pochi_extract_compare_script_output(
     project1,
     project2,
@@ -269,6 +282,15 @@ def pochi_extract_compare(
                 if len(line) == 0:
                     continue
                 line = line.replace("\r\n", "").split(",")
+                class1 = line[3]
+                class2 = line[4]
+
+                check1 = check_classfile_size(project1_file, class1)
+                check2 = check_classfile_size(project2_file, class2)
+
+                if not (check1 and check2):
+                    continue
+
                 newline = [
                     project1,
                     project2,
