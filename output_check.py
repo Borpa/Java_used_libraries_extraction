@@ -1,4 +1,4 @@
-from run_pochi import check_classfile_local
+from run_pochi import check_classfile_local, check_classfile_size
 import pandas as pd
 import os
 import re
