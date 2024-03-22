@@ -9,7 +9,7 @@ TEST_PROJ_DIR = "D:/Study/phd_research/test_projects/"
 
 def get_project_type(filename):
     result = re.search("^(pochi-2.6.0)_(\w+)_(distinct|versions)", filename)
-    return result.group(1)
+    return result.group(2)
 
 
 def get_file_fullpath(project, project_type, project_ver, project_file):
