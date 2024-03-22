@@ -202,17 +202,34 @@ def __create_project_pairs(dataframe, distinct_projects=None):
     return result_df
 
 
-def check_classfile_size(project_file, classfile):
-    classfile = classfile.split("$")[0] # pochi output for file sctruct: <path>$<classname>
+def check_classfile_local(project_file, classfile):
+    classfile = classfile.split("$")[
+        0
+    ]  # pochi output for file sctruct: <path>$<classname>
     src_dir = pi.get_src_dir(project_file)
     classpath = classfile.replace(".", "/")
-    fullpath = src_dir + classpath + ".java"
+    if src_dir is None:
+        return False
+    fullpath = src_dir + "/" + classpath + ".java"
+
+    return os.path.isfile(fullpath)
+
+
+def check_classfile_size(project_file, classfile):
+    classfile = classfile.split("$")[
+        0
+    ]  # pochi output for file sctruct: <path>$<classname>
+    src_dir = pi.get_src_dir(project_file)
+    classpath = classfile.replace(".", "/")
+    if src_dir is None:
+        return False
+    fullpath = src_dir + "/" + classpath + ".java"
 
     if not os.path.isfile(fullpath):
-        return False # dep is not present in src -> skip 
-    
+        return False  # dep is not present in src -> skip
+
     filesize = os.path.getsize(fullpath)
-    return filesize > (3 * 1024) # ignore file if filesize is under 3 KB
+    return filesize > (3 * 1024)  # ignore file if filesize is under 3 KB
 
 
 def pochi_extract_compare_script_output(
