@@ -13,7 +13,9 @@ from calculate_files_similarity import FILES_SIM
 from extract_project_dependencies import TESTED_SOFTWARE_DIR
 
 
-BIRTHMARK_SOFTWARE = "C:/Users/FedorovNikolay/source/Study/birthmark_extraction_software/"
+BIRTHMARK_SOFTWARE = (
+    "C:/Users/FedorovNikolay/source/Study/birthmark_extraction_software/"
+)
 # BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
 
 SIMILARITY_THRESHOLD = 70
@@ -93,7 +95,7 @@ def combine_temp_files_alt(
     header_check = True
 
     for temp_file in temp_files:
-        with open(output_dir + output_filename, "a") as f:
+        with open(output_dir + output_filename, "a", newline="") as f:
             for chunk in pd.read_csv(temp_dir + temp_file, chunksize=chunksize):
                 chunk.to_csv(f, index=False, header=header_check)
                 header_check = False
@@ -205,22 +207,25 @@ def __create_project_pairs(dataframe, distinct_projects=None):
 
 
 def check_classfile_local(project_file, classfile):
-    classfile = classfile.split("$")[
-        0
-    ]  # pochi output for file sctruct: <path>$<classname>
+    # pochi output for file sctruct: <path>$<classname>
+    classfile = classfile.split("$")[0]
     src_dir = pi.get_src_dir(project_file)
     classpath = classfile.replace(".", "/")
     if src_dir is None:
         return False
-    fullpath = src_dir + "/" + classpath + ".java"
+    src_dir_alt = src_dir + "/main/java"
 
+    fullpath = src_dir + "/" + classpath + ".java"
+    if os.path.isfile(fullpath):
+        return os.path.isfile(fullpath)
+
+    fullpath = src_dir_alt + "/" + classpath + ".java"
     return os.path.isfile(fullpath)
 
 
 def check_classfile_size(project_file, classfile):
-    classfile = classfile.split("$")[
-        0
-    ]  # pochi output for file sctruct: <path>$<classname>
+    # pochi output for file sctruct: <path>$<classname>
+    classfile = classfile.split("$")[0]
     src_dir = pi.get_src_dir(project_file)
     classpath = classfile.replace(".", "/")
     if src_dir is None:
@@ -232,6 +237,16 @@ def check_classfile_size(project_file, classfile):
 
     filesize = os.path.getsize(fullpath)
     return filesize > (3 * 1024)  # ignore file if filesize is under 3 KB
+
+
+def check_classfile_only_size(project_file, classfile):
+    classfile = classfile.split("$")[0]
+    src_dir = pi.get_src_dir(project_file)
+    classpath = classfile.replace(".", "/")
+    fullpath = src_dir + "/" + classpath + ".java"
+    filesize = os.path.getsize(fullpath)
+
+    return filesize > (3 * 1024)
 
 
 def pochi_extract_compare_script_output(
