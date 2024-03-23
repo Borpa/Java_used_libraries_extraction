@@ -11,7 +11,7 @@ import time
 
 # TEST_PROJ_DIR = TESTED_SOFTWARE_DIR
 #TEST_PROJ_DIR = "D:/Study/phd_research/test_projects/"
-TEST_PROJ_DIR = "C:/Users/FedorovNikolay/source\Study/test_projects/"
+TEST_PROJ_DIR = "C:/Users/FedorovNikolay/source/Study/test_projects/"
 
 
 def get_project_type(filename):
