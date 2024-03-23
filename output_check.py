@@ -10,7 +10,8 @@ from extract_project_dependencies import TESTED_SOFTWARE_DIR
 import time
 
 # TEST_PROJ_DIR = TESTED_SOFTWARE_DIR
-TEST_PROJ_DIR = "D:/Study/phd_research/test_projects/"
+#TEST_PROJ_DIR = "D:/Study/phd_research/test_projects/"
+TEST_PROJ_DIR = "C:/Users/FedorovNikolay/source\Study/test_projects/"
 
 
 def get_project_type(filename):
@@ -63,7 +64,8 @@ def check_class_size_single(
 
 def main():
     chunksize = 1000000
-    birthmark_dir = "G:/Study/phd_research/birthmarks/"
+    #birthmark_dir = "G:/Study/phd_research/birthmarks/"
+    birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/"
     output_dir = "filtered/"
 
     birthmark_files = os.listdir(birthmark_dir)
