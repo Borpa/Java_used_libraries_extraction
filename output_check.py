@@ -10,7 +10,7 @@ from extract_project_dependencies import TESTED_SOFTWARE_DIR
 import time
 
 # TEST_PROJ_DIR = TESTED_SOFTWARE_DIR
-#TEST_PROJ_DIR = "D:/Study/phd_research/test_projects/"
+# TEST_PROJ_DIR = "D:/Study/phd_research/test_projects/"
 TEST_PROJ_DIR = "C:/Users/FedorovNikolay/source/Study/test_projects/"
 
 
@@ -64,12 +64,12 @@ def check_class_size_single(
 
 def main():
     chunksize = 1000000
-    #birthmark_dir = "G:/Study/phd_research/birthmarks/"
+    # birthmark_dir = "G:/Study/phd_research/birthmarks/"
     birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/"
     output_dir = "filtered/"
 
     birthmark_files = os.listdir(birthmark_dir)
-    #birthmark_files = ["pochi-2.6.0_calculator_versions_output.csv"]
+    # birthmark_files = ["pochi-2.6.0_calculator_versions_output.csv"]
     for birthmark_file in birthmark_files:
         if not birthmark_file.endswith(".csv"):
             continue
@@ -109,8 +109,7 @@ def main():
                     continue
 
                 chunk_for_save = chunk[
-                    (chunk.class1 == cur_row.class1)
-                    & (chunk.class2 == cur_row.class2)
+                    (chunk.class1 == cur_row.class1) & (chunk.class2 == cur_row.class2)
                 ]
 
                 with open(
@@ -123,20 +122,21 @@ def main():
                     chunk_for_save.to_csv(file, index=False, header=header_check)
                     header_check = False
 
-                #chunk = pd.concat([chunk, chunk_for_save]).drop_duplicates(keep=False)
+                # chunk = pd.concat([chunk, chunk_for_save]).drop_duplicates(keep=False)
                 chunk = chunk[
-                    ~((chunk.class1 == cur_row.class1)
-                    & (chunk.class2 == cur_row.class2))
+                    ~(
+                        (chunk.class1 == cur_row.class1)
+                        & (chunk.class2 == cur_row.class2)
+                    )
                 ]
 
-
-            #with open(
+            # with open(
             #    birthmark_dir
             #    + output_dir
             #    + birthmark_file.replace("_output", "_output_filtered"),
             #    "a",
             #    newline="",
-            #) as file:
+            # ) as file:
             #    chunk.to_csv(file, index=False, header=header_check)
             #    header_check = False
 
