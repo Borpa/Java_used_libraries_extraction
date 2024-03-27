@@ -206,7 +206,7 @@ def __create_project_pairs(dataframe, distinct_projects=None):
     return result_df
 
 
-def check_classfile_local(project_file, classfile):
+def check_classfile_local(project_file, classfile): # check if local dep
     # pochi output for file sctruct: <path>$<classname>
     classfile = classfile.split("$")[0]
     src_dir = pi.get_src_dir(project_file)
@@ -223,7 +223,7 @@ def check_classfile_local(project_file, classfile):
     return os.path.isfile(fullpath)
 
 
-def check_classfile_size(project_file, classfile):
+def check_classfile_size(project_file, classfile): # check if local dep + size
     # pochi output for file sctruct: <path>$<classname>
     classfile = classfile.split("$")[0]
     src_dir = pi.get_src_dir(project_file)
@@ -231,20 +231,27 @@ def check_classfile_size(project_file, classfile):
     if src_dir is None:
         return False
     fullpath = src_dir + "/" + classpath + ".java"
+    fullpath_alt = src_dir + "/main/java" + classpath + ".java"
 
-    if not os.path.isfile(fullpath):
-        return False  # dep is not present in src -> skip
+    for filepath in [fullpath, fullpath_alt]:
+        if os.path.isfile(filepath):
+            filesize = os.path.getsize(filepath)
+            return filesize > (3 * 1024)  # ignore file if filesize is under 3 KB
 
-    filesize = os.path.getsize(fullpath)
-    return filesize > (3 * 1024)  # ignore file if filesize is under 3 KB
+    return False
 
 
-def check_classfile_only_size(project_file, classfile):
+def check_classfile_only_size(project_file, classfile): # for filtered results
     classfile = classfile.split("$")[0]
     src_dir = pi.get_src_dir(project_file)
     classpath = classfile.replace(".", "/")
     fullpath = src_dir + "/" + classpath + ".java"
-    filesize = os.path.getsize(fullpath)
+    # TODO: add additional check for java/main/ path
+    try:
+        filesize = os.path.getsize(fullpath)
+    except FileNotFoundError:
+        fullpath = src_dir + "/main/java" + classpath + ".java"
+        filesize = os.path.getsize(fullpath)
 
     return filesize > (3 * 1024)
 
