@@ -319,8 +319,8 @@ def pochi_extract_compare(
                 class1 = line[3]
                 class2 = line[4]
 
-                check1 = check_classfile_size(project1_file, class1)
-                check2 = check_classfile_size(project2_file, class2)
+                check1 = check_classfile_local(project1_file, class1)
+                check2 = check_classfile_local(project2_file, class2)
 
                 if not (check1 and check2):
                     continue
