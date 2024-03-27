@@ -90,7 +90,7 @@ def retrieve_group_info(dataframe, output_filename=GROUPBY_OUTPUT_FILENAME):
         f.write(groupby_info.to_string())
 
 
-def calculate_avg_similarity(file, output_filename=AVG_SIMILARITY_OUTPUT_FILENAME):
+def calculate_avg_similarity(file, output_filename=AVG_SIMILARITY_OUTPUT_FILENAME, threshold=None):
     column_list = [
         "project1",
         "project1_ver",
@@ -106,6 +106,8 @@ def calculate_avg_similarity(file, output_filename=AVG_SIMILARITY_OUTPUT_FILENAM
     header_check = True
 
     for chunk in pd.read_csv(file, chunksize=chunksize):
+        if threshold is not None:
+            chunk = chunk[chunk.similarity >= threshold]
         chunk = chunk[chunk.project1 != "project1"]
         chunk = chunk[column_list_full]
         avg_values = chunk.groupby([*column_list]).mean("similarity")
