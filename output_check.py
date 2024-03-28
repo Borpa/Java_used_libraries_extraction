@@ -69,7 +69,7 @@ def main():
     output_dir = "filtered/"
 
     birthmark_files = os.listdir(birthmark_dir)
-    # birthmark_files = ["pochi-2.6.0_calculator_versions_output.csv"]
+    # birthmark_files = ["pochi-2.6.0_ebook_manager_versions_output_2.csv"]
     for birthmark_file in birthmark_files:
         if not birthmark_file.endswith(".csv"):
             continue
@@ -86,49 +86,72 @@ def main():
 
             while len(chunk) > 0:
                 cur_row = chunk.iloc[0]
-                check1 = check_class_single(
-                    cur_row.project1,
-                    cur_row.project1_ver,
-                    cur_row.project1_file,
-                    cur_row.class1,
-                    project_type,
-                )
-                if not check1:
-                    chunk = chunk[chunk.class1 != cur_row.class1]
+                try:
+                    check1 = check_class_single(
+                        cur_row.project1,
+                        cur_row.project1_ver,
+                        cur_row.project1_file,
+                        cur_row.class1,
+                        project_type,
+                    )
+                    if not check1:
+                        chunk = chunk[chunk.class1 != cur_row.class1]
+                        continue
+                except TypeError:
+                    print(
+                        "TypeError for project {} {} with file {}, class: {}".format(
+                            cur_row.project1,
+                            cur_row.project1_ver,
+                            cur_row.project1_file,
+                            cur_row.class1,
+                        )
+                    )
                     continue
 
-                check2 = check_class_single(
-                    cur_row.project2,
-                    cur_row.project2_ver,
-                    cur_row.project2_file,
-                    cur_row.class2,
-                    project_type,
-                )
-                if not check2:
-                    chunk = chunk[chunk.class2 != cur_row.class2]
+                try:
+                    check2 = check_class_single(
+                        cur_row.project2,
+                        cur_row.project2_ver,
+                        cur_row.project2_file,
+                        cur_row.class2,
+                        project_type,
+                    )
+                    if not check2:
+                        chunk = chunk[chunk.class2 != cur_row.class2]
+                        continue
+                except TypeError:
+                    print(
+                        "TypeError for project {} {} with file {}, class: {}".format(
+                            cur_row.project1,
+                            cur_row.project1_ver,
+                            cur_row.project1_file,
+                            cur_row.class1,
+                        )
+                    )
                     continue
 
                 chunk_for_save = chunk[
                     (chunk.class1 == cur_row.class1) & (chunk.class2 == cur_row.class2)
                 ]
 
-                with open(
-                    birthmark_dir
-                    + output_dir
-                    + birthmark_file.replace("_output", "_output_filtered"),
-                    "a",
-                    newline="",
-                ) as file:
-                    chunk_for_save.to_csv(file, index=False, header=header_check)
-                    header_check = False
+                if len(chunk_for_save) > 0:
+                    with open(
+                        birthmark_dir
+                        + output_dir
+                        + birthmark_file.replace("_output", "_output_filtered"),
+                        "a",
+                        newline="",
+                    ) as file:
+                        chunk_for_save.to_csv(file, index=False, header=header_check)
+                        header_check = False
 
-                # chunk = pd.concat([chunk, chunk_for_save]).drop_duplicates(keep=False)
-                chunk = chunk[
-                    ~(
-                        (chunk.class1 == cur_row.class1)
-                        & (chunk.class2 == cur_row.class2)
-                    )
-                ]
+                    # chunk = pd.concat([chunk, chunk_for_save]).drop_duplicates(keep=False)
+                    chunk = chunk[
+                        ~(
+                            (chunk.class1 == cur_row.class1)
+                            & (chunk.class2 == cur_row.class2)
+                        )
+                    ]
 
             # with open(
             #    birthmark_dir
