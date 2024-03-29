@@ -16,6 +16,20 @@ def full_column_names_check(file):
         return "project1" in chunk.columns.to_list()
 
 
+def filter_multiple_headers(birthmark_file):
+    chunksize = 1000000
+    header_check = True
+    for chunk in pd.read_csv(birthmark_file, chunksize=chunksize):
+        chunk = chunk[chunk.project1 != "project1"]
+        with open(
+            birthmark_file.replace(".csv", "_new.csv"),
+            "a",
+            newline="",
+        ) as file:
+            chunk.to_csv(file, index=False, header=header_check)
+            header_check = False
+
+
 def update_columns(file):
     chunksize = 100000
     output_filename = file.replace(".csv", "_new_header.csv")
@@ -90,7 +104,9 @@ def retrieve_group_info(dataframe, output_filename=GROUPBY_OUTPUT_FILENAME):
         f.write(groupby_info.to_string())
 
 
-def calculate_avg_similarity(file, output_filename=AVG_SIMILARITY_OUTPUT_FILENAME, threshold=None):
+def calculate_avg_similarity(
+    file, output_filename=AVG_SIMILARITY_OUTPUT_FILENAME, threshold=None
+):
     column_list = [
         "project1",
         "project1_ver",
@@ -120,9 +136,8 @@ def calculate_avg_similarity(file, output_filename=AVG_SIMILARITY_OUTPUT_FILENAM
 
         with open(OUTPUT_DIR + output_filename, "a") as f:
             result.to_csv(f, index=False, header=header_check)
-        
+
         header_check = False
-        
 
     # with open(OUTPUT_DIR + output_filename, mode="w") as f:
     #    f.write(result.to_string())
@@ -149,9 +164,9 @@ def calculate_groups_count(dataframe, output_filename):
 
 
 def main():
-    #if not os.path.exists(OUTPUT_DIR):
+    # if not os.path.exists(OUTPUT_DIR):
     #    os.makedirs(OUTPUT_DIR)
-    #else:
+    # else:
     #    for file in os.listdir(OUTPUT_DIR):
     #        os.remove(OUTPUT_DIR + file)
 
