@@ -206,7 +206,18 @@ def __create_project_pairs(dataframe, distinct_projects=None):
     return result_df
 
 
-def check_classfile_local(project_file, classfile): # check if local dep
+def check_classfile_local_simple(project_name, classfile):
+    project, author = project_name.lower().split("_")
+    classfile_dirs = classfile.lower().split(".")
+
+    return (
+        (author in classfile_dirs)
+        or (project in classfile_dirs)
+        or (project.replace("-", "") in classfile_dirs)
+    )
+
+
+def check_classfile_local(project_file, classfile):  # check if local dep
     # pochi output for file sctruct: <path>$<classname>
     classfile = classfile.split("$")[0]
     src_dir = pi.get_src_dir(project_file)
@@ -223,7 +234,7 @@ def check_classfile_local(project_file, classfile): # check if local dep
     return os.path.isfile(fullpath)
 
 
-def check_classfile_size(project_file, classfile): # check if local dep + size
+def check_classfile_size(project_file, classfile):  # check if local dep + size
     # pochi output for file sctruct: <path>$<classname>
     classfile = classfile.split("$")[0]
     src_dir = pi.get_src_dir(project_file)
@@ -241,7 +252,7 @@ def check_classfile_size(project_file, classfile): # check if local dep + size
     return False
 
 
-def check_classfile_only_size(project_file, classfile): # for filtered results
+def check_classfile_only_size(project_file, classfile):  # for filtered results
     classfile = classfile.split("$")[0]
     src_dir = pi.get_src_dir(project_file)
     classpath = classfile.replace(".", "/")
@@ -250,7 +261,7 @@ def check_classfile_only_size(project_file, classfile): # for filtered results
     try:
         filesize = os.path.getsize(fullpath)
     except FileNotFoundError:
-        fullpath = src_dir + "/main/java" + classpath + ".java"
+        fullpath = src_dir + "/main/java/" + classpath + ".java"
         filesize = os.path.getsize(fullpath)
 
     return filesize > (3 * 1024)
