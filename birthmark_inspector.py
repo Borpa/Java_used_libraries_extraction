@@ -30,6 +30,15 @@ def filter_multiple_headers(birthmark_file):
             header_check = False
 
 
+def add_header(filename, new_filename):
+    with open(new_filename, "a", newline="") as file:
+        file.write(",".join(POCHI_OUTPUT_HEADER))
+        file.write("\n")
+        for chunk in pd.read_csv(filename, chunksize=1000000):
+            chunk = chunk[chunk.iloc[:, 0] != "project1"]
+            chunk.to_csv(file, header=False, index=False)
+
+
 def update_columns(file):
     chunksize = 100000
     output_filename = file.replace(".csv", "_new_header.csv")
@@ -134,7 +143,7 @@ def calculate_avg_similarity(
         )
         result = pd.merge(avg_values, count_values, on=[*column_list])
 
-        with open(OUTPUT_DIR + output_filename, "a") as f:
+        with open(OUTPUT_DIR + output_filename, "a", newline="") as f:
             result.to_csv(f, index=False, header=header_check)
 
         header_check = False
@@ -170,14 +179,14 @@ def main():
     #    for file in os.listdir(OUTPUT_DIR):
     #        os.remove(OUTPUT_DIR + file)
 
-    birthmark_dir = "G:/Study/phd_research/birthmarks/"
+    birthmark_dir = "G:/Study/phd_research/birthmarks/filtered/"
 
     birthmark_files = os.listdir(birthmark_dir)
     for file in birthmark_files:
         if not file.endswith(".csv"):
             continue
-        similarity_output_filename = file.replace(".csv", "") + "_avg_similarity.csv"
-        calculate_avg_similarity(birthmark_dir + file, similarity_output_filename)
+        similarity_output_filename = file.replace(".csv", "") + "_avg_similarity_w_threshold.csv"
+        calculate_avg_similarity(birthmark_dir + file, "w_threshold/" + similarity_output_filename, 0.75)
         # count_output_filename = file.replace(".csv", "") + "_count"
         # calculate_groups_count(dataframe, count_output_filename)
 
