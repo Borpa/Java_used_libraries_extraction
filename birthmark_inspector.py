@@ -172,6 +172,40 @@ def calculate_groups_count(dataframe, output_filename):
         f.write(count_values.to_string())
 
 
+def combine_groups_files(birthmark_dir):
+    threshold_dir = "w_threshold/"
+    for file in os.listdir(birthmark_dir):
+        if not file.endswith(".csv"):
+            continue
+        threshold_file = file.replace(".csv", "") + "_w_threshold.csv"
+        df1 = pd.read_csv(birthmark_dir + file)
+        df2 = pd.read_csv(birthmark_dir + threshold_dir + threshold_file)
+        df2 = df2.rename(
+            columns={
+                "similarity": "similarity_w_threshold",
+                "count": "count_w_threshold",
+            }
+        )
+        df3 = pd.merge(
+            df1,
+            df2,
+            how="outer",
+            on=[
+                "project1",
+                "project1_ver",
+                "project2",
+                "project2_ver",
+                "birthmark",
+                "comparator",
+                "matcher",
+            ],
+        )
+        df3.similarity_w_threshold = df3.similarity_w_threshold.fillna(0)
+        df3.count_w_threshold = df3.count_w_threshold.fillna(0)
+        df3.count_w_threshold = df3.count_w_threshold.astype(int)
+        df3.to_csv(birthmark_dir + "combined/" + file, index=False)
+
+
 def main():
     # if not os.path.exists(OUTPUT_DIR):
     #    os.makedirs(OUTPUT_DIR)
@@ -179,16 +213,23 @@ def main():
     #    for file in os.listdir(OUTPUT_DIR):
     #        os.remove(OUTPUT_DIR + file)
 
-    birthmark_dir = "G:/Study/phd_research/birthmarks/filtered/"
+    # birthmark_dir = "G:/Study/phd_research/birthmarks/filtered/"
+    birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/"
+    combine_groups_files(birthmark_dir)
 
-    birthmark_files = os.listdir(birthmark_dir)
-    for file in birthmark_files:
-        if not file.endswith(".csv"):
-            continue
-        similarity_output_filename = file.replace(".csv", "") + "_avg_similarity_w_threshold.csv"
-        calculate_avg_similarity(birthmark_dir + file, "w_threshold/" + similarity_output_filename, 0.75)
-        # count_output_filename = file.replace(".csv", "") + "_count"
-        # calculate_groups_count(dataframe, count_output_filename)
+    # birthmark_files = os.listdir(birthmark_dir)
+    # for file in birthmark_files:
+    #    if not file.endswith(".csv"):
+    #        continue
+    #    similarity_output_filename = (
+    #        file.replace(".csv", "") + "_avg_similarity_w_threshold.csv"
+    #    )
+    #    calculate_avg_similarity(
+    #        birthmark_dir + file, "w_threshold/" + similarity_output_filename, 0.75
+    #    )
+
+    # count_output_filename = file.replace(".csv", "") + "_count"
+    # calculate_groups_count(dataframe, count_output_filename)
 
     # retrieve_group_info(dataframe)
 
