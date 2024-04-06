@@ -214,6 +214,7 @@ def check_classfile_local_simple(project_name, classfile):
         (author in classfile_dirs)
         or (project in classfile_dirs)
         or (project.replace("-", "") in classfile_dirs)
+        or (project.split("-")[0] in classfile_dirs)
     )
 
 
