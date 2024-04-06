@@ -207,7 +207,7 @@ def __create_project_pairs(dataframe, distinct_projects=None):
 
 
 def check_classfile_local_simple(project_name, classfile):
-    project, author = project_name.lower().split("_")
+    author, project = project_name.lower().split("_")
     classfile_dirs = classfile.lower().split(".")
 
     return (
