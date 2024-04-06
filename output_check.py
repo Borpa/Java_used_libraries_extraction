@@ -98,14 +98,14 @@ def main():
                         chunk = chunk[chunk.class1 != cur_row.class1]
                         continue
                 except TypeError:
-                    print(
-                        "TypeError for project {} {} with file {}, class: {}".format(
-                            cur_row.project1,
-                            cur_row.project1_ver,
-                            cur_row.project1_file,
-                            cur_row.class1,
-                        )
-                    )
+                    # print(
+                    #    "TypeError for project {} {} with file {}, class: {}".format(
+                    #        cur_row.project1,
+                    #        cur_row.project1_ver,
+                    #        cur_row.project1_file,
+                    #        cur_row.class1,
+                    #    )
+                    # )
                     continue
 
                 try:
@@ -120,14 +120,14 @@ def main():
                         chunk = chunk[chunk.class2 != cur_row.class2]
                         continue
                 except TypeError:
-                    print(
-                        "TypeError for project {} {} with file {}, class: {}".format(
-                            cur_row.project1,
-                            cur_row.project1_ver,
-                            cur_row.project1_file,
-                            cur_row.class1,
-                        )
-                    )
+                    # print(
+                    #    "TypeError for project {} {} with file {}, class: {}".format(
+                    #        cur_row.project1,
+                    #        cur_row.project1_ver,
+                    #        cur_row.project1_file,
+                    #        cur_row.class1,
+                    #    )
+                    # )
                     continue
 
                 chunk_for_save = chunk[
