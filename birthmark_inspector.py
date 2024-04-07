@@ -172,7 +172,7 @@ def calculate_groups_count(dataframe, output_filename):
         f.write(count_values.to_string())
 
 
-def combine_groups_files(birthmark_dir):
+def combine_groups_files(birthmark_dir="./birthmarks_group_data/"):
     threshold_dir = "w_threshold/"
     for file in os.listdir(birthmark_dir):
         if not file.endswith(".csv"):
@@ -204,6 +204,26 @@ def combine_groups_files(birthmark_dir):
         df3.count_w_threshold = df3.count_w_threshold.fillna(0)
         df3.count_w_threshold = df3.count_w_threshold.astype(int)
         df3.to_csv(birthmark_dir + "combined/" + file, index=False)
+
+
+def merge_duplicates(group_data_dir="./birthmarks_group_data/w_threshold/"):
+    for group_file in os.listdir(group_data_dir):
+        if not group_file.endswith(".csv"):
+            continue
+        df = pd.read_csv(group_data_dir + group_file)
+        groupby_cols = [
+            "project1",
+            "project1_ver",
+            "project2",
+            "project2_ver",
+            "birthmark",
+            "comparator",
+            "matcher",
+        ]
+        df = df.groupby([*groupby_cols], as_index=False).agg(
+            {"similarity": "mean", "count": "sum"}
+        )
+        df.to_csv(group_data_dir + group_file, index=False)
 
 
 def main():
