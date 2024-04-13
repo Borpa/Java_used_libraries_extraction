@@ -2,6 +2,7 @@ from run_pochi import (
     check_classfile_local,
     check_classfile_size,
     check_classfile_only_size,
+    check_classfile_local_simple,
 )
 import pandas as pd
 import os
@@ -76,7 +77,7 @@ def main():
         # birthmark_file = "pochi-2.6.0_calculator_versions_output.csv"
         header_check = True
 
-        project_type = get_project_type(birthmark_file)
+        # project_type = get_project_type(birthmark_file)
         for chunk in pd.read_csv(birthmark_dir + birthmark_file, chunksize=chunksize):
             # mask = chunk.apply(
             #    lambda x: check_class(x, project_type),
@@ -87,13 +88,16 @@ def main():
             while len(chunk) > 0:
                 cur_row = chunk.iloc[0]
                 try:
-                    check1 = check_class_single(
-                        cur_row.project1,
-                        cur_row.project1_ver,
-                        cur_row.project1_file,
-                        cur_row.class1,
-                        project_type,
+                    check1 = check_classfile_local_simple(
+                        cur_row.project1, cur_row.class1
                     )
+                    # check1 = check_class_single(
+                    #    cur_row.project1,
+                    #    cur_row.project1_ver,
+                    #    cur_row.project1_file,
+                    #    cur_row.class1,
+                    #    project_type,
+                    # )
                     if not check1:
                         chunk = chunk[chunk.class1 != cur_row.class1]
                         continue
@@ -109,13 +113,16 @@ def main():
                     continue
 
                 try:
-                    check2 = check_class_single(
-                        cur_row.project2,
-                        cur_row.project2_ver,
-                        cur_row.project2_file,
-                        cur_row.class2,
-                        project_type,
+                    check2 = check_classfile_local_simple(
+                        cur_row.project2, cur_row.class2
                     )
+                    # check2 = check_class_single(
+                    #    cur_row.project2,
+                    #    cur_row.project2_ver,
+                    #    cur_row.project2_file,
+                    #    cur_row.class2,
+                    #    project_type,
+                    # )
                     if not check2:
                         chunk = chunk[chunk.class2 != cur_row.class2]
                         continue
@@ -171,10 +178,10 @@ def filter_by_size():
     output_dir = "filtered_by_size/"
 
     birthmark_files = os.listdir(birthmark_dir)
-    #birthmark_files = [
+    # birthmark_files = [
     #    "pochi-2.6.0_text_editor_distinct_output_filtered.csv",
     #    "pochi-2.6.0_text_editor_versions_output_filtered.csv",
-    #]
+    # ]
     for birthmark_file in birthmark_files:
         if not birthmark_file.endswith(".csv"):
             continue
@@ -261,7 +268,7 @@ def filter_by_size():
 
 if __name__ == "__main__":
     start = time.time()
-    # main()
-    filter_by_size()
+    main()
+    # filter_by_size()
     end = time.time()
     print(end - start)
