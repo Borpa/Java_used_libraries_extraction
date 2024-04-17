@@ -57,7 +57,7 @@ def extrac_uc_list(filename, N=3):
         meta_info = uc_birthmark[:index]
         used_classes = uc_birthmark[index + 1 :]
 
-        result.append(used_classes)
+        result.append((meta_info, used_classes))
 
     return result
 
@@ -67,8 +67,8 @@ def compare_cosine(filename1, filename2, N=3):
     uc_list2 = extrac_uc_list(filename2)
     similarity_list = []
 
-    for uc1 in uc_list1:
-        for uc2 in uc_list2:
+    for meta_info1, uc1 in uc_list1:
+        for meta_info2, uc2 in uc_list2:
             similarity_list.append(simfunc.Cosine(" ".join(uc1), " ".join(uc2), N))
     similarity_list = list(filter(lambda x: x > 0.25, similarity_list))
     return fmean(similarity_list)
