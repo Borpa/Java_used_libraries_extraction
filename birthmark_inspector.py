@@ -207,6 +207,10 @@ def combine_groups_files(
                 "matcher",
             ],
         )
+        df3.similarity_filtered = df3.similarity_filtered.fillna(0)
+        df3.count_filtered = df3.count_filtered.fillna(0)
+        df3.count_filtered = df3.count_filtered.astype(int)
+
         df3.similarity_w_threshold = df3.similarity_w_threshold.fillna(0)
         df3.count_w_threshold = df3.count_w_threshold.fillna(0)
         df3.count_w_threshold = df3.count_w_threshold.astype(int)
@@ -310,14 +314,13 @@ def main():
     #    for file in os.listdir(OUTPUT_DIR):
     #        os.remove(OUTPUT_DIR + file)
 
-    birthmark_dir = "G:/Study/phd_research/birthmarks/test/"
+    #birthmark_dir = "G:/Study/phd_research/birthmarks/test/"
+    #plot_histograms(birthmark_dir)
 
-    plot_histograms(birthmark_dir)
-
-    # birthmark_group_dir = (
-    #    "D:/Study/phd_research/library_extraction/birthmarks_group_data/"
-    # )
-    # group2 = "filtered/combined/"
+    birthmark_group_dir = (
+       "D:/Study/phd_research/library_extraction/birthmarks_group_data/"
+    )
+    group2 = "filtered/combined/"
 
     # birthmark_files = os.listdir(birthmark_dir)
     # for file in birthmark_files:
@@ -328,9 +331,9 @@ def main():
 
     # merge_duplicates(birthmark_group_dir)
 
-    # combine_groups_files(
-    #    birthmark_group_dir, group2, "similarity_filtered", "count_filtered"
-    # )
+    combine_groups_files(
+       birthmark_group_dir, group2, "similarity_filtered", "count_filtered"
+    )
 
     # count_output_filename = file.replace(".csv", "") + "_count"
     # calculate_groups_count(dataframe, count_output_filename)
