@@ -62,7 +62,7 @@ def extrac_uc_list(filename, N=3):
     return result
 
 
-def compare_cosine(filename1, filename2, N=3):
+def compare_cosine(filename1, filename2, N=3, threshold=0.25):
     uc_list1 = extrac_uc_list(filename1)
     uc_list2 = extrac_uc_list(filename2)
     similarity_list = []
@@ -70,15 +70,15 @@ def compare_cosine(filename1, filename2, N=3):
     for meta_info1, uc1 in uc_list1:
         for meta_info2, uc2 in uc_list2:
             similarity_list.append(simfunc.Cosine(" ".join(uc1), " ".join(uc2), N))
-    similarity_list = list(filter(lambda x: x > 0.25, similarity_list))
+    similarity_list = list(filter(lambda x: x > threshold, similarity_list))
     return fmean(similarity_list)
 
 
-def compare(filename1, filename2, func, N=3):
+def compare(filename1, filename2, func, N=3, threshold=0.25):
     similarity_func = None
     match func:
         case simfunc.SimilarityFunc.Cosine:
-            return compare_cosine(filename1, filename2, N)
+            return compare_cosine(filename1, filename2, N, threshold)
         case simfunc.SimilarityFunc.DiceIndex:
             similarity_func = simfunc.DiceIndex
         case simfunc.SimilarityFunc.JacardCoefficient:
@@ -124,7 +124,7 @@ def compare(filename1, filename2, func, N=3):
 
             similarity_list.append(similarity_func(used_classes1, used_classes2))
 
-    similarity_list = list(filter(lambda x: x > 0.25, similarity_list))
+    similarity_list = list(filter(lambda x: x > threshold, similarity_list))
     return fmean(similarity_list)
     # return meta_info1 + meta_info2 + [similarity_score]
 
