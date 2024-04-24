@@ -336,7 +336,6 @@ def pochi_extract_compare(
                 if len(line) == 0:
                     continue
                 line = line.replace("\r\n", "").split(",")
-<<<<<<< HEAD
                 #class1 = line[3]
                 #class2 = line[4]
                 #check1 = check_classfile_local(project1_file, class1)
@@ -344,15 +343,6 @@ def pochi_extract_compare(
 
                 #if not (check1 and check2):
                 #    continue
-=======
-
-                class1 = line[3]
-                class2 = line[4]
-                check1 = check_classfile_local_simple(project1, class1)
-                check2 = check_classfile_local_simple(project2, class2)
-                if not (check1 and check2):
-                    continue
->>>>>>> 413db8761c81bf78aa8efb141e6e5d7396e3e5eb
 
                 newline = [
                     project1,
