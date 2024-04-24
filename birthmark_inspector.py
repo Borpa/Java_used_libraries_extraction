@@ -237,24 +237,16 @@ def merge_duplicates(group_data_dir="./birthmarks_group_data/w_threshold/"):
         df.to_csv(group_data_dir + group_file, index=False)
 
 
-def hist_builder(birthmark_file, groupby_columns_val, chunk_size=1e6):
-    project1 = groupby_columns_val[0]
-    project1_ver = groupby_columns_val[1]
-    project2 = groupby_columns_val[2]
-    project2_ver = groupby_columns_val[3]
-    birthmark = groupby_columns_val[4]
-    comparator = groupby_columns_val[5]
-    matcher = groupby_columns_val[6]
+def hist_builder(birthmark_file, groupby_columns_val, chunk_size=1e6, bins=25):
+    #project1 = groupby_columns_val[0]
+    #project1_ver = groupby_columns_val[1]
+    #project2 = groupby_columns_val[2]
+    #project2_ver = groupby_columns_val[3]
+    filename = os.path.basename(birthmark_file)
 
-    groupby_cols = [
-        "project1",
-        "project1_ver",
-        "project2",
-        "project2_ver",
-        "birthmark",
-        "comparator",
-        "matcher",
-    ]
+    birthmark = groupby_columns_val[0]
+    comparator = groupby_columns_val[1]
+    matcher = groupby_columns_val[2]
 
     chunks = pd.read_csv(birthmark_file, chunksize=chunk_size)
 
@@ -262,11 +254,11 @@ def hist_builder(birthmark_file, groupby_columns_val, chunk_size=1e6):
 
     for chunk in chunks:
         chunk_group_vals = chunk[
-            (chunk.project1 == project1)
-            & (chunk.project1_ver == project1_ver)
-            & (chunk.project2 == project2)
-            & (chunk.project2_ver == project2_ver)
-            & (chunk.birthmark == birthmark)
+            #(chunk.project1 == project1)
+            #& (chunk.project1_ver == project1_ver)
+            #& (chunk.project2 == project2)
+            #& (chunk.project2_ver == project2_ver)
+            (chunk.birthmark == birthmark)
             & (chunk.comparator == comparator)
             & (chunk.matcher == matcher)
         ]
@@ -275,10 +267,16 @@ def hist_builder(birthmark_file, groupby_columns_val, chunk_size=1e6):
     result_df = result_df.drop(
         columns=["class1", "class2", "project1_file", "project2_file"]
     )
+
+    output_dir = OUTPUT_DIR + "histograms/" + filename + "/"
+
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
     result_df["similarity"].hist(
-        bins=20, range=(0, 1), color="blue", ec="blue"
+        bins=bins, range=(0, 1), color="blue", ec="blue"
     ).get_figure().savefig(
-        OUTPUT_DIR + "histograms/" + "_".join(groupby_columns_val) + ".jpeg"
+        output_dir + "_".join(groupby_columns_val) + ".jpeg"
     )
 
 
@@ -288,10 +286,10 @@ def plot_histograms(birthmark_dir):
             continue
 
         groupby_cols = [
-            "project1",
-            "project1_ver",
-            "project2",
-            "project2_ver",
+            #"project1",
+            #"project1_ver",
+            #"project2",
+            #"project2_ver",
             "birthmark",
             "comparator",
             "matcher",
@@ -314,13 +312,17 @@ def main():
     #    for file in os.listdir(OUTPUT_DIR):
     #        os.remove(OUTPUT_DIR + file)
 
-    #birthmark_dir = "G:/Study/phd_research/birthmarks/test/"
-    #plot_histograms(birthmark_dir)
+    birthmark_dir = "G:/Study/phd_research/birthmarks/test/"
+    plot_histograms(birthmark_dir)
 
-    birthmark_group_dir = (
-       "D:/Study/phd_research/library_extraction/birthmarks_group_data/"
-    )
-    group2 = "filtered/combined/"
+    #birthmark_group_dir = (
+    #   "D:/Study/phd_research/library_extraction/birthmarks_group_data/"
+    #)
+    #group2 = "filtered/combined/"
+    #combine_groups_files(
+    #   birthmark_group_dir, group2, "similarity_filtered", "count_filtered"
+    #)
+
 
     # birthmark_files = os.listdir(birthmark_dir)
     # for file in birthmark_files:
@@ -331,9 +333,6 @@ def main():
 
     # merge_duplicates(birthmark_group_dir)
 
-    combine_groups_files(
-       birthmark_group_dir, group2, "similarity_filtered", "count_filtered"
-    )
 
     # count_output_filename = file.replace(".csv", "") + "_count"
     # calculate_groups_count(dataframe, count_output_filename)
