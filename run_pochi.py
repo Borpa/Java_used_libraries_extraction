@@ -11,12 +11,13 @@ import csv_manager as cm
 import project_inspector as pi
 from calculate_files_similarity import FILES_SIM
 from extract_project_dependencies import TESTED_SOFTWARE_DIR
+from custom_similarity_functions import compare_all
 
 
-BIRTHMARK_SOFTWARE = (
-    "C:/Users/FedorovNikolay/source/Study/birthmark_extraction_software/"
-)
-# BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
+# BIRTHMARK_SOFTWARE = (
+#    "C:/Users/FedorovNikolay/source/Study/birthmark_extraction_software/"
+# )
+BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
 
 SIMILARITY_THRESHOLD = 70
 SIMILARITY_PAIRS_NUM = 3
@@ -329,12 +330,13 @@ def pochi_extract_compare(
             output = cr.run_bash_command(command)
 
             output = output.split("\r\n")
-            file_pair_result = []
+            # file_pair_result = []
 
             for line in output:
                 if len(line) == 0:
                     continue
                 line = line.replace("\r\n", "").split(",")
+<<<<<<< HEAD
                 #class1 = line[3]
                 #class2 = line[4]
                 #check1 = check_classfile_local(project1_file, class1)
@@ -342,6 +344,15 @@ def pochi_extract_compare(
 
                 #if not (check1 and check2):
                 #    continue
+=======
+
+                class1 = line[3]
+                class2 = line[4]
+                check1 = check_classfile_local_simple(project1, class1)
+                check2 = check_classfile_local_simple(project2, class2)
+                if not (check1 and check2):
+                    continue
+>>>>>>> 413db8761c81bf78aa8efb141e6e5d7396e3e5eb
 
                 newline = [
                     project1,
@@ -351,9 +362,10 @@ def pochi_extract_compare(
                     os.path.basename(project1_file),
                     os.path.basename(project2_file),
                 ] + line
-                file_pair_result.append(newline)
+                # file_pair_result.append(newline)
+                cm.append_single_entry(output_filename, newline, output_dir)
 
-            cm.append_csv_data(output_filename, file_pair_result, output_dir)
+            # cm.append_csv_data(output_filename, file_pair_result, output_dir)
     gc.collect()
 
 
@@ -362,7 +374,7 @@ def pochi_extract_birthmark(
 ):
     full_path = software_location + POCHI_VERSION + "/bin/"
     pochi_script = "sh " + full_path + "pochi"
-    extraction_script = "pochi_scripts/" + "extract_birthmark.groovy"
+    extraction_script = "./pochi_scripts/" + "extract_birthmark.groovy"
     command = " ".join(
         [
             pochi_script,
@@ -589,12 +601,12 @@ def run_pochi_single_project(project_name, project_type):
     pairs_df = __create_project_pairs(df)
 
     output_filename = POCHI_VERSION + "_" + project_name + "_versions.csv"
-    # cm.init_csv_file(output_filename, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
-    __drop_temp_files()
+    cm.init_csv_file(output_filename, POCHI_OUTPUT_HEADER, OUTPUT_DIR)
+    # __drop_temp_files()
     run_pochi_pairs_dataframe(pairs_dataframe=pairs_df, output_filename=output_filename)
-    result_df = combine_temp_files()
-    __drop_temp_files()
-    result_df.to_csv(OUTPUT_DIR + output_filename)
+    # result_df = combine_temp_files()
+    # __drop_temp_files()
+    # result_df.to_csv(OUTPUT_DIR + output_filename)
 
 
 def run_pochi_single_category_script_output(
@@ -751,3 +763,176 @@ def run_pochi_category_pair(project_type1, project_type2, distinct_projects=True
     )
 
     run_pochi_pairs_dataframe(pairs_dataframe=pairs_df, output_filename=output_filename)
+
+
+def extract_birthmarks(
+    birthmark_list, project_type, combine=True, projects_dir=TESTED_SOFTWARE_DIR
+):
+    project_list = pi.get_project_list(projects_dir, project_type)
+    output_dir_base = "./birthmarks/"
+
+    for project_name in project_list:
+        project_versions = pi.get_project_version_list(
+            projects_dir, project_name, project_type
+        )
+        for project_ver in project_versions:
+            project_file_list = pi.get_project_jar_list(
+                projects_dir, project_type, project_name, project_ver
+            )
+            project_type = project_type.replace("/", "")
+
+            for birthmark in birthmark_list:
+                output_dir = (
+                    output_dir_base
+                    + "/".join([birthmark, project_type, project_name])
+                    + "/"
+                )
+                if not os.path.exists(output_dir):
+                    os.makedirs(output_dir)
+
+                if combine:
+                    output_filename = "_".join([project_name, project_ver, birthmark])
+                #    with open(output_dir + output_filename, "a") as file:
+                #        file.write(
+                #            ",".join(
+                #                [
+                #                    "_".join([project_name, project_ver]),
+                #                    "jar:file:///" + project_file_list[0],
+                #                    birthmark,
+                #                ]
+                #            )
+                #        )
+
+                first_line_check = True
+
+                for project_file in project_file_list:
+                    extracted_birthmark = pochi_extract_birthmark(
+                        project_file, birthmark
+                    )
+
+                    if combine:
+                        with open(output_dir + output_filename, "a") as file:
+                            for bm in extracted_birthmark:
+                                if len(bm) == 0:
+                                    continue
+                                bm = bm.split(",")
+                                bm_index = bm.index(birthmark)
+
+                                if not first_line_check:
+                                    file.write(",")
+                                else:
+                                    first_line_check = False
+
+                                file.write(",".join(bm[bm_index + 1 :]))
+
+                    else:
+                        project_file_name = os.path.basename(project_file)
+                        output_filename = "_".join([project_file_name, birthmark])
+                        with open(output_dir + output_filename, "a") as file:
+                            file.write("\n".join(extracted_birthmark))
+
+
+def compare_external_birthmarks_pair_pochi(
+    birthmark_file1,
+    birthmark_file2,
+    output_filename=None,
+    output_dir=OUTPUT_DIR,
+    software_location=BIRTHMARK_SOFTWARE,
+):
+    full_path = software_location + POCHI_VERSION + "/bin/"
+    pochi_script = "sh " + full_path + "pochi"
+    extraction_script = "./pochi_scripts/" + "compare_pair.groovy"
+
+    command = " ".join(
+        [
+            pochi_script,
+            extraction_script,
+            birthmark_file1,
+            birthmark_file2,
+        ]
+    )
+    output = cr.run_bash_command(command)
+    output = output.split("\r\n")
+
+    birthmark_file1 = os.path.basename(birthmark_file1)
+    birthmark_file2 = os.path.basename(birthmark_file2)
+
+    return output
+
+
+def compare_external_birthmarks_versions(
+    project_types, birthmark_list, birthmark_dir="./birthmarks/"
+):
+    for birthmark in birthmark_list:
+        for project_type in project_types:
+            project_type = project_type.replace("/", "")
+
+            projects_path = birthmark_dir + "/".join([birthmark, project_type]) + "/"
+
+            project_dirs = os.listdir(projects_path)
+
+            comparisons = []
+
+            for project_dir in project_dirs:
+                birthmark_files = os.listdir(projects_path + project_dir)
+                birthmark_files = [projects_path + project_dir + "/" + x for x in birthmark_files]
+
+                for i in range(0, len(birthmark_files)):
+                    for j in range(i + 1, len(birthmark_files)):
+                        if i == j:
+                            continue
+                        comparisons.append(
+                            compare_all(
+                                birthmark_files[i], birthmark_files[j], birthmark
+                            )
+                        )
+
+            with open(
+                birthmark_dir + "_".join([project_type, "versions"]), "a"
+            ) as file:
+                for comparison in comparisons:
+                    for line in comparison:
+                        file.write(",".join(line) + "\n")
+
+
+def compare_external_birthmarks_distinct(
+    project_types, birthmark_list, birthmark_dir="./birthmarks/"
+):
+    for birthmark in birthmark_list:
+        for project_type in project_types:
+            project_type = project_type.replace("/", "")
+
+            projects_path = birthmark_dir + "/".join([birthmark, project_type]) + "/"
+
+            project_dirs = os.listdir(projects_path)
+
+            comparisons = []
+
+            project_birthmarks_groups = []
+
+            for project_dir in project_dirs:
+                project_group = os.listdir(projects_path + project_dir)
+                project_birthmarks_groups.append(
+                    [projects_path + project_dir + "/" + x for x in project_group]
+                )
+
+            for i in range(0, len(project_birthmarks_groups)):
+                for j in range(i + 1, len(project_birthmarks_groups)):
+                    if i == j:
+                        continue
+
+                    group1 = project_birthmarks_groups[i]
+                    group2 = project_birthmarks_groups[j]
+
+                    for birthmark1 in group1:
+                        for birthmark2 in group2:
+                            comparisons.append(
+                                compare_all(birthmark1, birthmark2, birthmark)
+                            )
+
+            with open(
+                birthmark_dir + "_".join([project_type, "distinct"]), "a"
+            ) as file:
+                for comparison in comparisons:
+                    for line in comparison:
+                        file.write(",".join(line) + "\n")
