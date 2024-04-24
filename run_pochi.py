@@ -335,14 +335,13 @@ def pochi_extract_compare(
                 if len(line) == 0:
                     continue
                 line = line.replace("\r\n", "").split(",")
-                class1 = line[3]
-                class2 = line[4]
+                #class1 = line[3]
+                #class2 = line[4]
+                #check1 = check_classfile_local(project1_file, class1)
+                #check2 = check_classfile_local(project2_file, class2)
 
-                check1 = check_classfile_local(project1_file, class1)
-                check2 = check_classfile_local(project2_file, class2)
-
-                if not (check1 and check2):
-                    continue
+                #if not (check1 and check2):
+                #    continue
 
                 newline = [
                     project1,
@@ -416,6 +415,8 @@ def run_pochi_pairs_dataframe(
     output_filename=POCHI_OUTPUT_FILENAME,
     output_dir=OUTPUT_DIR,
 ):
+    cm.init_csv_file(output_filename, POCHI_OUTPUT_HEADER, output_dir)
+    
     for index, row in pairs_dataframe.iterrows():
         project1_file_list = pi.get_project_jar_list(
             TESTED_SOFTWARE_DIR,
