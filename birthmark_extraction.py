@@ -10,29 +10,34 @@ def main():
     gc.enable()
 
     category_list = [
-        "/emulator_environment/",
-        "/dev_environment/",
-        "/ebook_manager/",
-        "/graphic_editor/",
-        "/media_player/",
+        "/calculator/",
+        "/ai_app/",
         "/terminal_app/",
-        "/web_file_browser/",
+        "/emulator_environment/",
+        "/text_editor/",
     ]
+    birthmark_list = ["uc", "fuc", "3-gram", "6-gram"]
     for category in category_list:
-        start = time.time()
-        try:
-            pochi.run_pochi_single_category(category, True, False)
-        except Exception as e:
-            print(e)
-        end = time.time()
-        print("{} distinct runtime: ".format(category), end - start)
-        start = time.time()
-        try:
-            pochi.run_pochi_single_category(category, False, False)
-        except Exception as e:
-            print(e)
-        end = time.time()
-        print("{} versions runtime: ".format(category), end - start)
+        pochi.extract_birthmarks(birthmark_list, category)
+
+    pochi.compare_external_birthmarks_distinct(category_list, birthmark_list)
+    pochi.compare_external_birthmarks_versions(category_list, birthmark_list)
+    
+    #for category in category_list:
+    #    start = time.time()
+    #    try:
+    #        pochi.run_pochi_single_category(category, True, False)
+    #    except Exception as e:
+    #        print(e)
+    #    end = time.time()
+    #    print("{} distinct runtime: ".format(category), end - start)
+    #    start = time.time()
+    #    try:
+    #        pochi.run_pochi_single_category(category, False, False)
+    #    except Exception as e:
+    #        print(e)
+    #    end = time.time()
+    #    print("{} versions runtime: ".format(category), end - start)
 
 
 if __name__ == "__main__":
