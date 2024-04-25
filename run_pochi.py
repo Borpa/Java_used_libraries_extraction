@@ -92,7 +92,7 @@ def combine_temp_files_alt(
     output_dir=MULTIPROC_TEMP_DIR,
 ):
     temp_files = os.listdir(temp_dir)
-    chunksize = 1000000
+    chunksize = 1e6
     header_check = True
 
     for temp_file in temp_files:
