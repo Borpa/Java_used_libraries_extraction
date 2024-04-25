@@ -2,6 +2,7 @@ import numpy as np
 import math
 from enum import Enum
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 from scipy.spatial import distance
 from os.path import basename
 
@@ -14,7 +15,37 @@ class SimilarityFunc(Enum):
     # EditDistance = 5
 
 
-def Cosine(a, b, N):
+def Cosine_by_chunk(a, b):
+    b = np.array(b)
+    a = np.array(a)
+
+    if len(a) < len(b):
+        a, b = b, a
+
+    results = []
+    chunksize = 5
+
+    start = 0
+    end = chunksize
+
+    while end <= a.shape[0]:
+        # results.append(distance.cdist(a_vec[slice_start:slice_end], b_vec[slice_start:slice_end], 'cosine'))
+        #cosine_sim = a[start:end].dot(b.T).max(axis=1)
+        cosine_sim = cosine_similarity(a[start:end], b)
+        cosine_sim = [np.average(x) for x in cosine_sim]
+        results.append(cosine_sim)
+
+        # cosine_sim = 1 - distance.cdist(a[start:end], b)
+        # results.append(cosine_sim)
+
+        start += chunksize
+        end = start + chunksize
+
+    result = np.average(np.concatenate(results))
+    return result
+
+
+def Cosine(a, b, N=1):
     # a = ",".join(set(a))
     # b = ",".join(set(b))
     corpus = [a, b]
@@ -27,8 +58,10 @@ def Cosine(a, b, N):
     cosine = distance.cosine(a_vec, b_vec)
     return 1 - cosine
 
+    # return Cosine_by_chunk(a_vec, b_vec)
 
-def Cosine_vec(a, b, N):
+
+def Cosine_ngram(a, b, N=3):
     a = a.split(",")
     b = b.split(",")
     a_vec = []
@@ -43,7 +76,6 @@ def Cosine_vec(a, b, N):
             new_ngram.append(float(digit))
         if len(new_ngram) > 0:
             a_vec.append(new_ngram)
-
     for ngram in b:
         ngram = ngram.split(" ")
         new_ngram = []
@@ -54,30 +86,12 @@ def Cosine_vec(a, b, N):
         if len(new_ngram) > 0:
             b_vec.append(new_ngram)
 
-    if len(a_vec) < len(b_vec):
-        a_vec, b_vec = b_vec, a_vec
+    # if len(a_vec) < len(b_vec):
+    #    a_vec, b_vec = b_vec, a_vec
+    # while len(a_vec) > len(b_vec):
+    #    b_vec.append([0.0] * N)
 
-    while len(a_vec) > len(b_vec):
-        b_vec.append([0.0] * N)
-
-    b_vec = np.array(b_vec)
-    a_vec = np.array(a_vec)
-    results = []
-
-    rows_in_slice = 100
-
-    slice_start = 0
-    slice_end = slice_start + rows_in_slice
-
-    while slice_end <= a_vec.shape[0]:
-        # results.append(distance.cdist(a_vec[slice_start:slice_end], b_vec[slice_start:slice_end], 'cosine'))
-        results.append(a_vec[slice_start:slice_end].dot(b_vec.T).max(axis=1))
-
-    slice_start += rows_in_slice
-    slice_end = slice_start + rows_in_slice
-
-    result = np.concatenate(results)
-    return result
+    return Cosine_by_chunk(a_vec, b_vec)
     # return distance.cdist(a_vec, b_vec, 'cosine')
 
 
@@ -116,19 +130,32 @@ def compare_all(file1, file2, birthmark):
     if birthmark == "6-gram":
         n = 6
 
-    # else:
+    if "-gram" in birthmark:
+        result.append(
+            [
+                basename(file1),
+                basename(file2),
+                birthmark,
+                "Cosine",
+                str(Cosine_ngram(birthmark1, birthmark2)),
+            ]
+        )
+
+    else:
+        result.append(
+            [
+                basename(file1),
+                basename(file2),
+                birthmark,
+                "Cosine",
+                str(Cosine(birthmark1.replace(",", " "), birthmark2.replace(",", " "))),
+            ]
+        )
     result.append(
         [
             basename(file1),
             basename(file2),
-            "Cosine",
-            str(Cosine(birthmark1.replace(",", " "), birthmark2.replace(",", " "), n)),
-        ]
-    )
-    result.append(
-        [
-            basename(file1),
-            basename(file2),
+            birthmark,
             "DiceIndex",
             str(DiceIndex(birthmark1.split(","), birthmark2.split(","))),
         ]
@@ -137,6 +164,7 @@ def compare_all(file1, file2, birthmark):
         [
             basename(file1),
             basename(file2),
+            birthmark,
             "JacardCoefficient",
             str(JacardCoefficient(birthmark1.split(","), birthmark2.split(","))),
         ]
@@ -145,6 +173,7 @@ def compare_all(file1, file2, birthmark):
         [
             basename(file1),
             basename(file2),
+            birthmark,
             "SimpsonIndex",
             str(SimpsonIndex(birthmark1.split(","), birthmark2.split(","))),
         ]
