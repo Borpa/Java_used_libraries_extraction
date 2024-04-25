@@ -67,8 +67,8 @@ def Cosine(a, b, N=1):
     while end < len(a_vec):
         x = a_vec[start:end]
         y = b_vec[start:end]
-        # cosine = distance.cosine(x, y)
-        cosine = np.inner(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
+        cosine = distance.cosine(x, y)
+        # cosine = np.inner(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
         results.append(1 - cosine)
 
         start += chunksize
@@ -78,7 +78,6 @@ def Cosine(a, b, N=1):
             end = len(a_vec)
 
     # cosine = distance.cosine(a_vec[start:end], b_vec[start:end])
-    
 
     return np.average(results)
 
