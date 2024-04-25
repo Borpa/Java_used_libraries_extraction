@@ -55,8 +55,33 @@ def Cosine(a, b, N=1):
     a_vec = full_vec.toarray()[0].tolist()
     b_vec = full_vec.toarray()[1].tolist()
 
-    cosine = distance.cosine(a_vec, b_vec)
-    return 1 - cosine
+    results = []
+    chunksize = 10
+
+    start = 0
+    end = chunksize
+
+    if len(a_vec) < end:
+        end = len(a_vec)
+
+    while end < len(a_vec):
+        x = a_vec[start:end]
+        y = b_vec[start:end]
+        cosine = distance.cosine(x, y)
+        results.append(1-cosine)
+
+        start += chunksize
+        end += chunksize
+
+    end = len(a_vec)
+    cosine = distance.cosine(a_vec[start:end], b_vec[start:end])
+    results.append(1-cosine)
+
+    return np.average(results)
+
+
+    #cosine = distance.cosine(a_vec, b_vec)
+    #return 1 - cosine
 
     # return Cosine_by_chunk(a_vec, b_vec)
 
