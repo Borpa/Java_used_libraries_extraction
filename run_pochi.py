@@ -851,13 +851,13 @@ def compare_external_birthmarks_pair_pochi(
 
 
 def compare_external_birthmarks_versions(
-    project_types, birthmark_list, birthmark_dir="./birthmarks/"
+    project_types, birthmark_list, birthmark_dir="./birthmarks/external/"
 ):
-    for birthmark in birthmark_list:
+    for current_birthmark in birthmark_list:
         for project_type in project_types:
             project_type = project_type.replace("/", "")
 
-            projects_path = birthmark_dir + "/".join([birthmark, project_type]) + "/"
+            projects_path = birthmark_dir + "/".join([current_birthmark, project_type]) + "/"
 
             project_dirs = os.listdir(projects_path)
 
@@ -873,7 +873,7 @@ def compare_external_birthmarks_versions(
                             continue
                         comparisons.append(
                             compare_all(
-                                birthmark_files[i], birthmark_files[j], birthmark
+                                birthmark_files[i], birthmark_files[j], current_birthmark
                             )
                         )
 
@@ -886,13 +886,13 @@ def compare_external_birthmarks_versions(
 
 
 def compare_external_birthmarks_distinct(
-    project_types, birthmark_list, birthmark_dir="./birthmarks/"
+    project_types, birthmark_list, birthmark_dir="./birthmarks/external/"
 ):
-    for birthmark in birthmark_list:
+    for current_birthmark in birthmark_list:
         for project_type in project_types:
             project_type = project_type.replace("/", "")
 
-            projects_path = birthmark_dir + "/".join([birthmark, project_type]) + "/"
+            projects_path = birthmark_dir + "/".join([current_birthmark, project_type]) + "/"
 
             project_dirs = os.listdir(projects_path)
 
@@ -917,7 +917,7 @@ def compare_external_birthmarks_distinct(
                     for birthmark1 in group1:
                         for birthmark2 in group2:
                             comparisons.append(
-                                compare_all(birthmark1, birthmark2, birthmark)
+                                compare_all(birthmark1, birthmark2, current_birthmark)
                             )
 
             with open(
