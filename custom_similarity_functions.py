@@ -30,7 +30,7 @@ def Cosine_by_chunk(a, b):
 
     while end <= a.shape[0]:
         # results.append(distance.cdist(a_vec[slice_start:slice_end], b_vec[slice_start:slice_end], 'cosine'))
-        #cosine_sim = a[start:end].dot(b.T).max(axis=1)
+        # cosine_sim = a[start:end].dot(b.T).max(axis=1)
         cosine_sim = cosine_similarity(a[start:end], b)
         cosine_sim = [np.average(x) for x in cosine_sim]
         results.append(cosine_sim)
@@ -67,21 +67,23 @@ def Cosine(a, b, N=1):
     while end < len(a_vec):
         x = a_vec[start:end]
         y = b_vec[start:end]
-        cosine = distance.cosine(x, y)
-        results.append(1-cosine)
+        # cosine = distance.cosine(x, y)
+        cosine = np.inner(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
+        results.append(1 - cosine)
 
         start += chunksize
         end += chunksize
 
-    end = len(a_vec)
-    cosine = distance.cosine(a_vec[start:end], b_vec[start:end])
-    results.append(1-cosine)
+        if len(a_vec) - end < chunksize:
+            end = len(a_vec)
+
+    # cosine = distance.cosine(a_vec[start:end], b_vec[start:end])
+    
 
     return np.average(results)
 
-
-    #cosine = distance.cosine(a_vec, b_vec)
-    #return 1 - cosine
+    # cosine = distance.cosine(a_vec, b_vec)
+    # return 1 - cosine
 
     # return Cosine_by_chunk(a_vec, b_vec)
 
