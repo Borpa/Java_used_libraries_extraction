@@ -45,6 +45,40 @@ def Cosine_by_chunk(a, b):
     return result
 
 
+def Cosine_by_chunk_alt(a, b, N=3):
+    results = []
+    chunksize = 100
+
+    start = 0
+    end = chunksize
+
+    if len(a) < len(b):
+        a, b = b, a
+
+    while len(a) > len(b):
+        b.append([0.0] * N)
+
+    if len(a) < end:
+        end = len(a)
+
+    while end < len(a):
+        x = a[start:end]
+        y = b[start:end]
+
+        vec_len = np.linalg.norm(x) * np.linalg.norm(y)
+        if vec_len > 0:
+            cosine = np.dot(x, y) / vec_len
+            results.append(cosine)
+
+        start += chunksize
+        end += chunksize
+
+        if len(a) - end < chunksize:
+            end = len(a)
+
+    return np.average(results)
+
+
 def Cosine(a, b, N=1):
     # a = ",".join(set(a))
     # b = ",".join(set(b))
@@ -122,7 +156,9 @@ def Cosine_ngram(a, b, N=3):
     # while len(a_vec) > len(b_vec):
     #    b_vec.append([0.0] * N)
 
-    return Cosine_by_chunk(a_vec, b_vec)
+    #return Cosine_by_chunk(a_vec, b_vec)
+    return Cosine_by_chunk_alt(a_vec, b_vec, N)
+    
     # return distance.cdist(a_vec, b_vec, 'cosine')
 
 
@@ -168,7 +204,7 @@ def compare_all(file1, file2, birthmark):
                 basename(file2),
                 birthmark,
                 "Cosine",
-                str(Cosine_ngram(birthmark1, birthmark2)),
+                str(Cosine_ngram(birthmark1, birthmark2, n)),
             ]
         )
 
