@@ -65,10 +65,13 @@ def Cosine_by_chunk_alt(a, b, N=3):
         x = a[start:end]
         y = b[start:end]
 
-        vec_len = np.linalg.norm(x) * np.linalg.norm(y)
+        x = np.array(x)
+        y = np.array(y)
+
+        vec_len = np.linalg.norm(x) * np.linalg.norm(y.T)
         if vec_len > 0:
-            cosine = np.dot(x, y) / vec_len
-            results.append(cosine)
+            cosine = np.dot(x, y.T) / vec_len
+            results.append(1 - cosine)
 
         start += chunksize
         end += chunksize
@@ -107,7 +110,7 @@ def Cosine(a, b, N=1):
         vec_len = np.linalg.norm(x) * np.linalg.norm(y)
         if vec_len > 0:
             cosine = np.dot(x, y) / vec_len
-            results.append(cosine)
+            results.append(1 - cosine)
         # cosine = np.inner(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
 
         start += chunksize
