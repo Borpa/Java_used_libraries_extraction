@@ -23,7 +23,7 @@ def Cosine_by_chunk(a, b):
         a, b = b, a
 
     results = []
-    chunksize = 5
+    chunksize = 100
 
     start = 0
     end = chunksize
@@ -56,7 +56,7 @@ def Cosine(a, b, N=1):
     b_vec = full_vec.toarray()[1].tolist()
 
     results = []
-    chunksize = 10
+    chunksize = 100
 
     start = 0
     end = chunksize
@@ -67,9 +67,14 @@ def Cosine(a, b, N=1):
     while end < len(a_vec):
         x = a_vec[start:end]
         y = b_vec[start:end]
-        cosine = distance.cosine(x, y)
+        # cosine = distance.cosine(x, y)
+        # results.append(1 - cosine)
+
+        vec_len = np.linalg.norm(x) * np.linalg.norm(y)
+        if vec_len > 0:
+            cosine = np.dot(x, y) / vec_len
+            results.append(cosine)
         # cosine = np.inner(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
-        results.append(1 - cosine)
 
         start += chunksize
         end += chunksize
@@ -174,7 +179,7 @@ def compare_all(file1, file2, birthmark):
                 basename(file2),
                 birthmark,
                 "Cosine",
-                str(Cosine(birthmark1.replace(",", " "), birthmark2.replace(",", " "))),
+                str(Cosine(birthmark1, birthmark2)),
             ]
         )
     result.append(
