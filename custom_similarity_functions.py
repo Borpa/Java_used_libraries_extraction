@@ -45,6 +45,44 @@ def Cosine_by_chunk(a, b):
     return result
 
 
+def Cosine_by_chunk_alt_temp(a, b, N=3):
+    results = []
+    chunksize = 100
+
+    start = 0
+    end = chunksize
+
+    if len(a) < len(b):
+        a, b = b, a
+
+    if len(a) < end:
+        end = len(a)
+
+    while end <= len(a):
+        x = a[start:end]
+        y = b
+
+        x = np.array(x)
+        y = np.array(y)
+
+        vec_len = np.linalg.norm(x) * np.linalg.norm(y.T)
+        if vec_len != 0:
+            cosine = np.dot(x, y.T) / vec_len
+            cosine = np.max(cosine)
+            results.append(cosine)
+
+        if len(a) == end:
+            break
+
+        start += chunksize
+        end += chunksize
+
+        if len(a) - end < chunksize:
+            end = len(a)
+
+    return np.average(results)
+
+
 def Cosine_by_chunk_alt(a, b, N=3):
     results = []
     chunksize = 100
@@ -61,17 +99,31 @@ def Cosine_by_chunk_alt(a, b, N=3):
     if len(a) < end:
         end = len(a)
 
-    while end < len(a):
+    while end <= len(a):
         x = a[start:end]
         y = b[start:end]
 
         x = np.array(x)
         y = np.array(y)
 
-        vec_len = np.linalg.norm(x) * np.linalg.norm(y.T)
-        if vec_len > 0:
-            cosine = np.dot(x, y.T) / vec_len
-            results.append(1 - cosine)
+        # x_norm = np.linalg.norm(x)
+        # y_norm = np.linalg.norm(y)
+        # if x_norm != 0:
+        #    x = x / x_norm
+        #
+        # if y_norm != 0:
+        #    y = y / y_norm
+        #
+        vec_len = np.linalg.norm(x) * np.linalg.norm(y)
+        if vec_len != 0:
+            #cosine = np.dot(x.T, y) / vec_len
+            # = np.max(cosine)
+            cosine = cosine_similarity(x, y)
+            cosine = np.average(cosine)
+            results.append(cosine)
+
+        if len(a) == end:
+            break
 
         start += chunksize
         end += chunksize
@@ -89,8 +141,8 @@ def Cosine(a, b, N=1):
     vectorizer = CountVectorizer(ngram_range=(N, N))
     full_vec = vectorizer.fit_transform(corpus)
 
-    a_vec = full_vec.toarray()[0].tolist()
-    b_vec = full_vec.toarray()[1].tolist()
+    a_vec = full_vec.toarray()[0]
+    b_vec = full_vec.toarray()[1]
 
     results = []
     chunksize = 100
@@ -101,17 +153,21 @@ def Cosine(a, b, N=1):
     if len(a_vec) < end:
         end = len(a_vec)
 
-    while end < len(a_vec):
+    while end <= len(a_vec):
         x = a_vec[start:end]
         y = b_vec[start:end]
         # cosine = distance.cosine(x, y)
         # results.append(1 - cosine)
 
         vec_len = np.linalg.norm(x) * np.linalg.norm(y)
-        if vec_len > 0:
-            cosine = np.dot(x, y) / vec_len
-            results.append(1 - cosine)
+        if vec_len != 0:
+            #cosine = np.dot(x, y.T) / vec_len
+            cosine = cosine_similarity([x], [y])
+            results.append(cosine)
         # cosine = np.inner(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
+
+        if len(a_vec) == end:
+            break
 
         start += chunksize
         end += chunksize
@@ -159,9 +215,9 @@ def Cosine_ngram(a, b, N=3):
     # while len(a_vec) > len(b_vec):
     #    b_vec.append([0.0] * N)
 
-    #return Cosine_by_chunk(a_vec, b_vec)
+    # return Cosine_by_chunk(a_vec, b_vec)
     return Cosine_by_chunk_alt(a_vec, b_vec, N)
-    
+
     # return distance.cdist(a_vec, b_vec, 'cosine')
 
 
