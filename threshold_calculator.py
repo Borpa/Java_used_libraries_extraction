@@ -109,7 +109,14 @@ def calculate_optimal_threshold(min_percentage_score=0.5):
     delta_f = 0
     threshold_step = 0.01
 
-    project_birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc/calculator_no_threshold/calculator_fuc_DiceIndex/"
+    # project_birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc/calculator_no_threshold/calculator_fuc_DiceIndex/"
+    # project_birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc/calculator_fuc_DiceIndex/"
+    project_birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc/"
+
+    #for project_dir in os.listdir(project_birthmark_dir):
+    #    project_name = os.path.basename(project_dir)
+
+    #    print(" ".join(project_name, max_fscore))
 
     threshold = THRESHOLD_BASE
 
@@ -181,5 +188,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    # calculate_optimal_threshold()
+    # main()
+    calculate_optimal_threshold()
