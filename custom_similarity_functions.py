@@ -116,7 +116,7 @@ def Cosine_by_chunk_alt(a, b, N=3):
         #
         vec_len = np.linalg.norm(x) * np.linalg.norm(y)
         if vec_len != 0:
-            #cosine = np.dot(x.T, y) / vec_len
+            # cosine = np.dot(x.T, y) / vec_len
             # = np.max(cosine)
             cosine = cosine_similarity(x, y)
             cosine = np.average(cosine)
@@ -161,7 +161,7 @@ def Cosine(a, b, N=1):
 
         vec_len = np.linalg.norm(x) * np.linalg.norm(y)
         if vec_len != 0:
-            #cosine = np.dot(x, y.T) / vec_len
+            # cosine = np.dot(x, y.T) / vec_len
             cosine = cosine_similarity([x], [y])
             results.append(cosine)
         # cosine = np.inner(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
@@ -222,7 +222,7 @@ def Cosine_ngram(a, b, N=3):
 
 
 def DiceIndex(a, b):
-    return 2 * len(np.intersect1d(a, b)) / (len(a) + len(b))
+    return 2 * len(np.intersect1d(a, b)) / (len(set(a)) + len(set(b)))
 
 
 def JacardCoefficient(a, b):
@@ -231,8 +231,8 @@ def JacardCoefficient(a, b):
 
 def SimpsonIndex(a, b):
     if len(a) < len(b):
-        return len(np.intersect1d(a, b)) / len(a)
-    return len(np.intersect1d(a, b)) / len(b)
+        return len(np.intersect1d(a, b)) / len(set(a))
+    return len(np.intersect1d(a, b)) / len(set(b))
 
 
 def EditDistance(a, b):
