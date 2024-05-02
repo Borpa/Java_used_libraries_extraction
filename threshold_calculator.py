@@ -111,7 +111,7 @@ def calculate_optimal_threshold(project_birthmark_dir, min_percentage_score=0.5)
 
     # project_birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc/calculator_no_threshold/calculator_fuc_DiceIndex/"
     # project_birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc/calculator_fuc_DiceIndex/"
-    project_birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc/"
+    # project_birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc/"
 
     #for project_dir in os.listdir(project_birthmark_dir):
     #    project_name = os.path.basename(project_dir)
@@ -170,7 +170,7 @@ def calculate_optimal_threshold(project_birthmark_dir, min_percentage_score=0.5)
     if len(f_score_threshold_list) == 0:
         min_percentage_score -= 0.05
         if min_percentage_score >= 0:
-            calculate_optimal_threshold(min_percentage_score)
+            calculate_optimal_threshold(project_birthmark_dir, min_percentage_score)
         return (0, 0)
 
     max_fscore = (0, 0)
@@ -189,4 +189,10 @@ def main():
 
 if __name__ == "__main__":
     # main()
-    calculate_optimal_threshold()
+
+    birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc/"
+    for project_dir in os.listdir(birthmark_dir):
+        score = calculate_optimal_threshold(birthmark_dir + project_dir + "/")
+
+        with open("thresholds", "a") as file:
+            file.write(" ".join([project_dir, str(score), "\n"]))
