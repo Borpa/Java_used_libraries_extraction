@@ -11,6 +11,7 @@ from project_inspector import PROJECT_TYPES
 
 THRESHOLD_BASE = 0.1  # 0.25?
 OUTPUT_DIR = "./birthmarks_group_data/threshold_calc/"
+HEADER = ["project1", "project2", "birthmark", "comparator", "similarity"]
 
 
 def extract_df(birthmark_file, columns, chunk_size=1e6):
@@ -24,6 +25,7 @@ def extract_df(birthmark_file, columns, chunk_size=1e6):
     result_df = pd.DataFrame()
 
     for chunk in chunks:
+        chunk.columns = HEADER
         chunk_group_vals = chunk[
             (chunk.birthmark == birthmark)
             & (chunk.comparator == comparator)
@@ -35,13 +37,13 @@ def extract_df(birthmark_file, columns, chunk_size=1e6):
     for project_type in PROJECT_TYPES:
         project_type = project_type.replace("/", "")
         if project_type in filename:
-            output_dir = "./" + project_type + "_" + "_".join(columns) + "/"
+            output_dir = project_type + "_" + "_".join(columns) + "/"
             break
 
     if not os.path.exists(OUTPUT_DIR + output_dir):
-        os.mkdir(OUTPUT_DIR + output_dir)
+        os.makedirs(OUTPUT_DIR + output_dir)
 
-    result_df.to_csv(OUTPUT_DIR + output_dir + filename)
+    result_df.to_csv(OUTPUT_DIR + output_dir + filename, index=False)
 
 
 def group_by_bm_simfun(birthmark_dir, chunk_size=1e6):
@@ -56,7 +58,10 @@ def group_by_bm_simfun(birthmark_dir, chunk_size=1e6):
 
         pairs_set = None
 
-        for chunk in pd.read_csv(birthmark_dir + birthmark_file, chunksize=chunk_size):
+        chunks = pd.read_csv(birthmark_dir + birthmark_file, chunksize=chunk_size)
+
+        for chunk in chunks:
+            chunk.columns = HEADER
             groupby = chunk.groupby([*groupby_cols])
             pairs_set = groupby.groups
 
@@ -69,13 +74,16 @@ def combine_df(birthmark_dir):
     for birthmark_file in os.listdir(birthmark_dir):
         if not birthmark_file.endswith(".csv"):
             continue
-        result_df = pd.concat([result_df, pd.read_csv(birthmark_dir + birthmark_file)])
+        df = pd.read_csv(birthmark_dir + birthmark_file)
+        df.columns = HEADER
+        result_df = pd.concat([result_df, df])
 
-    result_df.to_csv(birthmark_dir + "combined.csv")
+    result_df.to_csv(birthmark_dir + "combined.csv", index=False)
 
 
 def calculate_credibility_percentage(birthmark_file, threshold):
     df = pd.read_csv(birthmark_file)
+    df.columns = HEADER
     cred_df = df[df.similarity < threshold]
 
     return len(cred_df) / len(df)
@@ -83,6 +91,7 @@ def calculate_credibility_percentage(birthmark_file, threshold):
 
 def calculate_resilience_percentage(birthmark_file, threshold):
     df = pd.read_csv(birthmark_file)
+    df.columns = HEADER
     res_df = df[df.similarity > threshold]
 
     return len(res_df) / len(df)
@@ -166,10 +175,11 @@ def calculate_optimal_threshold(min_percentage_score=0.5):
 
 
 def main():
-    birthmark_dir = "G:/Study/phd_research/birthmarks/test/w_threshold/"
+    # birthmark_dir = "G:/Study/phd_research/birthmarks/test/w_threshold/"
+    birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/external/"
     group_by_bm_simfun(birthmark_dir)
 
 
 if __name__ == "__main__":
-    # main()
-    calculate_optimal_threshold()
+    main()
+    # calculate_optimal_threshold()
