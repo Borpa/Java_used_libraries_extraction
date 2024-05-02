@@ -101,7 +101,7 @@ def f_score(recall, precision):
     return 2 * recall * precision / (recall + precision)
 
 
-def calculate_optimal_threshold(min_percentage_score=0.5):
+def calculate_optimal_threshold(project_birthmark_dir, min_percentage_score=0.5):
     # threshold step: 0.01, dif is small? 0.05
 
     # os.listdir -> list of dirs ->
@@ -171,14 +171,14 @@ def calculate_optimal_threshold(min_percentage_score=0.5):
         min_percentage_score -= 0.05
         if min_percentage_score >= 0:
             calculate_optimal_threshold(min_percentage_score)
-        return
+        return (0, 0)
 
     max_fscore = (0, 0)
     for fscore in f_score_threshold_list:
         if fscore[0] > max_fscore[0]:
             max_fscore = fscore
 
-    print(max_fscore)
+    return max_fscore
 
 
 def main():
