@@ -14,10 +14,10 @@ from extract_project_dependencies import TESTED_SOFTWARE_DIR
 from custom_similarity_functions import compare_all
 
 
-# BIRTHMARK_SOFTWARE = (
-#    "C:/Users/FedorovNikolay/source/Study/birthmark_extraction_software/"
-# )
-BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
+BIRTHMARK_SOFTWARE = (
+   "C:/Users/FedorovNikolay/source/Study/birthmark_extraction_software/"
+)
+# BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
 
 SIMILARITY_THRESHOLD = 70
 SIMILARITY_PAIRS_NUM = 3
@@ -878,7 +878,7 @@ def compare_external_birthmarks_versions(
                         )
 
             with open(
-                birthmark_dir + "_".join([project_type, "versions"]), "a"
+                birthmark_dir + "_".join([project_type, "versions"] + ".csv"), "a"
             ) as file:
                 for comparison in comparisons:
                     for line in comparison:
@@ -921,7 +921,7 @@ def compare_external_birthmarks_distinct(
                             )
 
             with open(
-                birthmark_dir + "_".join([project_type, "distinct"]), "a"
+                birthmark_dir + "_".join([project_type, "distinct"] + ".csv"), "a"
             ) as file:
                 for comparison in comparisons:
                     for line in comparison:
