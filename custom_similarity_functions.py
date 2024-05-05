@@ -221,6 +221,27 @@ def Cosine_ngram(a, b, N=3):
     # return distance.cdist(a_vec, b_vec, 'cosine')
 
 
+def Cosine_ngram_alt(a, b, N=3):
+    a = a.split(",")
+    b = b.split(",")
+
+    a_vec = []
+    b_vec = []
+
+    for ngram in a:
+        ngram = ngram.replace(" ", "")
+        a_vec.append(ngram)
+
+    for ngram in b:
+        ngram = ngram.replace(" ", "")
+        b_vec.append(ngram)
+
+    a_vec = ",".join(a_vec)
+    b_vec = ",".join(b_vec)
+
+    return Cosine(a_vec, b_vec)
+
+
 def DiceIndex(a, b):
     return 2 * len(np.intersect1d(a, b)) / (len(set(a)) + len(set(b)))
 
@@ -263,7 +284,7 @@ def compare_all(file1, file2, birthmark):
                 basename(file2),
                 birthmark,
                 "Cosine",
-                str(Cosine_ngram(birthmark1, birthmark2, n)),
+                str(Cosine_ngram_alt(birthmark1, birthmark2, n)),
             ]
         )
 
