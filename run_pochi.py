@@ -15,7 +15,7 @@ from custom_similarity_functions import compare_all
 
 
 BIRTHMARK_SOFTWARE = (
-   "C:/Users/FedorovNikolay/source/Study/birthmark_extraction_software/"
+    "C:/Users/FedorovNikolay/source/Study/birthmark_extraction_software/"
 )
 # BIRTHMARK_SOFTWARE = "D:/Study/phd_research/birthmark_extraction_software/"
 
@@ -336,12 +336,12 @@ def pochi_extract_compare(
                 if len(line) == 0:
                     continue
                 line = line.replace("\r\n", "").split(",")
-                #class1 = line[3]
-                #class2 = line[4]
-                #check1 = check_classfile_local(project1_file, class1)
-                #check2 = check_classfile_local(project2_file, class2)
+                # class1 = line[3]
+                # class2 = line[4]
+                # check1 = check_classfile_local(project1_file, class1)
+                # check2 = check_classfile_local(project2_file, class2)
 
-                #if not (check1 and check2):
+                # if not (check1 and check2):
                 #    continue
 
                 newline = [
@@ -418,7 +418,7 @@ def run_pochi_pairs_dataframe(
     output_dir=OUTPUT_DIR,
 ):
     cm.init_csv_file(output_filename, POCHI_OUTPUT_HEADER, output_dir)
-    
+
     for index, row in pairs_dataframe.iterrows():
         project1_file_list = pi.get_project_jar_list(
             TESTED_SOFTWARE_DIR,
@@ -857,7 +857,9 @@ def compare_external_birthmarks_versions(
         for project_type in project_types:
             project_type = project_type.replace("/", "")
 
-            projects_path = birthmark_dir + "/".join([current_birthmark, project_type]) + "/"
+            projects_path = (
+                birthmark_dir + "/".join([current_birthmark, project_type]) + "/"
+            )
 
             project_dirs = os.listdir(projects_path)
 
@@ -865,7 +867,9 @@ def compare_external_birthmarks_versions(
 
             for project_dir in project_dirs:
                 birthmark_files = os.listdir(projects_path + project_dir)
-                birthmark_files = [projects_path + project_dir + "/" + x for x in birthmark_files]
+                birthmark_files = [
+                    projects_path + project_dir + "/" + x for x in birthmark_files
+                ]
 
                 for i in range(0, len(birthmark_files)):
                     for j in range(i + 1, len(birthmark_files)):
@@ -873,12 +877,14 @@ def compare_external_birthmarks_versions(
                             continue
                         comparisons.append(
                             compare_all(
-                                birthmark_files[i], birthmark_files[j], current_birthmark
+                                birthmark_files[i],
+                                birthmark_files[j],
+                                current_birthmark,
                             )
                         )
 
             with open(
-                birthmark_dir + "_".join([project_type, "versions"] + ".csv"), "a"
+                birthmark_dir + "_".join([project_type, "versions"]) + ".csv", "a"
             ) as file:
                 for comparison in comparisons:
                     for line in comparison:
@@ -892,7 +898,9 @@ def compare_external_birthmarks_distinct(
         for project_type in project_types:
             project_type = project_type.replace("/", "")
 
-            projects_path = birthmark_dir + "/".join([current_birthmark, project_type]) + "/"
+            projects_path = (
+                birthmark_dir + "/".join([current_birthmark, project_type]) + "/"
+            )
 
             project_dirs = os.listdir(projects_path)
 
@@ -921,7 +929,7 @@ def compare_external_birthmarks_distinct(
                             )
 
             with open(
-                birthmark_dir + "_".join([project_type, "distinct"] + ".csv"), "a"
+                birthmark_dir + "_".join([project_type, "distinct"]) + ".csv", "a"
             ) as file:
                 for comparison in comparisons:
                     for line in comparison:
