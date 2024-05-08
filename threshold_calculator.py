@@ -5,11 +5,11 @@ import os
 import pandas as pd
 import numpy as np
 
-from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import precision_recall_curve, f1_score
 from project_inspector import PROJECT_TYPES
 
 
-THRESHOLD_BASE = 0.1  # 0.25?
+THRESHOLD_BASE = 0.5  # 0.25?
 OUTPUT_DIR = "./birthmarks_group_data/threshold_calc/"
 HEADER = ["project1", "project2", "birthmark", "comparator", "similarity"]
 
@@ -81,10 +81,32 @@ def combine_df(birthmark_dir):
     result_df.to_csv(birthmark_dir + "combined.csv", index=False)
 
 
+def calculate_credibility_vector(birthmark_file, threshold):
+    df = pd.read_csv(birthmark_file)
+    df.columns = HEADER
+    df = df.similarity
+
+    df = df.apply(lambda row: int(row <= (1 - threshold)))
+
+    result = df.to_numpy()
+    return result
+
+
+def calculate_resilience_vector(birthmark_file, threshold):
+    df = pd.read_csv(birthmark_file)
+    df.columns = HEADER
+    df = df.similarity
+
+    df = df.apply(lambda row: int(row >= threshold))
+
+    result = df.to_numpy()
+    return result
+
+
 def calculate_credibility_percentage(birthmark_file, threshold):
     df = pd.read_csv(birthmark_file)
     df.columns = HEADER
-    cred_df = df[df.similarity <= threshold]
+    cred_df = df[df.similarity <= (1 - threshold)]
 
     return len(cred_df) / len(df)
 
@@ -92,16 +114,68 @@ def calculate_credibility_percentage(birthmark_file, threshold):
 def calculate_resilience_percentage(birthmark_file, threshold):
     df = pd.read_csv(birthmark_file)
     df.columns = HEADER
-    res_df = df[df.similarity > (1 - threshold)]
+    res_df = df[df.similarity >= threshold]
 
     return len(res_df) / len(df)
 
 
-def f_score(recall, precision):
-    return 2 * recall * precision / (recall + precision)
+def get_fscore_threshold_list(project_birthmark_dir, min_fscore):
+    threshold_step = 0.01
+    threshold = THRESHOLD_BASE
+
+    f_score_threshold_list = []
+
+    while threshold < 1:
+        vectors = []
+
+        for birthmark_file in os.listdir(project_birthmark_dir):
+            if not birthmark_file.endswith(".csv"):
+                continue
+
+            if "versions" in birthmark_file:
+                vec = calculate_resilience_vector(project_birthmark_dir + birthmark_file, threshold)
+            else:
+                vec = calculate_credibility_vector(project_birthmark_dir + birthmark_file, threshold)
+            
+            vectors.append(vec)
+
+        true_vectors = []
+        true_vectors.append([1] * len(vectors[0]))
+        true_vectors.append([1] * len(vectors[1]))
+
+        f_score1 = f1_score([1] * len(vectors[0]), vectors[0], average='macro')
+        f_score2 = f1_score([1] * len(vectors[1]), vectors[1], average='macro')
+
+        if min([f_score1, f_score2]) <= min_fscore:
+            threshold += threshold_step
+            continue
+
+        f_score = f_score1 + f_score2
+        f_score_threshold_list.append((f_score, threshold))
+
+        threshold += threshold_step
+
+    return f_score_threshold_list
 
 
-def calculate_optimal_threshold(project_birthmark_dir, min_percentage_score=0.5):
+def get_best_threshold(project_birthmark_dir, min_fscore=0.8):
+    threshold_list = []
+    while len(threshold_list) == 0 and min_fscore > 0:
+        threshold_list = get_fscore_threshold_list(project_birthmark_dir, min_fscore)
+        min_fscore -= 0.1
+
+    if (min_fscore == 0):
+        return (0, 0)
+
+    max_fscore = (0, 0)
+    for fscore in threshold_list:
+        if fscore[0] >= max_fscore[0]:
+            max_fscore = fscore
+
+    return max_fscore
+
+
+def calculate_optimal_threshold(project_birthmark_dir, min_percentage_score=0.8):
     # threshold step: 0.01, dif is small? 0.05
 
     # os.listdir -> list of dirs ->
@@ -109,11 +183,7 @@ def calculate_optimal_threshold(project_birthmark_dir, min_percentage_score=0.5)
     delta_f = 0
     threshold_step = 0.01
 
-    # project_birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc/calculator_no_threshold/calculator_fuc_DiceIndex/"
-    # project_birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc/calculator_fuc_DiceIndex/"
-    # project_birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc/"
-
-    #for project_dir in os.listdir(project_birthmark_dir):
+    # for project_dir in os.listdir(project_birthmark_dir):
     #    project_name = os.path.basename(project_dir)
 
     #    print(" ".join(project_name, max_fscore))
@@ -122,60 +192,84 @@ def calculate_optimal_threshold(project_birthmark_dir, min_percentage_score=0.5)
 
     f_score_threshold_list = []
 
-    while threshold < 1.0:
+    while threshold < 1:
         percentages = []
+        vectors = []
 
         for birthmark_file in os.listdir(project_birthmark_dir):
             if not birthmark_file.endswith(".csv"):
                 continue
 
             if "versions" in birthmark_file:
-                perc = calculate_resilience_percentage(
-                    project_birthmark_dir + birthmark_file, threshold
-                )
+                #perc = calculate_resilience_percentage(
+                #    project_birthmark_dir + birthmark_file, threshold
+                #)
+                vec = calculate_resilience_vector(project_birthmark_dir + birthmark_file, threshold)
             else:
-                perc = calculate_credibility_percentage(
-                    project_birthmark_dir + birthmark_file, threshold
-                )
-            percentages.append(perc)
+                #perc = calculate_credibility_percentage(
+                #    project_birthmark_dir + birthmark_file, threshold
+                #)
+                vec = calculate_credibility_vector(project_birthmark_dir + birthmark_file, threshold)
+            
+            vectors.append(vec)
+            #percentages.append(perc)
 
-        true_percentage = np.array([1, 1])
-        percentage_scores = np.array(percentages)
+        #true_percentage = np.array([1, 1])
+        true_vectors = []
+        true_vectors.append([1] * len(vectors[0]))
+        true_vectors.append([1] * len(vectors[1]))
+        #true_vectors = np.array(true_vectors)
 
-        if min(percentage_scores) < min_percentage_score:
+        #percentage_scores = np.array(percentages)
+
+        #if min(percentage_scores) < min_percentage_score:
+        #    threshold += threshold_step
+        #    continue
+
+        #precision, recall, thresholds = precision_recall_curve(
+        #    true_percentage, percentage_scores
+        #)
+
+        # f_scores = 2 * recall * precision / (recall + precision)
+
+        # threshold_best = thresholds[np.argmax(f_scores)]
+        # f_score = np.max(f_scores)
+        # f_score_best = np.average(f_scores)
+
+
+        f_score1 = f1_score([1] * len(vectors[0]), vectors[0], average='macro')
+        f_score2 = f1_score([1] * len(vectors[1]), vectors[1], average='macro')
+
+
+        if min([f_score1, f_score2]) < min_percentage_score:
             threshold += threshold_step
             continue
 
-        precision, recall, thresholds = precision_recall_curve(
-            true_percentage, percentage_scores
-        )
+        #f_score = 1 - np.average(true_percentage - percentage_scores)
 
-        f_scores = 2 * recall * precision / (recall + precision)
-        # threshold_best = thresholds[np.argmax(f_scores)]
-        f_score_best = np.max(f_scores)
+        # delta_f = delta_f - f_score
+        # if delta_f < 0:
+        #    threshold_step = 0.001
+        # else:
+        #    threshold_step = 0.005
+        # delta_f = f_score
 
-        delta_f = delta_f - f_score_best
+        f_score = f_score1 + f_score2
 
-        if delta_f < 0:
-            threshold_step = 0.01
-        else:
-            threshold_step = 0.05
-
-        delta_f = f_score_best
-
-        f_score_threshold_list.append((f_score_best, threshold))
+        f_score_threshold_list.append((f_score, threshold))
 
         threshold += threshold_step
 
     if len(f_score_threshold_list) == 0:
-        min_percentage_score -= 0.05
-        if min_percentage_score >= 0:
+        min_percentage_score = min_percentage_score - 0.05
+        if min_percentage_score > 0:
             calculate_optimal_threshold(project_birthmark_dir, min_percentage_score)
-        return (0, 0)
-
+        else:
+            return (0, 0)
+        
     max_fscore = (0, 0)
     for fscore in f_score_threshold_list:
-        if fscore[0] > max_fscore[0]:
+        if fscore[0] >= max_fscore[0]:
             max_fscore = fscore
 
     return max_fscore
@@ -192,7 +286,8 @@ if __name__ == "__main__":
 
     birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc/"
     for project_dir in os.listdir(birthmark_dir):
-        score = calculate_optimal_threshold(birthmark_dir + project_dir + "/")
+        score = get_best_threshold(birthmark_dir + project_dir + "/")
+        # score = score[1]
 
         with open("thresholds", "a") as file:
             file.write(" ".join([project_dir, str(score), "\n"]))
