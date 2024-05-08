@@ -92,7 +92,7 @@ def calculate_credibility_percentage(birthmark_file, threshold):
 def calculate_resilience_percentage(birthmark_file, threshold):
     df = pd.read_csv(birthmark_file)
     df.columns = HEADER
-    res_df = df[df.similarity > 1 - threshold]
+    res_df = df[df.similarity > (1 - threshold)]
 
     return len(res_df) / len(df)
 
