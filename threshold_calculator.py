@@ -4,6 +4,7 @@
 import os
 import pandas as pd
 import numpy as np
+import itertools
 
 from sklearn.metrics import precision_recall_curve, f1_score
 from project_inspector import PROJECT_TYPES
@@ -120,7 +121,7 @@ def calculate_resilience_percentage(birthmark_file, threshold):
 
 
 def get_fscore_threshold_list(project_birthmark_dir, min_fscore):
-    threshold_step = 0.01
+    threshold_step = 0.001
     threshold = THRESHOLD_BASE
 
     f_score_threshold_list = []
@@ -139,18 +140,22 @@ def get_fscore_threshold_list(project_birthmark_dir, min_fscore):
             
             vectors.append(vec)
 
-        true_vectors = []
-        true_vectors.append([1] * len(vectors[0]))
-        true_vectors.append([1] * len(vectors[1]))
+        #true_vectors = []
+        #true_vectors.append([1] * len(vectors[0]))
+        #true_vectors.append([1] * len(vectors[1]))
 
-        f_score1 = f1_score([1] * len(vectors[0]), vectors[0], average='macro')
-        f_score2 = f1_score([1] * len(vectors[1]), vectors[1], average='macro')
+        vector = list(itertools.chain.from_iterable(vectors))
+        true_vector = [1] * len(vector)
+        f_score = f1_score(true_vector, vector, average='macro')
 
-        if min([f_score1, f_score2]) <= min_fscore:
+        #f_score1 = f1_score([1] * len(vectors[0]), vectors[0], average='macro')
+        #f_score2 = f1_score([1] * len(vectors[1]), vectors[1], average='macro')
+
+        if f_score < min_fscore:
             threshold += threshold_step
             continue
 
-        f_score = f_score1 + f_score2
+        #f_score = (f_score1 + f_score2) / 2
         f_score_threshold_list.append((f_score, threshold))
 
         threshold += threshold_step
@@ -158,11 +163,11 @@ def get_fscore_threshold_list(project_birthmark_dir, min_fscore):
     return f_score_threshold_list
 
 
-def get_best_threshold(project_birthmark_dir, min_fscore=0.8):
+def get_best_threshold(project_birthmark_dir, min_fscore=0.9):
     threshold_list = []
     while len(threshold_list) == 0 and min_fscore > 0:
         threshold_list = get_fscore_threshold_list(project_birthmark_dir, min_fscore)
-        min_fscore -= 0.1
+        min_fscore -= 0.05
 
     if (min_fscore == 0):
         return (0, 0)
