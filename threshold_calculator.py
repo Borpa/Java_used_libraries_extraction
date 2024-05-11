@@ -314,7 +314,7 @@ if __name__ == "__main__":
         fscore = str(score[0])
         threhsold = str(score[1])
 
-        newline = [category, birthmark, sim_func, fscore, threhsold, "\n"]
+        newline = [category, birthmark, sim_func, fscore, threhsold + "\n"]
 
         with open("thresholds.csv", "a") as file:
             file.write(",".join(newline))
