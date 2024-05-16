@@ -115,7 +115,10 @@ def retrieve_group_info(dataframe, output_filename=GROUPBY_OUTPUT_FILENAME):
 
 
 def calculate_avg_similarity(
-    file, output_filename=AVG_SIMILARITY_OUTPUT_FILENAME, threshold=None
+    file,
+    output_filename=AVG_SIMILARITY_OUTPUT_FILENAME,
+    threshold=None,
+    output_dir=OUTPUT_DIR,
 ):
     column_list = [
         "project1",
@@ -132,6 +135,9 @@ def calculate_avg_similarity(
     header_check = True
 
     for chunk in pd.read_csv(file, chunksize=chunksize):
+        if chunk.columns[0] != "project1":
+            chunk.columns = POCHI_OUTPUT_HEADER
+
         if threshold is not None:
             chunk = chunk[chunk.similarity >= threshold]
         chunk = chunk[chunk.project1 != "project1"]
@@ -144,7 +150,7 @@ def calculate_avg_similarity(
         )
         result = pd.merge(avg_values, count_values, on=[*column_list])
 
-        with open(OUTPUT_DIR + output_filename, "a", newline="") as f:
+        with open(output_dir + output_filename, "a", newline="") as f:
             result.to_csv(f, index=False, header=header_check)
 
         header_check = False
@@ -238,10 +244,10 @@ def merge_duplicates(group_data_dir="./birthmarks_group_data/w_threshold/"):
 
 
 def hist_builder(birthmark_file, groupby_columns_val, chunk_size=1e6, bins=25):
-    #project1 = groupby_columns_val[0]
-    #project1_ver = groupby_columns_val[1]
-    #project2 = groupby_columns_val[2]
-    #project2_ver = groupby_columns_val[3]
+    # project1 = groupby_columns_val[0]
+    # project1_ver = groupby_columns_val[1]
+    # project2 = groupby_columns_val[2]
+    # project2_ver = groupby_columns_val[3]
     filename = os.path.basename(birthmark_file)
 
     birthmark = groupby_columns_val[0]
@@ -254,10 +260,10 @@ def hist_builder(birthmark_file, groupby_columns_val, chunk_size=1e6, bins=25):
 
     for chunk in chunks:
         chunk_group_vals = chunk[
-            #(chunk.project1 == project1)
-            #& (chunk.project1_ver == project1_ver)
-            #& (chunk.project2 == project2)
-            #& (chunk.project2_ver == project2_ver)
+            # (chunk.project1 == project1)
+            # & (chunk.project1_ver == project1_ver)
+            # & (chunk.project2 == project2)
+            # & (chunk.project2_ver == project2_ver)
             (chunk.birthmark == birthmark)
             & (chunk.comparator == comparator)
             & (chunk.matcher == matcher)
@@ -275,9 +281,7 @@ def hist_builder(birthmark_file, groupby_columns_val, chunk_size=1e6, bins=25):
 
     result_df["similarity"].hist(
         bins=bins, range=(0, 1), color="blue", ec="blue"
-    ).get_figure().savefig(
-        output_dir + "_".join(groupby_columns_val) + ".jpeg"
-    )
+    ).get_figure().savefig(output_dir + "_".join(groupby_columns_val) + ".jpeg")
 
 
 def plot_histograms(birthmark_dir):
@@ -286,10 +290,10 @@ def plot_histograms(birthmark_dir):
             continue
 
         groupby_cols = [
-            #"project1",
-            #"project1_ver",
-            #"project2",
-            #"project2_ver",
+            # "project1",
+            # "project1_ver",
+            # "project2",
+            # "project2_ver",
             "birthmark",
             "comparator",
             "matcher",
@@ -305,6 +309,39 @@ def plot_histograms(birthmark_dir):
             hist_builder(birthmark_dir + birthmark_file, column_set)
 
 
+def separate_into_dirs(birthmark_dir, project_category):
+    files = os.listdir(birthmark_dir)
+    birthmarks = ["3-gram", "6-gram", "uc", "fuc"]
+    sim_func = ["Cosine", "DiceIndex", "JacardCoefficient", "SimpsonIndex"]
+
+    for file in files:
+        if not file.endswith(".csv"):
+            continue
+        if project_category not in file:
+            continue
+
+        df = pd.read_csv(birthmark_dir + file)
+        df_groups = df.groupby(["birthmark", "comparator"], as_index=False)
+
+        for group in df_groups:
+            
+            output_dir = "./birthmarks_group_data/threshold_calc_avg/"
+            output_dir = output_dir + "_".join(
+                [project_category, group[0][0], group[0][1] + "/"]
+            )
+
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+
+            if "distinct" in file:
+                output_filename = project_category + "_distinct.csv"
+            else:
+                output_filename = project_category + "_versions.csv"
+
+            with open(output_dir + output_filename, "a", newline="") as f:
+                group[1].to_csv(f, index=False)
+
+
 def main():
     # if not os.path.exists(OUTPUT_DIR):
     #    os.makedirs(OUTPUT_DIR)
@@ -312,27 +349,28 @@ def main():
     #    for file in os.listdir(OUTPUT_DIR):
     #        os.remove(OUTPUT_DIR + file)
 
-    birthmark_dir = "G:/Study/phd_research/birthmarks/test/"
-    plot_histograms(birthmark_dir)
+    birthmark_dir = "G:/Study/phd_research/birthmarks/no_threshold/"
+    # plot_histograms(birthmark_dir)
 
-    #birthmark_group_dir = (
+    # birthmark_group_dir = (
     #   "D:/Study/phd_research/library_extraction/birthmarks_group_data/"
-    #)
-    #group2 = "filtered/combined/"
-    #combine_groups_files(
+    # )
+    # group2 = "filtered/combined/"
+    # combine_groups_files(
     #   birthmark_group_dir, group2, "similarity_filtered", "count_filtered"
-    #)
+    # )
 
-
-    # birthmark_files = os.listdir(birthmark_dir)
-    # for file in birthmark_files:
-    #    if not file.endswith(".csv"):
-    #        continue
-    #    similarity_output_filename = file.replace(".csv", "") + "_groupby.csv"
-    #    calculate_avg_similarity(birthmark_dir + file, similarity_output_filename)
-
-    # merge_duplicates(birthmark_group_dir)
-
+    birthmark_files = os.listdir(birthmark_dir)
+    for file in birthmark_files:
+        if not file.endswith(".csv"):
+            continue
+        similarity_output_filename = file.replace(".csv", "") + "_avg_sim.csv"
+        calculate_avg_similarity(
+            birthmark_dir + file,
+            similarity_output_filename,
+            output_dir=birthmark_dir + "groupby/",
+        )
+    merge_duplicates(birthmark_dir + "groupby/")
 
     # count_output_filename = file.replace(".csv", "") + "_count"
     # calculate_groups_count(dataframe, count_output_filename)
@@ -341,4 +379,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    #main()
+    groupdir = "G:/Study/phd_research/birthmarks/no_threshold/groupby/done/"
+    for category in ["ai_app", "calculator", "terminal_app", "text_editor"]:
+        separate_into_dirs(groupdir, category)
