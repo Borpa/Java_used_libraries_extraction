@@ -656,6 +656,55 @@ def run_pochi_single_category_script_output(
     run_pochi_pairs_dataframe_script_output(pairs_df, output_filename=output_filename)
 
 
+def run_pochi_single_category_custom_list(project_type, project_list, distinct_projects=True, is_multiproc=False):
+    project_files_data = []
+
+    for project_name in project_list:
+        project_versions = pi.get_project_version_list(
+            TESTED_SOFTWARE_DIR, project_name, project_type
+        )
+        for project_ver in project_versions:
+            new_entry = [
+                project_name,
+                project_type,
+                project_ver,
+            ]
+            project_files_data.append(new_entry)
+
+    df = pd.DataFrame(
+        project_files_data,
+        columns=["project", "project_type", "project_ver"],
+    )
+    pairs_df = __create_project_pairs(df, distinct_projects)
+
+    project_type = project_type.replace("/", "")
+
+    filename_suffix = ""
+
+    match distinct_projects:
+        case None:
+            filename_suffix = "all"
+        case True:
+            filename_suffix = "distinct"
+        case False:
+            filename_suffix = "versions"
+
+    output_filename = "_".join(
+        [POCHI_VERSION, project_type, filename_suffix, "output.csv"]
+    )
+
+    if is_multiproc:
+        __drop_temp_files()
+        __run_multiproc(pairs_df)
+        combine_temp_files_alt(output_filename=output_filename, output_dir=OUTPUT_DIR)
+        # result_df = combine_temp_files()
+        # __drop_temp_files()
+        # result_df.to_csv(OUTPUT_DIR + output_filename, index=False)
+        return
+
+    run_pochi_pairs_dataframe(pairs_df, output_filename=output_filename)
+
+
 def run_pochi_single_category(project_type, distinct_projects=True, is_multiproc=False):
     project_files_data = []
     project_list = pi.get_project_list(TESTED_SOFTWARE_DIR, project_type)
