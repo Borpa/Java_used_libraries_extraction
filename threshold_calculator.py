@@ -15,6 +15,14 @@ THRESHOLD_BASE = 0.5  # 0.25?
 OUTPUT_DIR = "./birthmarks_group_data/threshold_calc/"
 HEADER = ["project1", "project2", "birthmark", "comparator", "similarity"]
 
+def df_header_check(df):
+    if "project1" in df.columns:
+        df = df[HEADER] 
+    else:
+        df.columns = HEADER
+    
+    return df
+
 
 def extract_df(birthmark_file, columns, chunk_size=1e6):
     filename = os.path.basename(birthmark_file)
@@ -77,7 +85,7 @@ def combine_df(birthmark_dir):
         if not birthmark_file.endswith(".csv"):
             continue
         df = pd.read_csv(birthmark_dir + birthmark_file)
-        df.columns = HEADER
+        df = df_header_check(df)
         result_df = pd.concat([result_df, df])
 
     result_df.to_csv(birthmark_dir + "combined.csv", index=False)
@@ -85,7 +93,8 @@ def combine_df(birthmark_dir):
 
 def calculate_credibility_vector(birthmark_file, threshold):
     df = pd.read_csv(birthmark_file)
-    df.columns = HEADER
+
+    df = df_header_check(df)
     df = df.similarity
 
     df = df.apply(lambda row: int(row <= (1 - threshold)))
@@ -96,7 +105,7 @@ def calculate_credibility_vector(birthmark_file, threshold):
 
 def calculate_resilience_vector(birthmark_file, threshold):
     df = pd.read_csv(birthmark_file)
-    df.columns = HEADER
+    df = df_header_check(df)
     df = df.similarity
 
     df = df.apply(lambda row: int(row >= threshold))
@@ -107,7 +116,7 @@ def calculate_resilience_vector(birthmark_file, threshold):
 
 def calculate_credibility_percentage(birthmark_file, threshold):
     df = pd.read_csv(birthmark_file)
-    df.columns = HEADER
+    df = df_header_check(df)
     cred_df = df[df.similarity <= (1 - threshold)]
 
     return len(cred_df) / len(df)
@@ -115,7 +124,7 @@ def calculate_credibility_percentage(birthmark_file, threshold):
 
 def calculate_resilience_percentage(birthmark_file, threshold):
     df = pd.read_csv(birthmark_file)
-    df.columns = HEADER
+    df = df_header_check(df)
     res_df = df[df.similarity >= threshold]
 
     return len(res_df) / len(df)
@@ -296,9 +305,11 @@ def main():
 if __name__ == "__main__":
     # main()
 
-    birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc/"
+    #birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc_avg/"
+    birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc_avg_w_threshold/"
+    output_filename = "thresholds_avg_sim_w_threshold.csv"
     header = "Category,Birthmark,Similarity function,F-score,Threshold\n"
-    with open("thresholds.csv", "w") as file:
+    with open(output_filename, "w") as file:
         file.write(header)
 
     birthmarks = ["3-gram", "6-gram", "uc", "fuc"]
@@ -316,5 +327,5 @@ if __name__ == "__main__":
 
         newline = [category, birthmark, sim_func, fscore, threhsold + "\n"]
 
-        with open("thresholds.csv", "a") as file:
+        with open(output_filename, "a") as file:
             file.write(",".join(newline))
