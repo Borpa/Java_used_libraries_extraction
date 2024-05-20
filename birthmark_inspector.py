@@ -309,7 +309,7 @@ def plot_histograms(birthmark_dir):
             hist_builder(birthmark_dir + birthmark_file, column_set)
 
 
-def separate_into_dirs(birthmark_dir, project_category):
+def separate_into_dirs(birthmark_dir, project_category, main_dir):
     files = os.listdir(birthmark_dir)
     birthmarks = ["3-gram", "6-gram", "uc", "fuc"]
     sim_func = ["Cosine", "DiceIndex", "JacardCoefficient", "SimpsonIndex"]
@@ -324,8 +324,7 @@ def separate_into_dirs(birthmark_dir, project_category):
         df_groups = df.groupby(["birthmark", "comparator"], as_index=False)
 
         for group in df_groups:
-            
-            output_dir = "./birthmarks_group_data/threshold_calc_avg/"
+            output_dir = main_dir
             output_dir = output_dir + "_".join(
                 [project_category, group[0][0], group[0][1] + "/"]
             )
@@ -350,6 +349,7 @@ def main():
     #        os.remove(OUTPUT_DIR + file)
 
     birthmark_dir = "G:/Study/phd_research/birthmarks/no_threshold/"
+    output_dir = "groupby_w_threshold/"
     # plot_histograms(birthmark_dir)
 
     # birthmark_group_dir = (
@@ -368,9 +368,10 @@ def main():
         calculate_avg_similarity(
             birthmark_dir + file,
             similarity_output_filename,
-            output_dir=birthmark_dir + "groupby/",
+            threshold=0.25,
+            output_dir=birthmark_dir + output_dir,
         )
-    merge_duplicates(birthmark_dir + "groupby/")
+    merge_duplicates(birthmark_dir + output_dir)
 
     # count_output_filename = file.replace(".csv", "") + "_count"
     # calculate_groups_count(dataframe, count_output_filename)
@@ -380,6 +381,6 @@ def main():
 
 if __name__ == "__main__":
     #main()
-    groupdir = "G:/Study/phd_research/birthmarks/no_threshold/groupby/done/"
-    for category in ["ai_app", "calculator", "terminal_app", "text_editor"]:
-        separate_into_dirs(groupdir, category)
+    groupdir = "G:/Study/phd_research/birthmarks/no_threshold/groupby_w_threshold/"
+    for category in ["ai_app", "calculator", "terminal_app", "text_editor", "emulator_environment"]:
+        separate_into_dirs(groupdir, category, "./birthmarks_group_data/threshold_calc_avg_w_threshold/")
