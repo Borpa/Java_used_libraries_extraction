@@ -15,12 +15,13 @@ THRESHOLD_BASE = 0.5  # 0.25?
 OUTPUT_DIR = "./birthmarks_group_data/threshold_calc/"
 HEADER = ["project1", "project2", "birthmark", "comparator", "similarity"]
 
+
 def df_header_check(df):
     if "project1" in df.columns:
-        df = df[HEADER] 
+        df = df[HEADER]
     else:
         df.columns = HEADER
-    
+
     return df
 
 
@@ -194,6 +195,30 @@ def get_best_threshold(project_birthmark_dir, min_fscore=0.9):
     return max_fscore
 
 
+def get_fscore_for_threshold(project_birthmark_dir, threshold):
+    vectors = []
+
+    for birthmark_file in os.listdir(project_birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
+            continue
+
+        if "versions" in birthmark_file:
+            vec = calculate_resilience_vector(
+                project_birthmark_dir + birthmark_file, threshold
+            )
+        else:
+            vec = calculate_credibility_vector(
+                project_birthmark_dir + birthmark_file, threshold
+            )
+
+        vectors.append(vec)
+
+    vector = list(itertools.chain.from_iterable(vectors))
+    true_vector = [1] * len(vector)
+
+    return f1_score(true_vector, vector, average="macro")
+
+
 def calculate_optimal_threshold(project_birthmark_dir, min_percentage_score=0.8):
     # threshold step: 0.01, dif is small? 0.05
 
@@ -302,17 +327,35 @@ def main():
     group_by_bm_simfun(birthmark_dir)
 
 
-if __name__ == "__main__":
-    # main()
-
-    #birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc_avg/"
-    birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc_avg_w_threshold/"
-    output_filename = "thresholds_avg_sim_w_threshold.csv"
+def test_threshold(birthmark_dir, output_filename, threshold):
     header = "Category,Birthmark,Similarity function,F-score,Threshold\n"
     with open(output_filename, "w") as file:
         file.write(header)
 
-    birthmarks = ["3-gram", "6-gram", "uc", "fuc"]
+    for project_dir in os.listdir(birthmark_dir):
+        fscore = get_fscore_for_threshold(birthmark_dir + project_dir + "/", threshold)
+
+        match_groups = re.match(r"(\w+_*\w+)_(3-gram|6-gram|fuc|uc)_(\w+)", project_dir)
+        category = match_groups[1]
+        birthmark = match_groups[2]
+        sim_func = match_groups[3]
+
+        fscore = str(fscore)
+        newline = [category, birthmark, sim_func, fscore, str(threshold) + "\n"]
+
+        with open(output_filename, "a") as file:
+            file.write(",".join(newline))
+
+
+def calculate_treshold():
+    birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc_avg/"
+    output_filename = "thresholds_avg_sim.csv"
+    header = "Category,Birthmark,Similarity function,F-score,Threshold\n"
+    with open(output_filename, "w") as file:
+        file.write(header)
+
+    #birthmarks = ["3-gram", "6-gram", "uc", "fuc"]
+    birthmarks = ["3-gram", "6-gram"]
 
     for project_dir in os.listdir(birthmark_dir):
         score = get_best_threshold(birthmark_dir + project_dir + "/")
@@ -323,9 +366,17 @@ if __name__ == "__main__":
         sim_func = match_groups[3]
 
         fscore = str(score[0])
-        threhsold = str(score[1])
+        threshold = str(score[1])
 
-        newline = [category, birthmark, sim_func, fscore, threhsold + "\n"]
+        newline = [category, birthmark, sim_func, fscore, threshold + "\n"]
 
         with open(output_filename, "a") as file:
             file.write(",".join(newline))
+
+
+if __name__ == "__main__":
+    # main()
+
+    # birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc_avg/"
+    birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc/"
+    test_threshold(birthmark_dir, "pochi_default_treshold.csv", 0.75)
