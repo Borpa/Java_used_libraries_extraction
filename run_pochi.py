@@ -327,12 +327,10 @@ def pochi_extract_compare(
                     # options,
                 ]
             )
-            output = cr.run_bash_command(command)
 
-            output = output.split("\r\n")
             # file_pair_result = []
 
-            for line in output:
+            for line in cr.run_bash_command(command).split("\r\n"):
                 if len(line) == 0:
                     continue
                 line = line.replace("\r\n", "").split(",")
@@ -656,7 +654,9 @@ def run_pochi_single_category_script_output(
     run_pochi_pairs_dataframe_script_output(pairs_df, output_filename=output_filename)
 
 
-def run_pochi_single_category_custom_list(project_type, project_list, distinct_projects=True, is_multiproc=False):
+def run_pochi_single_category_custom_list(
+    project_type, project_list, distinct_projects=True, is_multiproc=False
+):
     project_files_data = []
 
     for project_name in project_list:
@@ -690,7 +690,7 @@ def run_pochi_single_category_custom_list(project_type, project_list, distinct_p
             filename_suffix = "versions"
 
     output_filename = "_".join(
-        [POCHI_VERSION, project_type, filename_suffix, "output.csv"]
+        [POCHI_VERSION, project_type, *project_list, filename_suffix, "output.csv"]
     )
 
     if is_multiproc:
