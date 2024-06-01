@@ -357,6 +357,80 @@ def pochi_extract_compare(
     gc.collect()
 
 
+def calculate_avg_similarity(
+    sim_data,
+    output_filename,
+    output_dir=OUTPUT_DIR,
+):
+    column_list = [
+        "project1",
+        "project1_ver",
+        "project2",
+        "project2_ver",
+        "birthmark",
+        "comparator",
+        "matcher",
+    ]
+    column_list_full = column_list + ["similarity"]
+
+    df = pd.DataFrame(sim_data)
+    df.columns = POCHI_OUTPUT_HEADER
+    result = df[column_list_full].groupby([*column_list]).mean("similarity")
+
+    with open(output_dir + output_filename, "a", newline="") as file:
+        result.to_csv(file, index=False, header=False)
+
+
+def pochi_extract_compare_avg(
+    project1,
+    project2,
+    project1_file_list,
+    project2_file_list,
+    software_location=BIRTHMARK_SOFTWARE,
+    project1_ver=None,
+    project2_ver=None,
+    output_filename=POCHI_OUTPUT_FILENAME,
+    output_dir=OUTPUT_DIR,
+):
+    full_path = software_location + POCHI_VERSION + "/bin/"
+    pochi_script = "sh " + full_path + "pochi"
+    extraction_script = "./pochi_scripts/" + "extract-compare.groovy"
+
+    cm.append_single_entry(output_filename, POCHI_OUTPUT_HEADER_ALT, output_dir)
+
+    for project1_file in project1_file_list:
+        for project2_file in project2_file_list:
+            command = " ".join(
+                [
+                    pochi_script,
+                    extraction_script,
+                    project1_file,
+                    project2_file,
+                ]
+            )
+            output = cr.run_bash_command(command)
+
+            output = output.split("\r\n")
+            file_pair_result = []
+
+            for line in output:
+                if len(line) == 0:
+                    continue
+                line = line.replace("\r\n", "").split(",")
+
+                newline = [
+                    project1,
+                    project2,
+                    project1_ver,
+                    project2_ver,
+                    os.path.basename(project1_file),
+                    os.path.basename(project2_file),
+                ] + line
+                file_pair_result.append(newline)
+            calculate_avg_similarity(file_pair_result, output_filename, output_dir)
+            gc.collect()
+
+
 def pochi_extract_birthmark(
     project_file, birthmark, software_location=BIRTHMARK_SOFTWARE
 ):
