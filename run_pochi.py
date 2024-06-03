@@ -44,8 +44,21 @@ POCHI_OUTPUT_HEADER = [
     "similarity",
 ]
 
-
 POCHI_OUTPUT_HEADER_ALT = [
+    "project1",
+    "project2",
+    "project1_ver",
+    "project2_ver",
+    "birthmark",
+    "comparator",
+    "matcher",
+    "class1",
+    "class2",
+    "similarity",
+]
+
+
+POCHI_OUTPUT_HEADER_ALT_2 = [
     "project1_file",
     "project2_file",
     "birthmark",
@@ -55,6 +68,19 @@ POCHI_OUTPUT_HEADER_ALT = [
     "class2",
     "similarity",
 ]
+
+
+POCHI_OUTPUT_HEADER_AVG = [
+    "project1",
+    "project1_ver",
+    "project2",
+    "project2_ver",
+    "birthmark",
+    "comparator",
+    "matcher",
+    "similarity",
+]
+
 
 
 def __get_similar_projects_pairs(threshold, num_of_pairs, similarity_data):
@@ -111,7 +137,7 @@ def __drop_temp_files(temp_dir=MULTIPROC_TEMP_DIR):
 def __multiproc_run_iteration_script_output(proj_pair_group, output_option):
     pid = current_process().pid
     temp_file_name = str(pid) + ".csv"
-    cm.init_csv_file(temp_file_name, POCHI_OUTPUT_HEADER_ALT, MULTIPROC_TEMP_DIR)
+    cm.init_csv_file(temp_file_name, POCHI_OUTPUT_HEADER_ALT_2, MULTIPROC_TEMP_DIR)
 
     run_pochi_pairs_dataframe_script_output(
         pairs_dataframe=proj_pair_group,
@@ -362,6 +388,9 @@ def calculate_avg_similarity(
     output_filename,
     output_dir=OUTPUT_DIR,
 ):
+    if len(sim_data) == 0:
+        return
+
     column_list = [
         "project1",
         "project1_ver",
@@ -374,8 +403,16 @@ def calculate_avg_similarity(
     column_list_full = column_list + ["similarity"]
 
     df = pd.DataFrame(sim_data)
-    df.columns = POCHI_OUTPUT_HEADER
-    result = df[column_list_full].groupby([*column_list]).mean("similarity")
+    df.columns = POCHI_OUTPUT_HEADER_ALT
+    df = df[column_list_full]
+
+    df = df[df.similarity != "NaN"]
+    df["similarity"] = pd.to_numeric(df["similarity"])
+
+    #result = df.groupby([*column_list]).mean("similarity")
+    result = df.groupby([*column_list]).agg({'similarity' : 'mean'}).reset_index()
+
+    #df = pd.merge(df.groupby([*column_list]), result, on=[*column_list])
 
     with open(output_dir + output_filename, "a", newline="") as file:
         result.to_csv(file, index=False, header=False)
@@ -387,6 +424,7 @@ def pochi_extract_compare_avg(
     project1_file_list,
     project2_file_list,
     software_location=BIRTHMARK_SOFTWARE,
+    options=None,
     project1_ver=None,
     project2_ver=None,
     output_filename=POCHI_OUTPUT_FILENAME,
@@ -395,8 +433,6 @@ def pochi_extract_compare_avg(
     full_path = software_location + POCHI_VERSION + "/bin/"
     pochi_script = "sh " + full_path + "pochi"
     extraction_script = "./pochi_scripts/" + "extract-compare.groovy"
-
-    cm.append_single_entry(output_filename, POCHI_OUTPUT_HEADER_ALT, output_dir)
 
     for project1_file in project1_file_list:
         for project2_file in project2_file_list:
@@ -408,12 +444,10 @@ def pochi_extract_compare_avg(
                     project2_file,
                 ]
             )
+            file_pair_result = []
             output = cr.run_bash_command(command)
 
-            output = output.split("\r\n")
-            file_pair_result = []
-
-            for line in output:
+            for line in output.split("\r\n"):
                 if len(line) == 0:
                     continue
                 line = line.replace("\r\n", "").split(",")
@@ -423,12 +457,12 @@ def pochi_extract_compare_avg(
                     project2,
                     project1_ver,
                     project2_ver,
-                    os.path.basename(project1_file),
-                    os.path.basename(project2_file),
+                    #os.path.basename(project1_file),
+                    #os.path.basename(project2_file),
                 ] + line
                 file_pair_result.append(newline)
             calculate_avg_similarity(file_pair_result, output_filename, output_dir)
-            gc.collect()
+    gc.collect()
 
 
 def pochi_extract_birthmark(
@@ -489,7 +523,7 @@ def run_pochi_pairs_dataframe(
     output_filename=POCHI_OUTPUT_FILENAME,
     output_dir=OUTPUT_DIR,
 ):
-    cm.init_csv_file(output_filename, POCHI_OUTPUT_HEADER, output_dir)
+    cm.init_csv_file(output_filename, POCHI_OUTPUT_HEADER_AVG, output_dir)
 
     for index, row in pairs_dataframe.iterrows():
         project1_file_list = pi.get_project_jar_list(
@@ -505,7 +539,7 @@ def run_pochi_pairs_dataframe(
             row.project2_ver,
         )
 
-        pochi_extract_compare(
+        pochi_extract_compare_avg(
             project1=row.project1,
             project2=row.project2,
             project1_ver=row.project1_ver,
