@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 import project_inspector as pi
-from run_pochi import POCHI_OUTPUT_HEADER
+from run_pochi import POCHI_OUTPUT_HEADER, POCHI_OUTPUT_HEADER_AVG
 
 BIRTHMARK_DATA_DIR = "./birthmarks/"
 GROUPBY_OUTPUT_FILENAME = "groupby_info"
@@ -136,19 +136,20 @@ def calculate_avg_similarity(
 
     for chunk in pd.read_csv(file, chunksize=chunksize):
         if chunk.columns[0] != "project1":
-            chunk.columns = POCHI_OUTPUT_HEADER
+            #chunk.columns = POCHI_OUTPUT_HEADER
+            chunk.columns = POCHI_OUTPUT_HEADER_AVG
 
         if threshold is not None:
             chunk = chunk[chunk.similarity >= threshold]
         chunk = chunk[chunk.project1 != "project1"]
         chunk = chunk[column_list_full]
-        avg_values = chunk.groupby([*column_list]).mean("similarity")
-        count_values = (
-            chunk.groupby([*column_list])["similarity"]
-            .count()
-            .reset_index(name="count")
-        )
-        result = pd.merge(avg_values, count_values, on=[*column_list])
+        result = chunk.groupby([*column_list]).mean("similarity")
+        #count_values = (
+        #    chunk.groupby([*column_list])["similarity"]
+        #    .count()
+        #    .reset_index(name="count")
+        #)
+        #result = pd.merge(avg_values, count_values, on=[*column_list])
 
         with open(output_dir + output_filename, "a", newline="") as f:
             result.to_csv(f, index=False, header=header_check)
@@ -348,8 +349,10 @@ def main():
     #    for file in os.listdir(OUTPUT_DIR):
     #        os.remove(OUTPUT_DIR + file)
 
-    birthmark_dir = "G:/Study/phd_research/birthmarks/no_threshold/"
-    output_dir = "groupby_w_threshold/"
+    #birthmark_dir = "G:/Study/phd_research/birthmarks/no_threshold/"
+    birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/roundrobintest/"
+    #birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/New folder/"
+    output_dir = ""
     # plot_histograms(birthmark_dir)
 
     # birthmark_group_dir = (
@@ -368,7 +371,7 @@ def main():
         calculate_avg_similarity(
             birthmark_dir + file,
             similarity_output_filename,
-            threshold=0.25,
+            #threshold=0.25,
             output_dir=birthmark_dir + output_dir,
         )
     merge_duplicates(birthmark_dir + output_dir)
@@ -380,7 +383,7 @@ def main():
 
 
 if __name__ == "__main__":
-    #main()
-    groupdir = "G:/Study/phd_research/birthmarks/no_threshold/groupby_w_threshold/"
-    for category in ["ai_app", "calculator", "terminal_app", "text_editor", "emulator_environment"]:
-        separate_into_dirs(groupdir, category, "./birthmarks_group_data/threshold_calc_avg_w_threshold/")
+    main()
+    #groupdir = "G:/Study/phd_research/birthmarks/no_threshold/groupby_w_threshold/"
+    #for category in ["ai_app", "calculator", "terminal_app", "text_editor", "emulator_environment"]:
+    #    separate_into_dirs(groupdir, category, "./birthmarks_group_data/threshold_calc_avg_w_threshold/")
