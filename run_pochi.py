@@ -490,6 +490,10 @@ def pochi_extract_compare_avg(
 
 
 def group_by_max_sim(
+    project1,
+    project2,
+    project1_ver,
+    project2_ver,
     sim_data,
     output_filename,
     output_dir=OUTPUT_DIR,
@@ -498,10 +502,6 @@ def group_by_max_sim(
         return
 
     column_list = [
-        "project1",
-        "project1_ver",
-        "project2",
-        "project2_ver",
         "birthmark",
         "comparator",
         "matcher",
@@ -511,18 +511,26 @@ def group_by_max_sim(
     column_list_full = column_list + ["similarity"]
 
     df = pd.DataFrame(sim_data)
-    df.columns = POCHI_OUTPUT_HEADER_ALT
-    df = df[column_list_full]
+    df.columns = column_list_full
 
     df = df[df.similarity != "NaN"]
     df["similarity"] = pd.to_numeric(df["similarity"])
 
-    result = df.groupby([*column_list]).agg({'similarity' : 'max'}).reset_index()
+    result = df.groupby([*column_list]).agg({"similarity": "max"}).reset_index()
+
+    if len(result) == 0:
+        return
+
+    result[["project1", "project1_ver", "project2", "project2_ver"]] = [
+        [project1, project1_ver, project2, project2_ver] for i in range(len(result))
+    ]
+    result = result[POCHI_OUTPUT_HEADER_MAX_SIM]
 
     with open(output_dir + output_filename, "a", newline="") as file:
         result.to_csv(file, index=False, header=False)
 
-def pochi_extract_max_sim(
+
+def pochi_extract_compare_max_sim(
     project1,
     project2,
     project1_file_list,
@@ -549,22 +557,29 @@ def pochi_extract_max_sim(
                 ]
             )
             file_pair_result = []
-            output = cr.run_bash_command(command)
-
-            for line in output.split("\r\n"):
+            script_output = cr.run_bash_command(command).split("\r\n")
+            line = script_output.pop()
+            #for line in script_output:
+            while script_output:
                 if len(line) == 0:
+                    line = script_output.pop()
                     continue
-                line = line.replace("\r\n", "").split(",")
-
-                newline = [
-                    project1,
-                    project2,
-                    project1_ver,
-                    project2_ver,
-                ] + line
+                newline = line.replace("\r\n", "").split(",")
+                newline = newline[:3] + newline[5:]
                 file_pair_result.append(newline)
-            group_by_max_sim(file_pair_result, output_filename, output_dir)
-    gc.collect()
+                line = script_output.pop()
+                #script_output.remove(line)
+            #script_output = None
+            group_by_max_sim(
+                project1,
+                project2,
+                project1_ver,
+                project2_ver,
+                file_pair_result,
+                output_filename,
+                output_dir,
+            )
+            gc.collect()
 
 
 def pochi_extract_birthmark(
@@ -625,7 +640,7 @@ def run_pochi_pairs_dataframe(
     output_filename=POCHI_OUTPUT_FILENAME,
     output_dir=OUTPUT_DIR,
 ):
-    cm.init_csv_file(output_filename, POCHI_OUTPUT_HEADER_AVG, output_dir)
+    cm.init_csv_file(output_filename, POCHI_OUTPUT_HEADER_MAX_SIM, output_dir)
 
     for index, row in pairs_dataframe.iterrows():
         project1_file_list = pi.get_project_jar_list(
@@ -641,7 +656,7 @@ def run_pochi_pairs_dataframe(
             row.project2_ver,
         )
 
-        pochi_extract_compare_avg(
+        pochi_extract_compare_max_sim(
             project1=row.project1,
             project2=row.project2,
             project1_ver=row.project1_ver,
