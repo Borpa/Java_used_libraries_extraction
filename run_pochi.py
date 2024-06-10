@@ -94,7 +94,6 @@ POCHI_OUTPUT_HEADER_MAX_SIM = [
     "similarity",
 ]
 
-
 def __get_similar_projects_pairs(threshold, num_of_pairs, similarity_data):
     df = pd.read_csv(similarity_data)
     project_groups = [
@@ -396,6 +395,10 @@ def pochi_extract_compare(
 
 
 def calculate_avg_similarity(
+    project1,
+    project2,
+    project1_ver,
+    project2_ver,
     sim_data,
     output_filename,
     output_dir=OUTPUT_DIR,
@@ -404,10 +407,6 @@ def calculate_avg_similarity(
         return
 
     column_list = [
-        "project1",
-        "project1_ver",
-        "project2",
-        "project2_ver",
         "birthmark",
         "comparator",
         "matcher",
@@ -415,16 +414,24 @@ def calculate_avg_similarity(
     column_list_full = column_list + ["similarity"]
 
     df = pd.DataFrame(sim_data)
-    df.columns = POCHI_OUTPUT_HEADER_ALT
-    df = df[column_list_full]
+    df.columns = column_list_full
 
     df = df[df.similarity != "NaN"]
     df["similarity"] = pd.to_numeric(df["similarity"])
+    df = df[df.similarity >= 0.25]
 
-    #result = df.groupby([*column_list]).mean("similarity")
-    result = df.groupby([*column_list]).agg({'similarity' : 'mean'}).reset_index()
+    # result = df.groupby([*column_list]).mean("similarity")
+    result = df.groupby([*column_list]).agg({"similarity": "mean"}).reset_index()
 
-    #df = pd.merge(df.groupby([*column_list]), result, on=[*column_list])
+    if len(result) == 0:
+        return
+
+    result[["project1", "project1_ver", "project2", "project2_ver"]] = [
+        [project1, project1_ver, project2, project2_ver] for i in range(len(result))
+    ]
+    result = result[POCHI_OUTPUT_HEADER_AVG]
+
+    # df = pd.merge(df.groupby([*column_list]), result, on=[*column_list])
 
     with open(output_dir + output_filename, "a", newline="") as file:
         result.to_csv(file, index=False, header=False)
@@ -457,24 +464,29 @@ def pochi_extract_compare_avg(
                 ]
             )
             file_pair_result = []
-            output = cr.run_bash_command(command)
-
-            for line in output.split("\r\n"):
+            script_output = cr.run_bash_command(command).split("\r\n")
+            line = script_output.pop()
+            #for line in script_output:
+            while script_output:
                 if len(line) == 0:
+                    line = script_output.pop()
                     continue
-                line = line.replace("\r\n", "").split(",")
-
-                newline = [
-                    project1,
-                    project2,
-                    project1_ver,
-                    project2_ver,
-                    #os.path.basename(project1_file),
-                    #os.path.basename(project2_file),
-                ] + line
+                newline = line.replace("\r\n", "").split(",")
+                newline = newline[:3] + newline[5:]
                 file_pair_result.append(newline)
-            calculate_avg_similarity(file_pair_result, output_filename, output_dir)
-    gc.collect()
+                line = script_output.pop()
+                #script_output.remove(line)
+            #script_output = None
+            calculate_avg_similarity(
+                project1,
+                project2,
+                project1_ver,
+                project2_ver,
+                file_pair_result,
+                output_filename,
+                output_dir,
+            )
+            gc.collect()
 
 
 def group_by_max_sim(
