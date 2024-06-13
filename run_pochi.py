@@ -89,8 +89,8 @@ POCHI_OUTPUT_HEADER_MAX_SIM = [
     "birthmark",
     "comparator",
     "matcher",
-    "class1",
-    "class2",
+    #"class1",
+    #"class2",
     "similarity",
 ]
 
@@ -501,13 +501,12 @@ def group_by_max_sim(
     if len(sim_data) == 0:
         return
 
-    column_list = [
+    column_list_min = [
         "birthmark",
         "comparator",
         "matcher",
-        "class1",
-        "class2",
     ]
+    column_list = column_list_min + ["class1"]
     column_list_full = column_list + ["similarity"]
 
     df = pd.DataFrame(sim_data)
@@ -516,7 +515,15 @@ def group_by_max_sim(
     df = df[df.similarity != "NaN"]
     df["similarity"] = pd.to_numeric(df["similarity"])
 
+    if len(df) < 2000:
+        df["class1"] = df["class1"].str.split('$').str[0]
+    else:
+        for row in df.itertuples():
+            if '$' in row.class1:
+                df.loc[row.Index, "class1"] = row.class1.split('$')[0]
+
     result = df.groupby([*column_list]).agg({"similarity": "max"}).reset_index()
+    result = result.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
 
     if len(result) == 0:
         return
@@ -565,7 +572,8 @@ def pochi_extract_compare_max_sim(
                     line = script_output.pop()
                     continue
                 newline = line.replace("\r\n", "").split(",")
-                newline = newline[:3] + newline[5:]
+                newline.remove(newline[4])
+
                 file_pair_result.append(newline)
                 line = script_output.pop()
                 #script_output.remove(line)
