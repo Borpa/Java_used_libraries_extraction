@@ -522,7 +522,7 @@ def group_by_max_sim(
     df = df[df.similarity != "NaN"]
     df["similarity"] = pd.to_numeric(df["similarity"])
 
-    if len(df) < 3000:
+    if len(df) < 1e6:
         df["class1"] = df["class1"].str.split('$').str[0]
     else:
         for row in df.itertuples():
@@ -531,16 +531,20 @@ def group_by_max_sim(
                 df.loc[row.Index, "class2"] = row.class2.split('$')[0]
 
     groupby_columns1 = column_list_min + ["class1"]
-    result1 = df.groupby([*groupby_columns1]).agg({"similarity": "max"}).reset_index()
+    result1 = df.loc[df.groupby([*groupby_columns1])["similarity"].idxmax()]
+
+    #result1 = df.groupby([*groupby_columns1]).agg({"similarity": "max"}).reset_index()
     #result1 = result1.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
     #result1 = result1.drop(columns="class1")
 
     groupby_columns2 = column_list_min + ["class2"]
-    result2 = df.groupby([*groupby_columns2]).agg({"similarity": "max"}).reset_index()
+    result2 = df.loc[df.groupby([*groupby_columns2])["similarity"].idxmax()]
+    #result2 = df.groupby([*groupby_columns2]).agg({"similarity": "max"}).reset_index()
     #result2 = result2.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
     #result2 = result2.drop(columns="class2")
 
-    result = pd.concat([result1, result2])
+    result = pd.concat([result1, result2]).drop_duplicates()
+
     result = result.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
     if len(result) == 0:
         return
@@ -549,7 +553,6 @@ def group_by_max_sim(
         [project1, project1_ver, project2, project2_ver] for i in range(len(result))
     ]
     result = result[POCHI_OUTPUT_HEADER_MAX_SIM]
-    result = result.drop_duplicates()
 
     with open(output_dir + output_filename, "a", newline="") as file:
         result.to_csv(file, index=False, header=False)
