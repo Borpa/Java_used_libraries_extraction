@@ -322,10 +322,25 @@ def calculate_optimal_threshold(project_birthmark_dir, min_percentage_score=0.8)
     return max_fscore
 
 
+def combine_birthmarks(birthmark_dir):
+    versions_df = None
+    distinct_df = None
+    for birthmark_file in os.listdir(birthmark_dir):
+        df = pd.read_csv(birthmark_dir + birthmark_file)
+        if "versions" in birthmark_file:
+            versions_df = pd.concat([versions_df, df])
+        else:
+            distinct_df = pd.concat([distinct_df, df])
+
+    versions_df.to_csv(birthmark_dir + "versions_total.csv", index=False)
+    distinct_df.to_csv(birthmark_dir + "distinct_total.csv", index=False)
+
+
 def main():
     # birthmark_dir = "G:/Study/phd_research/birthmarks/test/w_threshold/"
     birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/external/"
-    group_by_bm_simfun(birthmark_dir)
+    combine_birthmarks(birthmark_dir)
+    #group_by_bm_simfun(birthmark_dir)
 
 
 def test_threshold(birthmark_dir, output_filename, threshold):
