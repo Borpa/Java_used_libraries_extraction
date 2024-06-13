@@ -506,8 +506,15 @@ def group_by_max_sim(
         "comparator",
         "matcher",
     ]
-    column_list = column_list_min + ["class1"]
-    column_list_full = column_list + ["similarity"]
+    
+    column_list_full = [
+        "birthmark",
+        "comparator",
+        "matcher",
+        "class1",
+        "class2",
+        "similarity",
+    ]
 
     df = pd.DataFrame(sim_data)
     df.columns = column_list_full
@@ -515,16 +522,26 @@ def group_by_max_sim(
     df = df[df.similarity != "NaN"]
     df["similarity"] = pd.to_numeric(df["similarity"])
 
-    if len(df) < 2000:
+    if len(df) < 3000:
         df["class1"] = df["class1"].str.split('$').str[0]
     else:
         for row in df.itertuples():
-            if '$' in row.class1:
+            if '$' in row.class1 or '$' in row.class2:
                 df.loc[row.Index, "class1"] = row.class1.split('$')[0]
+                df.loc[row.Index, "class2"] = row.class2.split('$')[0]
 
-    result = df.groupby([*column_list]).agg({"similarity": "max"}).reset_index()
+    groupby_columns1 = column_list_min + ["class1"]
+    result1 = df.groupby([*groupby_columns1]).agg({"similarity": "max"}).reset_index()
+    #result1 = result1.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
+    #result1 = result1.drop(columns="class1")
+
+    groupby_columns2 = column_list_min + ["class2"]
+    result2 = df.groupby([*groupby_columns2]).agg({"similarity": "max"}).reset_index()
+    #result2 = result2.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
+    #result2 = result2.drop(columns="class2")
+
+    result = pd.concat([result1, result2])
     result = result.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
-
     if len(result) == 0:
         return
 
@@ -532,6 +549,7 @@ def group_by_max_sim(
         [project1, project1_ver, project2, project2_ver] for i in range(len(result))
     ]
     result = result[POCHI_OUTPUT_HEADER_MAX_SIM]
+    result = result.drop_duplicates()
 
     with open(output_dir + output_filename, "a", newline="") as file:
         result.to_csv(file, index=False, header=False)
@@ -572,7 +590,7 @@ def pochi_extract_compare_max_sim(
                     line = script_output.pop()
                     continue
                 newline = line.replace("\r\n", "").split(",")
-                newline.remove(newline[4])
+                #newline.remove(newline[4])
 
                 file_pair_result.append(newline)
                 line = script_output.pop()
