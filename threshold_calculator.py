@@ -161,7 +161,8 @@ def get_fscore_threshold_list(project_birthmark_dir, min_fscore):
 
         vector = list(itertools.chain.from_iterable(vectors))
         true_vector = [1] * len(vector)
-        f_score = f1_score(true_vector, vector, average="macro")
+        # f_score = f1_score(true_vector, vector, average="micro")
+        f_score = f1_score(true_vector, vector)
 
         # f_score1 = f1_score([1] * len(vectors[0]), vectors[0], average='macro')
         # f_score2 = f1_score([1] * len(vectors[1]), vectors[1], average='macro')
@@ -178,7 +179,7 @@ def get_fscore_threshold_list(project_birthmark_dir, min_fscore):
     return f_score_threshold_list
 
 
-def get_best_threshold(project_birthmark_dir, min_fscore=0.9):
+def get_best_threshold(project_birthmark_dir, min_fscore=1):
     threshold_list = []
     while len(threshold_list) == 0 and min_fscore > 0:
         threshold_list = get_fscore_threshold_list(project_birthmark_dir, min_fscore)
@@ -362,15 +363,13 @@ def test_threshold(birthmark_dir, output_filename, threshold):
             file.write(",".join(newline))
 
 
-def calculate_treshold():
-    birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc_avg/"
-    output_filename = "thresholds_avg_sim.csv"
+def calculate_threshold():
+    birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_top_sim/"
+    # output_filename = "thresholds.csv"
+    output_filename = "thresholds_top_sim_avg.csv"
     header = "Category,Birthmark,Similarity function,F-score,Threshold\n"
     with open(output_filename, "w") as file:
         file.write(header)
-
-    #birthmarks = ["3-gram", "6-gram", "uc", "fuc"]
-    birthmarks = ["3-gram", "6-gram"]
 
     for project_dir in os.listdir(birthmark_dir):
         score = get_best_threshold(birthmark_dir + project_dir + "/")
@@ -390,8 +389,11 @@ def calculate_treshold():
 
 
 if __name__ == "__main__":
+    calculate_threshold()
+
     # main()
 
-    birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc/"
-    #birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc/"
-    test_threshold(birthmark_dir, "pochi_default_treshold.csv", 0.75)
+    # birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc_avg/"
+
+    # birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc/"
+    # test_threshold(birthmark_dir, "pochi_default_treshold.csv", 0.75)
