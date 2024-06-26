@@ -246,7 +246,7 @@ def DiceIndex(a, b):
     return 2 * len(np.intersect1d(a, b)) / (len(set(a)) + len(set(b)))
 
 
-def JacardCoefficient(a, b):
+def JaccardCoefficient(a, b):
     return len(np.intersect1d(a, b)) / (len(set(a + b)))
 
 
@@ -312,8 +312,8 @@ def compare_all(file1, file2, birthmark):
             basename(file1),
             basename(file2),
             birthmark,
-            "JacardCoefficient",
-            str(JacardCoefficient(birthmark1.split(","), birthmark2.split(","))),
+            "JaccardCoefficient",
+            str(JaccardCoefficient(birthmark1.split(","), birthmark2.split(","))),
         ]
     )
     result.append(

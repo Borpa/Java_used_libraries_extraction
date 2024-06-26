@@ -12,7 +12,7 @@ from project_inspector import PROJECT_TYPES
 
 
 THRESHOLD_BASE = 0.5  # 0.25?
-OUTPUT_DIR = "./birthmarks_group_data/threshold_calc/"
+OUTPUT_DIR = "./birthmarks_group_data/"
 HEADER = ["project1", "project2", "birthmark", "comparator", "similarity"]
 
 
@@ -25,7 +25,12 @@ def df_header_check(df):
     return df
 
 
-def extract_df(birthmark_file, columns, chunk_size=1e6):
+def extract_df(
+    birthmark_file,
+    columns,
+    chunk_size=1e6,
+    main_output_dir=OUTPUT_DIR + "threshold_calc_total/",
+):
     filename = os.path.basename(birthmark_file)
 
     birthmark = columns[0]
@@ -45,16 +50,16 @@ def extract_df(birthmark_file, columns, chunk_size=1e6):
         ]
         result_df = pd.concat([result_df, chunk_group_vals])
 
-    for project_type in PROJECT_TYPES:
+    for project_type in PROJECT_TYPES + ["total"]:
         project_type = project_type.replace("/", "")
         if project_type in filename:
             output_dir = project_type + "_" + "_".join(columns) + "/"
             break
 
-    if not os.path.exists(OUTPUT_DIR + output_dir):
-        os.makedirs(OUTPUT_DIR + output_dir)
+    if not os.path.exists(main_output_dir + output_dir):
+        os.makedirs(main_output_dir + output_dir)
 
-    result_df.to_csv(OUTPUT_DIR + output_dir + filename, index=False)
+    result_df.to_csv(main_output_dir + output_dir + filename, index=False)
 
 
 def group_by_bm_simfun(birthmark_dir, chunk_size=1e6):
@@ -336,11 +341,80 @@ def combine_birthmarks(birthmark_dir):
     distinct_df.to_csv(birthmark_dir + "distinct_total.csv", index=False)
 
 
+def test_res_cred(birthmark_dir, threshold_file, output_filename="res_cred_perc.csv"):
+    groupby_cols = ["birthmark", "comparator"]
+    thresholds_df = pd.read_csv(threshold_file)
+    for birthmark_file in os.listdir(birthmark_dir):
+        if "versions_total" in birthmark_file:
+            df = pd.read_csv(birthmark_dir + birthmark_file)
+            res_groups = df.groupby([*groupby_cols])
+            for group in res_groups:
+                cur_group = df[
+                    (df["birthmark"] == group[0][0]) & (df["comparator"] == group[0][1])
+                ]
+                threshold_row = thresholds_df[
+                    (thresholds_df["birthmark"] == group[0][0])
+                    & (thresholds_df["comparator"] == group[0][1])
+                ]
+                threshold = threshold_row.threshold.values[0]
+                resilience_perc = (
+                    len(cur_group[cur_group.similarity >= threshold])
+                    / len(cur_group)
+                    * 100
+                )
+                with open(output_filename, "a") as f:
+                    newline = ",".join(
+                        [
+                            group[0][0],
+                            group[0][1],
+                            "Resilience",
+                            str(resilience_perc) + "\n",
+                        ]
+                    )
+                    f.write(newline)
+
+        if "distinct_total" in birthmark_file:
+            df = pd.read_csv(birthmark_dir + birthmark_file)
+            res_groups = df.groupby([*groupby_cols])
+            for group in res_groups:
+                cur_group = df[
+                    (df["birthmark"] == group[0][0]) & (df["comparator"] == group[0][1])
+                ]
+
+                # cur_group = cur_group[cur_group["similarity"] != "NaN"]
+                # print(cur_group)
+
+                threshold_row = thresholds_df[
+                    (thresholds_df["birthmark"] == group[0][0])
+                    & (thresholds_df["comparator"] == group[0][1])
+                ]
+                threshold = threshold_row.threshold.values[0]
+                credibility_perc = (
+                    len(cur_group[cur_group.similarity <= (1.0 - threshold)])
+                    / len(cur_group)
+                    * 100
+                )
+                with open(output_filename, "a") as f:
+                    newline = ",".join(
+                        [
+                            group[0][0],
+                            group[0][1],
+                            "Crediblity",
+                            str(credibility_perc) + "\n",
+                        ]
+                    )
+                    f.write(newline)
+
+
 def main():
     # birthmark_dir = "G:/Study/phd_research/birthmarks/test/w_threshold/"
-    birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/external/"
-    combine_birthmarks(birthmark_dir)
-    #group_by_bm_simfun(birthmark_dir)
+    # birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/external/"
+    birthmark_dir = (
+        # "D:/Study/phd_research/library_extraction/birthmarks/top_sim/combined/"
+        "D:/Study/phd_research/library_extraction/birthmarks/external/new/combined/total/"
+    )
+    # combine_birthmarks(birthmark_dir)
+    group_by_bm_simfun(birthmark_dir)
 
 
 def test_threshold(birthmark_dir, output_filename, threshold):
@@ -364,9 +438,10 @@ def test_threshold(birthmark_dir, output_filename, threshold):
 
 
 def calculate_threshold():
-    birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_top_sim/"
+    # birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks/top_sim/combined/total/"
+    birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc_total/"
     # output_filename = "thresholds.csv"
-    output_filename = "thresholds_top_sim_avg.csv"
+    output_filename = "thresholds_total.csv"
     header = "Category,Birthmark,Similarity function,F-score,Threshold\n"
     with open(output_filename, "w") as file:
         file.write(header)
@@ -389,7 +464,11 @@ def calculate_threshold():
 
 
 if __name__ == "__main__":
-    calculate_threshold()
+    birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks/external/new/combined/total/"
+    threshold_file = "thresholds_total.csv"
+    test_res_cred(birthmark_dir, threshold_file)
+
+    # calculate_threshold()
 
     # main()
 
