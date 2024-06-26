@@ -498,8 +498,8 @@ def group_by_max_sim(
     output_filename,
     output_dir=OUTPUT_DIR,
 ):
-    if len(sim_data) == 0:
-        return
+    #if len(sim_data) == 0:
+    #    return
 
     column_list_min = [
         "birthmark",
@@ -516,34 +516,26 @@ def group_by_max_sim(
         "similarity",
     ]
 
-    df = pd.DataFrame(sim_data)
-    df.columns = column_list_full
-
-    df = df[df.similarity != "NaN"]
-    df["similarity"] = pd.to_numeric(df["similarity"])
-
-    if len(df) < 1e6:
-        df["class1"] = df["class1"].str.split('$').str[0]
-    else:
-        for row in df.itertuples():
-            if '$' in row.class1 or '$' in row.class2:
-                df.loc[row.Index, "class1"] = row.class1.split('$')[0]
-                df.loc[row.Index, "class2"] = row.class2.split('$')[0]
-
+    result = None
     groupby_columns1 = column_list_min + ["class1"]
-    result1 = df.loc[df.groupby([*groupby_columns1])["similarity"].idxmax()]
-
-    #result1 = df.groupby([*groupby_columns1]).agg({"similarity": "max"}).reset_index()
-    #result1 = result1.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
-    #result1 = result1.drop(columns="class1")
-
     groupby_columns2 = column_list_min + ["class2"]
-    result2 = df.loc[df.groupby([*groupby_columns2])["similarity"].idxmax()]
-    #result2 = df.groupby([*groupby_columns2]).agg({"similarity": "max"}).reset_index()
-    #result2 = result2.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
-    #result2 = result2.drop(columns="class2")
 
-    result = pd.concat([result1, result2]).drop_duplicates()
+    if os.stat(sim_data).st_size == 0:
+        return
+
+    for chunk in pd.read_csv(sim_data, chunksize=1e7):
+        chunk.columns = column_list_full
+        #chunk = chunk[chunk.similarity != "NaN"]
+        chunk['similarity'] = pd.to_numeric(chunk['similarity'], errors='coerce', downcast='float')
+        #chunk["similarity"] = chunk["similarity"].apply(pd.to_numeric, downcast='float', errors='coerce')
+        chunk = chunk.convert_dtypes()
+        chunk["class1"] = chunk["class1"].str.split('$').str[0]
+        chunk["class2"] = chunk["class2"].str.split('$').str[0]
+    
+        result1 = chunk.loc[chunk.groupby([*groupby_columns1])["similarity"].idxmax().dropna()]
+        result2 = chunk.loc[chunk.groupby([*groupby_columns2])["similarity"].idxmax().dropna()]
+
+        result = pd.concat([result, result1, result2]).drop_duplicates()
 
     result = result.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
     if len(result) == 0:
@@ -571,40 +563,42 @@ def pochi_extract_compare_max_sim(
     output_dir=OUTPUT_DIR,
 ):
     full_path = software_location + POCHI_VERSION + "/bin/"
-    pochi_script = "sh " + full_path + "pochi"
+    pochi_script = full_path + "pochi_unbuf"
     extraction_script = "./pochi_scripts/" + "extract-compare.groovy"
 
     for project1_file in project1_file_list:
         for project2_file in project2_file_list:
             command = " ".join(
                 [
+                    "sh",
                     pochi_script,
                     extraction_script,
                     project1_file,
                     project2_file,
+                    #"> ./temp/temp.txt"
                 ]
             )
-            file_pair_result = []
-            script_output = cr.run_bash_command(command).split("\r\n")
-            line = script_output.pop()
-            #for line in script_output:
-            while script_output:
-                if len(line) == 0:
-                    line = script_output.pop()
-                    continue
-                newline = line.replace("\r\n", "").split(",")
-                #newline.remove(newline[4])
+            #file_pair_result = []
+            
+            script_output = cr.run_bash_command(command) #.split("\r\n")
+            
+            #line = script_output.pop()
+            #while script_output:
+            #    if len(line) == 0:
+            #        line = script_output.pop()
+            #        continue
+            #    newline = line.replace("\r\n", "").split(",")
 
-                file_pair_result.append(newline)
-                line = script_output.pop()
-                #script_output.remove(line)
-            #script_output = None
+            #    file_pair_result.append(newline)
+            #    line = script_output.pop()
+
+            script_result = "./temp/temp.csv"
             group_by_max_sim(
                 project1,
                 project2,
                 project1_ver,
                 project2_ver,
-                file_pair_result,
+                script_result,
                 output_filename,
                 output_dir,
             )
