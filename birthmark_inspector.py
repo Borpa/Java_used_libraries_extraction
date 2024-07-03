@@ -136,20 +136,28 @@ def calculate_avg_similarity(
 
     for chunk in pd.read_csv(file, chunksize=chunksize):
         if chunk.columns[0] != "project1":
-            #chunk.columns = POCHI_OUTPUT_HEADER
+            # chunk.columns = POCHI_OUTPUT_HEADER
             chunk.columns = POCHI_OUTPUT_HEADER_AVG
+            # chunk.columns = [
+            #    "project1",
+            #    "project2",
+            #    "birthmark",
+            #    "comparator",
+            #    "similarity",
+            # ]
 
         if threshold is not None:
             chunk = chunk[chunk.similarity >= threshold]
         chunk = chunk[chunk.project1 != "project1"]
         chunk = chunk[column_list_full]
-        result = chunk.groupby([*column_list]).mean("similarity")
-        #count_values = (
+        # result = chunk.groupby([*column_list]).mean("similarity")
+        result = chunk.groupby([*column_list]).agg({"similarity": "mean"}).reset_index()
+        # count_values = (
         #    chunk.groupby([*column_list])["similarity"]
         #    .count()
         #    .reset_index(name="count")
-        #)
-        #result = pd.merge(avg_values, count_values, on=[*column_list])
+        # )
+        # result = pd.merge(avg_values, count_values, on=[*column_list])
 
         with open(output_dir + output_filename, "a", newline="") as f:
             result.to_csv(f, index=False, header=header_check)
@@ -238,9 +246,12 @@ def merge_duplicates(group_data_dir="./birthmarks_group_data/w_threshold/"):
             "comparator",
             "matcher",
         ]
-        df = df.groupby([*groupby_cols], as_index=False).agg(
-            {"similarity": "mean", "count": "sum"}
-        )
+        # df = df.groupby([*groupby_cols], as_index=False).agg(
+        #    {"similarity": "mean", "count": "sum"}
+        # )
+
+        df = df.groupby([*groupby_cols]).agg({"similarity": "mean"}).reset_index()
+
         df.to_csv(group_data_dir + group_file, index=False)
 
 
@@ -342,48 +353,88 @@ def separate_into_dirs(birthmark_dir, project_category, main_dir):
                 group[1].to_csv(f, index=False)
 
 
-def main():
-    # if not os.path.exists(OUTPUT_DIR):
-    #    os.makedirs(OUTPUT_DIR)
-    # else:
-    #    for file in os.listdir(OUTPUT_DIR):
-    #        os.remove(OUTPUT_DIR + file)
-
-    #birthmark_dir = "G:/Study/phd_research/birthmarks/no_threshold/"
-    birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/roundrobintest/"
-    #birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/New folder/"
-    output_dir = ""
-    # plot_histograms(birthmark_dir)
-
-    # birthmark_group_dir = (
-    #   "D:/Study/phd_research/library_extraction/birthmarks_group_data/"
-    # )
-    # group2 = "filtered/combined/"
-    # combine_groups_files(
-    #   birthmark_group_dir, group2, "similarity_filtered", "count_filtered"
-    # )
-
-    birthmark_files = os.listdir(birthmark_dir)
-    for file in birthmark_files:
-        if not file.endswith(".csv"):
+def class_filter(birthmark_dir, author_list, output_dir="filtered/"):
+    for birthmark_file in os.listdir(birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
             continue
-        similarity_output_filename = file.replace(".csv", "") + "_avg_sim.csv"
-        calculate_avg_similarity(
-            birthmark_dir + file,
-            similarity_output_filename,
-            #threshold=0.25,
-            output_dir=birthmark_dir + output_dir,
+
+        df = pd.read_csv(birthmark_dir + birthmark_file)
+
+        res = None
+        for author in author_list:
+            df1 = df[df.class1.str.contains(author)]
+            df2 = df[df.class2.str.contains(author)]
+
+            res = pd.concat([res, df1, df2])
+        res = res[res.duplicated(keep=False)].drop_duplicates()
+
+        res.to_csv(birthmark_dir + output_dir + birthmark_file, index=False)
+
+
+def filter_by_top_N(birthmark_dir, N, output_dir="top3/"):
+    for birthmark_file in os.listdir(birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
+            continue
+
+        df = pd.read_csv(birthmark_dir + birthmark_file)
+        groupby_cols = [
+            "project1",
+            "project2",
+            "project1_ver",
+            "project2_ver",
+            "birthmark",
+            "comparator",
+            "matcher",
+        ]
+        df = df.groupby([*groupby_cols])["similarity"].nlargest(N).reset_index()
+        header = [
+            "project1",
+            "project2",
+            "project1_ver",
+            "project2_ver",
+            "birthmark",
+            "comparator",
+            "matcher",
+            "similarity",
+        ]
+        df = df[header]
+
+        df.to_csv(birthmark_dir + output_dir + birthmark_file, index=False)
+
+
+def get_group_avg_sim(birthmark_dir, output_dir="avg/"):
+    for birthmark_file in os.listdir(birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
+            continue
+
+        df = pd.read_csv(birthmark_dir + birthmark_file)
+
+        gb = (
+            df.groupby(
+                [
+                    "project1",
+                    "project2",
+                    "project1_ver",
+                    "project2_ver",
+                    "birthmark",
+                    "comparator",
+                    "matcher",
+                ]
+            )
+            .agg({"similarity": "mean"})
+            .reset_index()
         )
-    merge_duplicates(birthmark_dir + output_dir)
 
-    # count_output_filename = file.replace(".csv", "") + "_count"
-    # calculate_groups_count(dataframe, count_output_filename)
+        gb.to_csv(birthmark_dir + output_dir + birthmark_file, index=False)
 
-    # retrieve_group_info(dataframe)
+
+def main():
+    bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/top3/"
+
+    get_group_avg_sim(bmdir)
+    #class_filter(bmdir, author_list)
+    #filter_by_top_N(bmdir, 3)
 
 
 if __name__ == "__main__":
     main()
-    #groupdir = "G:/Study/phd_research/birthmarks/no_threshold/groupby_w_threshold/"
-    #for category in ["ai_app", "calculator", "terminal_app", "text_editor", "emulator_environment"]:
-    #    separate_into_dirs(groupdir, category, "./birthmarks_group_data/threshold_calc_avg_w_threshold/")
