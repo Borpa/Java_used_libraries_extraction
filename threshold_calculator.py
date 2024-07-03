@@ -7,13 +7,23 @@ import numpy as np
 import itertools
 import re
 
-from sklearn.metrics import precision_recall_curve, f1_score
+from sklearn.metrics import precision_recall_curve, f1_score, precision_score, recall_score
 from project_inspector import PROJECT_TYPES
 
 
 THRESHOLD_BASE = 0.5  # 0.25?
 OUTPUT_DIR = "./birthmarks_group_data/"
 HEADER = ["project1", "project2", "birthmark", "comparator", "similarity"]
+HEADER_FULL = [
+    "project1",
+    "project1_ver",
+    "project2",
+    "project2_ver",
+    "birthmark",
+    "comparator",
+    "matcher",
+    "similarity",
+]
 
 
 def df_header_check(df):
@@ -29,7 +39,7 @@ def extract_df(
     birthmark_file,
     columns,
     chunk_size=1e6,
-    main_output_dir=OUTPUT_DIR + "threshold_calc_total/",
+    main_output_dir=OUTPUT_DIR + "threshold_top_sim/",
 ):
     filename = os.path.basename(birthmark_file)
 
@@ -41,7 +51,8 @@ def extract_df(
     result_df = pd.DataFrame()
 
     for chunk in chunks:
-        chunk.columns = HEADER
+        # chunk.columns = HEADER
+        chunk.columns = HEADER_FULL
         chunk_group_vals = chunk[
             (chunk.birthmark == birthmark)
             & (chunk.comparator == comparator)
@@ -50,7 +61,7 @@ def extract_df(
         ]
         result_df = pd.concat([result_df, chunk_group_vals])
 
-    for project_type in PROJECT_TYPES + ["total"]:
+    for project_type in PROJECT_TYPES:  # + ["total"]:
         project_type = project_type.replace("/", "")
         if project_type in filename:
             output_dir = project_type + "_" + "_".join(columns) + "/"
@@ -77,7 +88,8 @@ def group_by_bm_simfun(birthmark_dir, chunk_size=1e6):
         chunks = pd.read_csv(birthmark_dir + birthmark_file, chunksize=chunk_size)
 
         for chunk in chunks:
-            chunk.columns = HEADER
+            # chunk.columns = HEADER
+            chunk.columns = HEADER_FULL
             groupby = chunk.groupby([*groupby_cols])
             pairs_set = groupby.groups
 
@@ -103,7 +115,8 @@ def calculate_credibility_vector(birthmark_file, threshold):
     df = df_header_check(df)
     df = df.similarity
 
-    df = df.apply(lambda row: int(row <= (1 - threshold)))
+    #df = df.apply(lambda row: int(row <= (1 - threshold)))
+    df = df.apply(lambda row: int(row > (1 - threshold)))
 
     result = df.to_numpy()
     return result
@@ -114,7 +127,7 @@ def calculate_resilience_vector(birthmark_file, threshold):
     df = df_header_check(df)
     df = df.similarity
 
-    df = df.apply(lambda row: int(row >= threshold))
+    df = df.apply(lambda row: int(row > threshold))
 
     result = df.to_numpy()
     return result
@@ -143,7 +156,9 @@ def get_fscore_threshold_list(project_birthmark_dir, min_fscore):
     f_score_threshold_list = []
 
     while threshold < 1:
-        vectors = []
+        #vectors = []
+        credibility_res = []
+        resilience_res = []
 
         for birthmark_file in os.listdir(project_birthmark_dir):
             if not birthmark_file.endswith(".csv"):
@@ -153,20 +168,39 @@ def get_fscore_threshold_list(project_birthmark_dir, min_fscore):
                 vec = calculate_resilience_vector(
                     project_birthmark_dir + birthmark_file, threshold
                 )
+                resilience_res.append(vec)
             else:
                 vec = calculate_credibility_vector(
                     project_birthmark_dir + birthmark_file, threshold
                 )
+                credibility_res.append(vec)
 
-            vectors.append(vec)
+            #vectors.append(vec)
 
         # true_vectors = []
         # true_vectors.append([1] * len(vectors[0]))
         # true_vectors.append([1] * len(vectors[1]))
 
-        vector = list(itertools.chain.from_iterable(vectors))
-        true_vector = [1] * len(vector)
+        #vector = list(itertools.chain.from_iterable(vectors))
+        res_vector = list(itertools.chain.from_iterable(resilience_res))
+        cred_vector = list(itertools.chain.from_iterable(credibility_res))
+
+        #cred_vector = np.logical_not(cred_vector_inverted).astype(int).tolist()
+
+        true_res = [1] * len(res_vector)
+        true_cred = [0] * len(cred_vector)
+
+        vector = res_vector + cred_vector
+        true_vector = true_res + true_cred
+
+        #true_vector = [1] * len(vector)
         # f_score = f1_score(true_vector, vector, average="micro")
+        #f_score = f1_score(true_vector, vector)
+
+        #precision = precision_score(true_vector, vector)
+        #recall = recall_score(true_vector, vector)
+
+        #f_score = 2 * precision * recall / (precision + recall)
         f_score = f1_score(true_vector, vector)
 
         # f_score1 = f1_score([1] * len(vectors[0]), vectors[0], average='macro')
@@ -331,42 +365,73 @@ def combine_birthmarks(birthmark_dir):
     versions_df = None
     distinct_df = None
     for birthmark_file in os.listdir(birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
+            continue
         df = pd.read_csv(birthmark_dir + birthmark_file)
         if "versions" in birthmark_file:
+            for project_type in PROJECT_TYPES:
+                if project_type.replace('/','') in birthmark_file:
+                    category = project_type.replace('/','')
+                    break
+
+            df["category"] = [
+                category for i in range(len(df))
+            ]
             versions_df = pd.concat([versions_df, df])
         else:
+            for project_type in PROJECT_TYPES:
+                if project_type.replace('/','') in birthmark_file:
+                    category = project_type.replace('/','')
+                    break
+
+            df["category"] = [
+                category for i in range(len(df))
+            ]
             distinct_df = pd.concat([distinct_df, df])
+
 
     versions_df.to_csv(birthmark_dir + "versions_total.csv", index=False)
     distinct_df.to_csv(birthmark_dir + "distinct_total.csv", index=False)
 
 
-def test_res_cred(birthmark_dir, threshold_file, output_filename="res_cred_perc.csv"):
-    groupby_cols = ["birthmark", "comparator"]
+def test_res_cred(
+    birthmark_dir,
+    threshold_file,
+    output_filename="res_cred_perc_top_sim_categories.csv",
+):
+    groupby_cols = ["category", "birthmark", "comparator"]
     thresholds_df = pd.read_csv(threshold_file)
     for birthmark_file in os.listdir(birthmark_dir):
         if "versions_total" in birthmark_file:
             df = pd.read_csv(birthmark_dir + birthmark_file)
             res_groups = df.groupby([*groupby_cols])
             for group in res_groups:
+                category = group[0][0]
+                birthmark = group[0][1]
+                comparator = group[0][2]
+
                 cur_group = df[
-                    (df["birthmark"] == group[0][0]) & (df["comparator"] == group[0][1])
+                    (df["category"] == category)
+                    & (df["birthmark"] == birthmark)
+                    & (df["comparator"] == comparator)
                 ]
                 threshold_row = thresholds_df[
-                    (thresholds_df["birthmark"] == group[0][0])
-                    & (thresholds_df["comparator"] == group[0][1])
+                    (thresholds_df["category"] == category)
+                    & (thresholds_df["birthmark"] == birthmark)
+                    & (thresholds_df["comparator"] == comparator)
                 ]
                 threshold = threshold_row.threshold.values[0]
                 resilience_perc = (
-                    len(cur_group[cur_group.similarity >= threshold])
+                    len(cur_group[cur_group.similarity > threshold])
                     / len(cur_group)
                     * 100
                 )
                 with open(output_filename, "a") as f:
                     newline = ",".join(
                         [
-                            group[0][0],
-                            group[0][1],
+                            category,
+                            birthmark,
+                            comparator,
                             "Resilience",
                             str(resilience_perc) + "\n",
                         ]
@@ -377,16 +442,19 @@ def test_res_cred(birthmark_dir, threshold_file, output_filename="res_cred_perc.
             df = pd.read_csv(birthmark_dir + birthmark_file)
             res_groups = df.groupby([*groupby_cols])
             for group in res_groups:
+                category = group[0][0]
+                birthmark = group[0][1]
+                comparator = group[0][2]
+
                 cur_group = df[
-                    (df["birthmark"] == group[0][0]) & (df["comparator"] == group[0][1])
+                    (df["category"] == category)
+                    & (df["birthmark"] == birthmark)
+                    & (df["comparator"] == comparator)
                 ]
-
-                # cur_group = cur_group[cur_group["similarity"] != "NaN"]
-                # print(cur_group)
-
                 threshold_row = thresholds_df[
-                    (thresholds_df["birthmark"] == group[0][0])
-                    & (thresholds_df["comparator"] == group[0][1])
+                    (thresholds_df["category"] == category)
+                    & (thresholds_df["birthmark"] == birthmark)
+                    & (thresholds_df["comparator"] == comparator)
                 ]
                 threshold = threshold_row.threshold.values[0]
                 credibility_perc = (
@@ -397,8 +465,9 @@ def test_res_cred(birthmark_dir, threshold_file, output_filename="res_cred_perc.
                 with open(output_filename, "a") as f:
                     newline = ",".join(
                         [
-                            group[0][0],
-                            group[0][1],
+                            category,
+                            birthmark,
+                            comparator,
                             "Crediblity",
                             str(credibility_perc) + "\n",
                         ]
@@ -406,15 +475,77 @@ def test_res_cred(birthmark_dir, threshold_file, output_filename="res_cred_perc.
                     f.write(newline)
 
 
-def main():
-    # birthmark_dir = "G:/Study/phd_research/birthmarks/test/w_threshold/"
-    # birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/external/"
-    birthmark_dir = (
-        # "D:/Study/phd_research/library_extraction/birthmarks/top_sim/combined/"
-        "D:/Study/phd_research/library_extraction/birthmarks/external/new/combined/total/"
-    )
-    # combine_birthmarks(birthmark_dir)
-    group_by_bm_simfun(birthmark_dir)
+def test_res_cred_total(
+    birthmark_dir,
+    threshold_file,
+    output_filename="res_cred_perc_top_sim.csv",
+):
+    groupby_cols = ["birthmark", "comparator"]
+    thresholds_df = pd.read_csv(threshold_file)
+    for birthmark_file in os.listdir(birthmark_dir):
+        if "versions_total" in birthmark_file:
+            df = pd.read_csv(birthmark_dir + birthmark_file)
+            res_groups = df.groupby([*groupby_cols])
+            for group in res_groups:
+                birthmark = group[0][0]
+                comparator = group[0][1]
+
+                cur_group = df[
+                    (df["birthmark"] == birthmark)
+                    & (df["comparator"] == comparator)
+                ]
+                threshold_row = thresholds_df[
+                    (thresholds_df["birthmark"] == birthmark)
+                    & (thresholds_df["comparator"] == comparator)
+                ]
+                threshold = threshold_row.threshold.values[0]
+                resilience_perc = (
+                    len(cur_group[cur_group.similarity > threshold])
+                    / len(cur_group)
+                    * 100
+                )
+                with open(output_filename, "a") as f:
+                    newline = ",".join(
+                        [
+                            birthmark,
+                            comparator,
+                            "Resilience",
+                            str(resilience_perc) + "\n",
+                        ]
+                    )
+                    f.write(newline)
+
+        if "distinct_total" in birthmark_file:
+            df = pd.read_csv(birthmark_dir + birthmark_file)
+            res_groups = df.groupby([*groupby_cols])
+            for group in res_groups:
+                birthmark = group[0][0]
+                comparator = group[0][1]
+
+                cur_group = df[
+                    (df["birthmark"] == birthmark)
+                    & (df["comparator"] == comparator)
+                ]
+                threshold_row = thresholds_df[
+                    (thresholds_df["birthmark"] == birthmark)
+                    & (thresholds_df["comparator"] == comparator)
+                ]
+                threshold = threshold_row.threshold.values[0]
+                credibility_perc = (
+                    len(cur_group[cur_group.similarity <= (1.0 - threshold)])
+                    / len(cur_group)
+                    * 100
+                )
+                with open(output_filename, "a") as f:
+                    newline = ",".join(
+                        [
+                            birthmark,
+                            comparator,
+                            "Crediblity",
+                            str(credibility_perc) + "\n",
+                        ]
+                    )
+                    f.write(newline)
 
 
 def test_threshold(birthmark_dir, output_filename, threshold):
@@ -437,12 +568,8 @@ def test_threshold(birthmark_dir, output_filename, threshold):
             file.write(",".join(newline))
 
 
-def calculate_threshold():
-    # birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks/top_sim/combined/total/"
-    birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc_total/"
-    # output_filename = "thresholds.csv"
-    output_filename = "thresholds_total.csv"
-    header = "Category,Birthmark,Similarity function,F-score,Threshold\n"
+def calculate_threshold(birthmark_dir, output_filename):
+    header = "category,birthmark,comparator,F-score,threshold\n"
     with open(output_filename, "w") as file:
         file.write(header)
 
@@ -463,16 +590,14 @@ def calculate_threshold():
             file.write(",".join(newline))
 
 
-if __name__ == "__main__":
-    birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks/external/new/combined/total/"
-    threshold_file = "thresholds_total.csv"
-    test_res_cred(birthmark_dir, threshold_file)
-
-    # calculate_threshold()
-
-    # main()
-
-    # birthmark_dir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks_group_data/threshold_calc_avg/"
-
-    # birthmark_dir = "D:/Study/phd_research/library_extraction/birthmarks_group_data/threshold_calc/"
+def main():
+    bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/avg/total/"
+    threhsold_file = "threhsolds_avg_topN_filtered.csv"
+    #combine_birthmarks(bmdir)
+    calculate_threshold(bmdir, threhsold_file)
+    #test_res_cred(birthmark_dir, threshold_file)
     # test_threshold(birthmark_dir, "pochi_default_treshold.csv", 0.75)
+
+
+if __name__ == "__main__":
+    main()
