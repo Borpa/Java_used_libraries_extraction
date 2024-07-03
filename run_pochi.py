@@ -89,8 +89,8 @@ POCHI_OUTPUT_HEADER_MAX_SIM = [
     "birthmark",
     "comparator",
     "matcher",
-    #"class1",
-    #"class2",
+    "class1",
+    "class2",
     "similarity",
 ]
 
@@ -537,7 +537,11 @@ def group_by_max_sim(
 
         result = pd.concat([result, result1, result2]).drop_duplicates()
 
-    result = result.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
+
+    #result = result.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
+    
+    #result = result.groupby([*column_list_min]).agg({"similarity": "max"}).reset_index()
+
     if len(result) == 0:
         return
 
