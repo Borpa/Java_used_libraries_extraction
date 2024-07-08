@@ -1,17 +1,18 @@
-# TODO: combine 2 df: distinct & versions, new column - credibility resilience check
-# separate df for threshold e?
-
 import os
 import pandas as pd
-import numpy as np
 import itertools
 import re
 
-from sklearn.metrics import precision_recall_curve, f1_score, precision_score, recall_score
+from sklearn.metrics import (
+    f1_score,
+    precision_score,
+    recall_score,
+)
 from project_inspector import PROJECT_TYPES
+import birthmark_inspector as bmi
+from shutil import rmtree
 
-
-THRESHOLD_BASE = 0.5  # 0.25?
+THRESHOLD_BASE = 0.5
 OUTPUT_DIR = "./birthmarks_group_data/"
 HEADER = ["project1", "project2", "birthmark", "comparator", "similarity"]
 HEADER_FULL = [
@@ -24,6 +25,7 @@ HEADER_FULL = [
     "matcher",
     "similarity",
 ]
+THRESHOLD_CALCULATION_HEADER = "category,birthmark,comparator,F-score,threshold\n"
 
 
 def df_header_check(df):
@@ -115,7 +117,7 @@ def calculate_credibility_vector(birthmark_file, threshold):
     df = df_header_check(df)
     df = df.similarity
 
-    #df = df.apply(lambda row: int(row <= (1 - threshold)))
+    # df = df.apply(lambda row: int(row <= (1 - threshold)))
     df = df.apply(lambda row: int(row > (1 - threshold)))
 
     result = df.to_numpy()
@@ -149,6 +151,40 @@ def calculate_resilience_percentage(birthmark_file, threshold):
     return len(res_df) / len(df)
 
 
+def get_fscore_for_threshold(project_birthmark_dir, threshold):
+    credibility_res = []
+    resilience_res = []
+
+    for birthmark_file in os.listdir(project_birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
+            continue
+
+        if "versions" in birthmark_file:
+            vec = calculate_resilience_vector(
+                project_birthmark_dir + birthmark_file, threshold
+            )
+            resilience_res.append(vec)
+        else:
+            vec = calculate_credibility_vector(
+                project_birthmark_dir + birthmark_file, threshold
+            )
+            credibility_res.append(vec)
+
+    res_vector = list(itertools.chain.from_iterable(resilience_res))
+    cred_vector = list(itertools.chain.from_iterable(credibility_res))
+    true_res = [1] * len(res_vector)
+    true_cred = [0] * len(cred_vector)
+
+    vector = res_vector + cred_vector
+    true_vector = true_res + true_cred
+    f_score = f1_score(true_vector, vector)
+
+    # precision = precision_score(true_vector, vector)
+    # recall = recall_score(true_vector, vector)
+
+    return f_score
+
+
 def get_fscore_threshold_list(project_birthmark_dir, min_fscore):
     threshold_step = 0.001
     threshold = THRESHOLD_BASE
@@ -156,63 +192,13 @@ def get_fscore_threshold_list(project_birthmark_dir, min_fscore):
     f_score_threshold_list = []
 
     while threshold < 1:
-        #vectors = []
-        credibility_res = []
-        resilience_res = []
-
-        for birthmark_file in os.listdir(project_birthmark_dir):
-            if not birthmark_file.endswith(".csv"):
-                continue
-
-            if "versions" in birthmark_file:
-                vec = calculate_resilience_vector(
-                    project_birthmark_dir + birthmark_file, threshold
-                )
-                resilience_res.append(vec)
-            else:
-                vec = calculate_credibility_vector(
-                    project_birthmark_dir + birthmark_file, threshold
-                )
-                credibility_res.append(vec)
-
-            #vectors.append(vec)
-
-        # true_vectors = []
-        # true_vectors.append([1] * len(vectors[0]))
-        # true_vectors.append([1] * len(vectors[1]))
-
-        #vector = list(itertools.chain.from_iterable(vectors))
-        res_vector = list(itertools.chain.from_iterable(resilience_res))
-        cred_vector = list(itertools.chain.from_iterable(credibility_res))
-
-        #cred_vector = np.logical_not(cred_vector_inverted).astype(int).tolist()
-
-        true_res = [1] * len(res_vector)
-        true_cred = [0] * len(cred_vector)
-
-        vector = res_vector + cred_vector
-        true_vector = true_res + true_cred
-
-        #true_vector = [1] * len(vector)
-        # f_score = f1_score(true_vector, vector, average="micro")
-        #f_score = f1_score(true_vector, vector)
-
-        #precision = precision_score(true_vector, vector)
-        #recall = recall_score(true_vector, vector)
-
-        #f_score = 2 * precision * recall / (precision + recall)
-        f_score = f1_score(true_vector, vector)
-
-        # f_score1 = f1_score([1] * len(vectors[0]), vectors[0], average='macro')
-        # f_score2 = f1_score([1] * len(vectors[1]), vectors[1], average='macro')
+        f_score = get_fscore_for_threshold(project_birthmark_dir, threshold)
 
         if f_score < min_fscore:
             threshold += threshold_step
             continue
 
-        # f_score = (f_score1 + f_score2) / 2
         f_score_threshold_list.append((f_score, threshold))
-
         threshold += threshold_step
 
     return f_score_threshold_list
@@ -235,166 +221,7 @@ def get_best_threshold(project_birthmark_dir, min_fscore=1):
     return max_fscore
 
 
-def get_fscore_for_threshold(project_birthmark_dir, threshold):
-    vectors = []
-
-    for birthmark_file in os.listdir(project_birthmark_dir):
-        if not birthmark_file.endswith(".csv"):
-            continue
-
-        if "versions" in birthmark_file:
-            vec = calculate_resilience_vector(
-                project_birthmark_dir + birthmark_file, threshold
-            )
-        else:
-            vec = calculate_credibility_vector(
-                project_birthmark_dir + birthmark_file, threshold
-            )
-
-        vectors.append(vec)
-
-    vector = list(itertools.chain.from_iterable(vectors))
-    true_vector = [1] * len(vector)
-
-    return f1_score(true_vector, vector, average="macro")
-
-
-def calculate_optimal_threshold(project_birthmark_dir, min_percentage_score=0.8):
-    # threshold step: 0.01, dif is small? 0.05
-
-    # os.listdir -> list of dirs ->
-
-    delta_f = 0
-    threshold_step = 0.01
-
-    # for project_dir in os.listdir(project_birthmark_dir):
-    #    project_name = os.path.basename(project_dir)
-
-    #    print(" ".join(project_name, max_fscore))
-
-    threshold = THRESHOLD_BASE
-
-    f_score_threshold_list = []
-
-    while threshold < 1:
-        percentages = []
-        vectors = []
-
-        for birthmark_file in os.listdir(project_birthmark_dir):
-            if not birthmark_file.endswith(".csv"):
-                continue
-
-            if "versions" in birthmark_file:
-                # perc = calculate_resilience_percentage(
-                #    project_birthmark_dir + birthmark_file, threshold
-                # )
-                vec = calculate_resilience_vector(
-                    project_birthmark_dir + birthmark_file, threshold
-                )
-            else:
-                # perc = calculate_credibility_percentage(
-                #    project_birthmark_dir + birthmark_file, threshold
-                # )
-                vec = calculate_credibility_vector(
-                    project_birthmark_dir + birthmark_file, threshold
-                )
-
-            vectors.append(vec)
-            # percentages.append(perc)
-
-        # true_percentage = np.array([1, 1])
-        true_vectors = []
-        true_vectors.append([1] * len(vectors[0]))
-        true_vectors.append([1] * len(vectors[1]))
-        # true_vectors = np.array(true_vectors)
-
-        # percentage_scores = np.array(percentages)
-
-        # if min(percentage_scores) < min_percentage_score:
-        #    threshold += threshold_step
-        #    continue
-
-        # precision, recall, thresholds = precision_recall_curve(
-        #    true_percentage, percentage_scores
-        # )
-
-        # f_scores = 2 * recall * precision / (recall + precision)
-
-        # threshold_best = thresholds[np.argmax(f_scores)]
-        # f_score = np.max(f_scores)
-        # f_score_best = np.average(f_scores)
-
-        f_score1 = f1_score([1] * len(vectors[0]), vectors[0], average="macro")
-        f_score2 = f1_score([1] * len(vectors[1]), vectors[1], average="macro")
-
-        if min([f_score1, f_score2]) < min_percentage_score:
-            threshold += threshold_step
-            continue
-
-        # f_score = 1 - np.average(true_percentage - percentage_scores)
-
-        # delta_f = delta_f - f_score
-        # if delta_f < 0:
-        #    threshold_step = 0.001
-        # else:
-        #    threshold_step = 0.005
-        # delta_f = f_score
-
-        f_score = f_score1 + f_score2
-
-        f_score_threshold_list.append((f_score, threshold))
-
-        threshold += threshold_step
-
-    if len(f_score_threshold_list) == 0:
-        min_percentage_score = min_percentage_score - 0.05
-        if min_percentage_score > 0:
-            calculate_optimal_threshold(project_birthmark_dir, min_percentage_score)
-        else:
-            return (0, 0)
-
-    max_fscore = (0, 0)
-    for fscore in f_score_threshold_list:
-        if fscore[0] >= max_fscore[0]:
-            max_fscore = fscore
-
-    return max_fscore
-
-
-def combine_birthmarks(birthmark_dir):
-    versions_df = None
-    distinct_df = None
-    for birthmark_file in os.listdir(birthmark_dir):
-        if not birthmark_file.endswith(".csv"):
-            continue
-        df = pd.read_csv(birthmark_dir + birthmark_file)
-        if "versions" in birthmark_file:
-            for project_type in PROJECT_TYPES:
-                if project_type.replace('/','') in birthmark_file:
-                    category = project_type.replace('/','')
-                    break
-
-            df["category"] = [
-                category for i in range(len(df))
-            ]
-            versions_df = pd.concat([versions_df, df])
-        else:
-            for project_type in PROJECT_TYPES:
-                if project_type.replace('/','') in birthmark_file:
-                    category = project_type.replace('/','')
-                    break
-
-            df["category"] = [
-                category for i in range(len(df))
-            ]
-            distinct_df = pd.concat([distinct_df, df])
-
-
-    versions_df.to_csv(birthmark_dir + "versions_total.csv", index=False)
-    distinct_df.to_csv(birthmark_dir + "distinct_total.csv", index=False)
-
-
-def test_res_cred(
+def test_res_cred(  # test resilience and credibility for each category using thresholds from file
     birthmark_dir,
     threshold_file,
     output_filename="res_cred_perc_top_sim_categories.csv",
@@ -475,7 +302,7 @@ def test_res_cred(
                     f.write(newline)
 
 
-def test_res_cred_total(
+def test_res_cred_total(  # test total credibility and resilience
     birthmark_dir,
     threshold_file,
     output_filename="res_cred_perc_top_sim.csv",
@@ -491,8 +318,7 @@ def test_res_cred_total(
                 comparator = group[0][1]
 
                 cur_group = df[
-                    (df["birthmark"] == birthmark)
-                    & (df["comparator"] == comparator)
+                    (df["birthmark"] == birthmark) & (df["comparator"] == comparator)
                 ]
                 threshold_row = thresholds_df[
                     (thresholds_df["birthmark"] == birthmark)
@@ -523,8 +349,7 @@ def test_res_cred_total(
                 comparator = group[0][1]
 
                 cur_group = df[
-                    (df["birthmark"] == birthmark)
-                    & (df["comparator"] == comparator)
+                    (df["birthmark"] == birthmark) & (df["comparator"] == comparator)
                 ]
                 threshold_row = thresholds_df[
                     (thresholds_df["birthmark"] == birthmark)
@@ -549,7 +374,7 @@ def test_res_cred_total(
 
 
 def test_threshold(birthmark_dir, output_filename, threshold):
-    header = "Category,Birthmark,Similarity function,F-score,Threshold\n"
+    header = THRESHOLD_CALCULATION_HEADER
     with open(output_filename, "w") as file:
         file.write(header)
 
@@ -569,7 +394,7 @@ def test_threshold(birthmark_dir, output_filename, threshold):
 
 
 def calculate_threshold(birthmark_dir, output_filename):
-    header = "category,birthmark,comparator,F-score,threshold\n"
+    header = THRESHOLD_CALCULATION_HEADER
     with open(output_filename, "w") as file:
         file.write(header)
 
@@ -591,12 +416,60 @@ def calculate_threshold(birthmark_dir, output_filename):
 
 
 def main():
-    bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/avg/total/"
-    threhsold_file = "threhsolds_avg_topN_filtered.csv"
-    #combine_birthmarks(bmdir)
-    calculate_threshold(bmdir, threhsold_file)
-    #test_res_cred(birthmark_dir, threshold_file)
-    # test_threshold(birthmark_dir, "pochi_default_treshold.csv", 0.75)
+    limit_low = 100
+    limit_high = 1000
+
+    for N_perc1 in [90, 60, 30]:
+        for N_perc2 in [90, 60, 30]:
+            for N_perc3 in [90, 60, 30]:
+                bmdir_base = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/"
+
+                top = "top{}_{}_{}perc_partial/".format(N_perc1, N_perc2, N_perc3)
+                top_total = top + "_total/"
+
+                bmdir = bmdir_base + top + "avg/total/"
+
+                birthmark_group_dir = (
+                    "D:/Study/phd_research/library_extraction/birthmarks_group_data/"
+                    + top_total
+                )
+                # bmi.filter_by_top_N(bmdir_base, N, top)
+                bmi.filter_by_top_perc_partial(
+                    birthmark_dir=bmdir_base,
+                    limit_low=limit_low,
+                    limit_high=limit_high,
+                    N_perc1=N_perc1,
+                    N_perc2=N_perc2,
+                    N_perc3=N_perc3,
+                    output_dir=top,
+                )
+                bmi.get_group_avg_sim(bmdir_base + top)
+                bmi.combine_birthmarks(bmdir_base + top + "avg/")
+
+                threshold_file = "threhsolds_{}_total_filtered.csv".format(
+                    top.replace("/", "")
+                )
+                bmi.separate_into_dirs(bmdir, "total", birthmark_group_dir)
+
+                output_total = (
+                    "./results/filtered/topNperc_limits_{}_{}/{}_{}_{}/".format(
+                        limit_low, limit_high, N_perc1, N_perc2, N_perc3
+                    )
+                )
+
+                if not os.path.exists(output_total):
+                    os.makedirs(output_total)
+
+                calculate_threshold(birthmark_group_dir, output_total + threshold_file)
+                test_res_cred_total(
+                    bmdir,
+                    threshold_file,
+                    output_total
+                    + "res_cred_perc_{}_total.csv".format(top.replace("/", "")),
+                )
+
+                rmtree(bmdir_base + top)
+                rmtree(birthmark_group_dir)
 
 
 if __name__ == "__main__":
