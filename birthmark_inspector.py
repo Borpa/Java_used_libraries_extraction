@@ -3,6 +3,7 @@ import os
 
 import project_inspector as pi
 from run_pochi import POCHI_OUTPUT_HEADER, POCHI_OUTPUT_HEADER_AVG
+from project_inspector import PROJECT_TYPES
 
 BIRTHMARK_DATA_DIR = "./birthmarks/"
 GROUPBY_OUTPUT_FILENAME = "groupby_info"
@@ -360,15 +361,26 @@ def class_filter(birthmark_dir, author_list, output_dir="filtered/"):
 
         df = pd.read_csv(birthmark_dir + birthmark_file)
 
-        res = None
-        for author in author_list:
-            df1 = df[df.class1.str.contains(author)]
-            df2 = df[df.class2.str.contains(author)]
+        authors_str = "|".join(author_list)
 
-            res = pd.concat([res, df1, df2])
-        res = res[res.duplicated(keep=False)].drop_duplicates()
+        res = df[
+            (df.class1.str.contains(authors_str))
+            & (df.class2.str.contains(authors_str))
+        ]
 
-        res.to_csv(birthmark_dir + output_dir + birthmark_file, index=False)
+        # res = None
+        # for author in author_list:
+        #    df1 = df[df.class1.str.contains(author)]
+        #    df2 = df[df.class2.str.contains(author)]
+
+        #    res = pd.concat([res, df1, df2])
+        # res = res[res.duplicated(keep=False)].drop_duplicates()
+
+        output_total = birthmark_dir + output_dir
+        if not os.path.exists(output_total):
+            os.makedirs(output_total)
+
+        res.to_csv(output_total + birthmark_file, index=False)
 
 
 def filter_by_top_N(birthmark_dir, N, output_dir="top3/"):
@@ -399,7 +411,112 @@ def filter_by_top_N(birthmark_dir, N, output_dir="top3/"):
         ]
         df = df[header]
 
-        df.to_csv(birthmark_dir + output_dir + birthmark_file, index=False)
+        output_total = birthmark_dir + output_dir
+
+        if not os.path.exists(output_total):
+            os.makedirs(output_total)
+
+        df.to_csv(output_total + birthmark_file, index=False)
+
+
+def filter_by_top_perc(birthmark_dir, N_perc, output_dir="top3perc/"):
+    for birthmark_file in os.listdir(birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
+            continue
+
+        df = pd.read_csv(birthmark_dir + birthmark_file)
+        groupby_cols = [
+            "project1",
+            "project2",
+            "project1_ver",
+            "project2_ver",
+            "birthmark",
+            "comparator",
+            "matcher",
+        ]
+        # df = df.groupby([*groupby_cols]).apply(
+        #    lambda x: x.nlargest(int(N_perc * len(x)), "similarity")
+        # )
+        df = (
+            df.groupby([*groupby_cols])["similarity"]
+            .apply(lambda x: x.nlargest(int(N_perc * len(x))))
+            .reset_index()
+        )
+        header = [
+            "project1",
+            "project2",
+            "project1_ver",
+            "project2_ver",
+            "birthmark",
+            "comparator",
+            "matcher",
+            "similarity",
+        ]
+        df = df[header]
+
+        output_total = birthmark_dir + output_dir
+
+        if not os.path.exists(output_total):
+            os.makedirs(output_total)
+
+        df.to_csv(output_total + birthmark_file, index=False)
+
+
+def filter_by_top_perc_partial(
+    birthmark_dir,
+    limit_low,
+    limit_high,
+    N_perc1,
+    N_perc2,
+    N_perc3,
+    output_dir="top3perc_partial/",
+):
+    for birthmark_file in os.listdir(birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
+            continue
+
+        df = pd.read_csv(birthmark_dir + birthmark_file)
+        groupby_cols = [
+            "project1",
+            "project2",
+            "project1_ver",
+            "project2_ver",
+            "birthmark",
+            "comparator",
+            "matcher",
+        ]
+        # df = df.groupby([*groupby_cols]).apply(
+        #    lambda x: x.nlargest(int(N_perc * len(x)), "similarity")
+        # )
+        df = (
+            df.groupby([*groupby_cols])["similarity"]
+            .apply(
+                lambda x: x.nlargest(int(N_perc1 * len(x) + 1))
+                if len(x) < limit_low
+                else x.nlargest(int(N_perc2 * len(x)))
+                if len(x) < limit_high
+                else x.nlargest(int(N_perc3 * len(x)))
+            )
+            .reset_index()
+        )
+        header = [
+            "project1",
+            "project2",
+            "project1_ver",
+            "project2_ver",
+            "birthmark",
+            "comparator",
+            "matcher",
+            "similarity",
+        ]
+        df = df[header]
+
+        output_total = birthmark_dir + output_dir
+
+        if not os.path.exists(output_total):
+            os.makedirs(output_total)
+
+        df.to_csv(output_total + birthmark_file, index=False)
 
 
 def get_group_avg_sim(birthmark_dir, output_dir="avg/"):
@@ -425,15 +542,88 @@ def get_group_avg_sim(birthmark_dir, output_dir="avg/"):
             .reset_index()
         )
 
-        gb.to_csv(birthmark_dir + output_dir + birthmark_file, index=False)
+        output_total = birthmark_dir + output_dir
+
+        if not os.path.exists(output_total):
+            os.makedirs(output_total)
+
+        gb.to_csv(output_total + birthmark_file, index=False)
+
+
+def combine_birthmarks(birthmark_dir):
+    versions_df = None
+    distinct_df = None
+    for birthmark_file in os.listdir(birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
+            continue
+        df = pd.read_csv(birthmark_dir + birthmark_file)
+        if "versions" in birthmark_file:
+            for project_type in PROJECT_TYPES:
+                if project_type.replace("/", "") in birthmark_file:
+                    category = project_type.replace("/", "")
+                    break
+
+            df["category"] = [category for i in range(len(df))]
+            versions_df = pd.concat([versions_df, df])
+        else:
+            for project_type in PROJECT_TYPES:
+                if project_type.replace("/", "") in birthmark_file:
+                    category = project_type.replace("/", "")
+                    break
+
+            df["category"] = [category for i in range(len(df))]
+            distinct_df = pd.concat([distinct_df, df])
+
+    output_total = birthmark_dir + "total/"
+    if not os.path.exists(output_total):
+        os.makedirs(output_total)
+    versions_df.to_csv(output_total + "versions_total.csv", index=False)
+    distinct_df.to_csv(output_total + "distinct_total.csv", index=False)
+
+
+def get_group_count(birthmark_dir):
+    for birthmark_file in os.listdir(birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
+            continue
+
+        df = pd.read_csv(birthmark_dir + birthmark_file)
+
+        gb = (
+            df.groupby(
+                [
+                    "category",
+                    "project1",
+                    "project2",
+                    "project1_ver",
+                    "project2_ver",
+                    "birthmark",
+                    "comparator",
+                    "matcher",
+                ]
+            )
+            .size()
+            .reset_index(name="count")
+        )
+        output_total = birthmark_dir + "count/"
+
+        if not os.path.exists(output_total):
+            os.makedirs(output_total)
+
+        gb.to_csv(output_total + birthmark_file, index=False)
 
 
 def main():
-    bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/top3/"
+    bmdir = (
+        "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/"
+    )
+    for N in [800, 1000]:
+        top = "top{}/".format(N)
+        filter_by_top_N(bmdir, N, top)
+        get_group_avg_sim(bmdir + top)
+        combine_birthmarks(bmdir + top + "avg/")
 
-    get_group_avg_sim(bmdir)
-    #class_filter(bmdir, author_list)
-    #filter_by_top_N(bmdir, 3)
+    # bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/"
+    # class_filter(bmdir, author_list)
 
 
 if __name__ == "__main__":
