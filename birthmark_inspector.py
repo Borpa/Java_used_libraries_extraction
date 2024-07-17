@@ -462,6 +462,40 @@ def filter_by_top_perc(birthmark_dir, N_perc, output_dir="top3perc/"):
         df.to_csv(output_total + birthmark_file, index=False)
 
 
+def get_top_sim(birthmark_dir, output_dir="top_sim/"):
+    for birthmark_file in os.listdir(birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
+            continue
+
+        df = pd.read_csv(birthmark_dir + birthmark_file)
+        columns_base = [
+            "project1",
+            "project1_ver",
+            "project2",
+            "project2_ver",
+            "birthmark",
+            "comparator",
+            "matcher",
+        ]
+
+        groupby_columns1 = columns_base + ["class1"]
+        groupby_columns2 = columns_base + ["class2"]
+
+        result1 = df.loc[
+            df.groupby([*groupby_columns1])["similarity"].idxmax().dropna()
+        ]
+        result2 = df.loc[
+            df.groupby([*groupby_columns2])["similarity"].idxmax().dropna()
+        ]
+
+        result = pd.concat([result1, result2]).drop_duplicates()
+
+        if not os.path.exists(birthmark_dir + output_dir):
+            os.makedirs(birthmark_dir + output_dir)
+
+        result.to_csv(birthmark_dir + output_dir + birthmark_file, index=False)
+
+
 def filter_by_top_perc_partial(
     birthmark_dir,
     limit_low,
@@ -491,7 +525,7 @@ def filter_by_top_perc_partial(
         df = (
             df.groupby([*groupby_cols])["similarity"]
             .apply(
-                lambda x: x.nlargest(int(N_perc1 * len(x) + 1))
+                lambda x: x.nlargest(int(N_perc1 * len(x)) + 1)
                 if len(x) < limit_low
                 else x.nlargest(int(N_perc2 * len(x)))
                 if len(x) < limit_high
@@ -614,13 +648,19 @@ def get_group_count(birthmark_dir):
 
 def main():
     bmdir = (
-        "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/"
+        "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/top_sim/"
     )
-    for N in [800, 1000]:
-        top = "top{}/".format(N)
-        filter_by_top_N(bmdir, N, top)
-        get_group_avg_sim(bmdir + top)
-        combine_birthmarks(bmdir + top + "avg/")
+
+    #get_top_sim(bmdir)
+
+    combine_birthmarks(bmdir)
+    get_group_count(bmdir + "total/")
+
+    #for N in [800, 1000]:
+    #    top = "top{}/".format(N)
+    #    filter_by_top_N(bmdir, N, top)
+    #    get_group_avg_sim(bmdir + top)
+    #    combine_birthmarks(bmdir + top + "avg/")
 
     # bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/"
     # class_filter(bmdir, author_list)
