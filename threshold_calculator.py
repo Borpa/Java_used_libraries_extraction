@@ -416,16 +416,16 @@ def calculate_threshold(birthmark_dir, output_filename):
 
 
 def main():
-    limit_low = 100
-    limit_high = 1000
+    limit_low = 50
+    limit_high = 200
 
     for N_perc1 in [90, 60, 30]:
         for N_perc2 in [90, 60, 30]:
             for N_perc3 in [90, 60, 30]:
-                bmdir_base = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/"
+                bmdir_base = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/top_sim/"
 
                 top = "top{}_{}_{}perc_partial/".format(N_perc1, N_perc2, N_perc3)
-                top_total = top + "_total/"
+                top_total = top.replace("/", "") + "_total/"
 
                 bmdir = bmdir_base + top + "avg/total/"
 
@@ -438,9 +438,9 @@ def main():
                     birthmark_dir=bmdir_base,
                     limit_low=limit_low,
                     limit_high=limit_high,
-                    N_perc1=N_perc1,
-                    N_perc2=N_perc2,
-                    N_perc3=N_perc3,
+                    N_perc1=N_perc1 / 100,
+                    N_perc2=N_perc2 / 100,
+                    N_perc3=N_perc3 / 100,
                     output_dir=top,
                 )
                 bmi.get_group_avg_sim(bmdir_base + top)
@@ -451,22 +451,20 @@ def main():
                 )
                 bmi.separate_into_dirs(bmdir, "total", birthmark_group_dir)
 
-                output_total = (
-                    "./results/filtered/topNperc_limits_{}_{}/{}_{}_{}/".format(
-                        limit_low, limit_high, N_perc1, N_perc2, N_perc3
-                    )
+                output_total = "./results/filtered/topNperc_limits_{}_{}/".format(
+                    limit_low, limit_high
                 )
 
                 if not os.path.exists(output_total):
                     os.makedirs(output_total)
 
                 calculate_threshold(birthmark_group_dir, output_total + threshold_file)
-                test_res_cred_total(
-                    bmdir,
-                    threshold_file,
-                    output_total
-                    + "res_cred_perc_{}_total.csv".format(top.replace("/", "")),
-                )
+                # test_res_cred_total(
+                #    bmdir,
+                #    threshold_file,
+                #    output_total
+                #    + "res_cred_perc_{}_total.csv".format(top.replace("/", "")),
+                # )
 
                 rmtree(bmdir_base + top)
                 rmtree(birthmark_group_dir)
