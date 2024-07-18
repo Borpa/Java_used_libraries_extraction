@@ -26,7 +26,7 @@ def inspect_dir_by_num_instruct(root_dir, output_file):
             if not name.endswith(".class"):
                 continue
             filename = os.path.join(path, name)
-            instruct_count = None
+            instruct_count = None #javap
 
             with open(output_file, mode="a") as f:
                 f.write(",".join([filename, instruct_count]) + "\n")
