@@ -496,6 +496,26 @@ def get_top_sim(birthmark_dir, output_dir="top_sim/"):
         result.to_csv(birthmark_dir + output_dir + birthmark_file, index=False)
 
 
+def filter_by_size(birthmark_dir, min_filesize, output_dir="filtered_by_size/"):
+    for birthmark_file in os.listdir(birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
+            continue
+
+        df = pd.read_csv(birthmark_dir + birthmark_file)
+
+        df = df[
+            (int(os.path.getsize(df.class1)) >= min_filesize)
+            & (int(os.path.getsize(df.class2)) >= min_filesize)
+        ]
+
+        total_output = birthmark_dir + output_dir
+
+        if not os.path.exists(total_output):
+            os.makedirs(total_output)
+
+        df.to_csv(total_output + birthmark_file, index=False)
+
+
 def filter_by_top_perc_partial(
     birthmark_dir,
     limit_low,
@@ -647,16 +667,14 @@ def get_group_count(birthmark_dir):
 
 
 def main():
-    bmdir = (
-        "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/top_sim/"
-    )
+    bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/top_sim/"
 
-    #get_top_sim(bmdir)
+    # get_top_sim(bmdir)
 
     combine_birthmarks(bmdir)
     get_group_count(bmdir + "total/")
 
-    #for N in [800, 1000]:
+    # for N in [800, 1000]:
     #    top = "top{}/".format(N)
     #    filter_by_top_N(bmdir, N, top)
     #    get_group_avg_sim(bmdir + top)
