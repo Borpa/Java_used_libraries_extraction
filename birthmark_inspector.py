@@ -494,7 +494,8 @@ def get_top_sim(birthmark_dir, output_dir="top_sim/"):
         result.to_csv(birthmark_dir + output_dir + birthmark_file, index=False)
 
 
-def filter_by_module_size(birthmark_dir, min_filesize, output_dir="filtered_by_size/"):
+def filter_by_module_size(birthmark_dir, min_filesize):
+    output_dir="filtered_by_size_{}/".format(min_filesize)
     for birthmark_file in os.listdir(birthmark_dir):
         if not birthmark_file.endswith(".csv"):
             continue
