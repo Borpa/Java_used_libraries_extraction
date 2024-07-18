@@ -10,7 +10,8 @@ def inspect_dir_by_num_of_lines(root_dir, output_file):
             if not name.endswith(".java"):
                 continue
             filename = os.path.join(path, name)
-            lines = None
+            with open(filename, "r") as f:
+                lines = len(f.readlines())
 
             with open(output_file, mode="a") as f:
                 f.write(",".join([filename, lines]) + "\n")
