@@ -324,8 +324,6 @@ def plot_histograms(birthmark_dir):
 
 def separate_into_dirs(birthmark_dir, project_category, main_dir):
     files = os.listdir(birthmark_dir)
-    birthmarks = ["3-gram", "6-gram", "uc", "fuc"]
-    sim_func = ["Cosine", "DiceIndex", "JacardCoefficient", "SimpsonIndex"]
 
     for file in files:
         if not file.endswith(".csv"):
