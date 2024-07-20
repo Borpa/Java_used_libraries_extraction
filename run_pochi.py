@@ -367,7 +367,7 @@ def pochi_extract_compare(
 
             # file_pair_result = []
 
-            for line in cr.run_bash_command(command).split("\r\n"):
+            for line in cr.run_bash_command_no_output(command).split("\r\n"):
                 if len(line) == 0:
                     continue
                 line = line.replace("\r\n", "").split(",")
@@ -464,7 +464,7 @@ def pochi_extract_compare_avg(
                 ]
             )
             file_pair_result = []
-            script_output = cr.run_bash_command(command).split("\r\n")
+            script_output = cr.run_bash_command_no_output(command).split("\r\n")
             line = script_output.pop()
             #for line in script_output:
             while script_output:
@@ -584,7 +584,7 @@ def pochi_extract_compare_max_sim(
             )
             #file_pair_result = []
             
-            script_output = cr.run_bash_command(command) #.split("\r\n")
+            script_output = cr.run_bash_command_no_output(command) #.split("\r\n")
             
             #line = script_output.pop()
             #while script_output:
@@ -623,7 +623,7 @@ def pochi_extract_birthmark(
             project_file,
         ]
     )
-    output = cr.run_bash_command(command).split("\r\n")
+    output = cr.run_bash_command_no_output(command).split("\r\n")
 
     return output
 
@@ -1142,7 +1142,7 @@ def compare_external_birthmarks_pair_pochi(
             birthmark_file2,
         ]
     )
-    output = cr.run_bash_command(command)
+    output = cr.run_bash_command_no_output(command)
     output = output.split("\r\n")
 
     birthmark_file1 = os.path.basename(birthmark_file1)
