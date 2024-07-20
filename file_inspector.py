@@ -59,43 +59,27 @@ def inspect_dir(root_dir, output_file, output_header, file_postfix, inspect_type
             project_name = path_list[1]
             project_version = path_list[2]
 
+            output_base = ",".join(
+                [
+                    project_type,
+                    project_name,
+                    project_version,
+                    filename,
+                    "{}",
+                    filepath,
+                ]
+            )
+
             match inspect_type:
                 case Inspect_type.Size:
                     filesize = get_filesize(filepath)
-                    output = ",".join(
-                        [
-                            project_type,
-                            project_name,
-                            project_version,
-                            filename,
-                            filesize,
-                            filepath,
-                        ]
-                    )
+                    output = output_base.format(filesize)
                 case Inspect_type.Line_count:
                     line_count = get_line_count(filepath)
-                    output = ",".join(
-                        [
-                            project_type,
-                            project_name,
-                            project_version,
-                            filename,
-                            line_count,
-                            filepath,
-                        ]
-                    )
+                    output = output_base.format(line_count)
                 case Inspect_type.Instruct_count:
                     instruct_count = get_instruct_count(filepath)
-                    output = ",".join(
-                        [
-                            project_type,
-                            project_name,
-                            project_version,
-                            filename,
-                            instruct_count,
-                            filepath,
-                        ]
-                    )
+                    output = output_base.format(instruct_count)
                 case _:
                     return None
 
