@@ -1,17 +1,13 @@
 import os
+import command_runner
+import re
 from enum import Enum
 
-HEADER_SIZE = (
-    "project_type,project_name,project_version,filename,file_size(B),filepath\n"
-)
+HEADER_BASE = "project_type,project_name,project_version,filename,{},filepath\n"
 
-HEADER_LINE_COUNT = (
-    "project_type,project_name,project_version,filename,lines,filepath\n"
-)
-
-HEADER_INSTRUCT_COUNT = (
-    "project_type,project_name,project_version,filename,instructions_count,filepath\n"
-)
+HEADER_SIZE = HEADER_BASE.format("file_size(B)")
+HEADER_LINE_COUNT = HEADER_BASE.format("line_count")
+HEADER_INSTRUCT_COUNT = HEADER_BASE.format("instruction_count")
 
 
 class Inspect_type(Enum):
@@ -20,8 +16,12 @@ class Inspect_type(Enum):
     Instruct_count = 3
 
 
-def get_instruct_count(classpath):  # javap #\s+\d+:\s\w+
-    return None
+def get_instruct_count(classpath):
+    command = "javap -c " + classpath
+    disassembled_class = command_runner.run_bash_command(command)
+    instruct_count = len(re.findall("\s+\d+:\s\w+"), disassembled_class)
+
+    return instruct_count
 
 
 def get_line_count(filepath):
