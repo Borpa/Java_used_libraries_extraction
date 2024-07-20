@@ -24,6 +24,17 @@ def run_cmd_command(command):
 
 def run_bash_command(command):
     output = subprocess.check_output(
+        command, shell=False, executable=GIT_BASH_EXEC_PATH, 
+    )
+    output = output.decode()
+
+    #with open("C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/temp/temp.txt", "w") as f:
+    #    f.write(output)
+
+    #return output
+
+async def run_bash_command_async(command):
+    output = subprocess.check_output(
         command, shell=False, executable=GIT_BASH_EXEC_PATH,
     )
     output = output.decode()
