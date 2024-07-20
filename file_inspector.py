@@ -35,7 +35,13 @@ def get_filesize(filepath):
     return str(os.path.getsize(filepath))
 
 
-def inspect_dir(root_dir, output_file, output_header, file_postfix, inspect_type):
+def inspect_dir(
+    root_dir,
+    output_file,
+    output_header=HEADER_SIZE,
+    inspect_type=Inspect_type.Size,
+    file_postfix=".java",
+):
     with open(output_file, mode="w") as f:
         f.write(output_header)
 
@@ -91,7 +97,7 @@ def main():
     output_file = "project_files_size_data.csv"
     root_dir = "C:/Users/FedorovNikolay/source/Study/test_projects/current/"
 
-    inspect_dir(root_dir, output_file, HEADER_SIZE, ".class", Inspect_type.Size)
+    inspect_dir(root_dir, output_file, HEADER_SIZE, Inspect_type.Size, ".class")
 
 
 if __name__ == "__main__":
