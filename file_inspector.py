@@ -18,8 +18,8 @@ class Inspect_type(Enum):
 
 def get_instruct_count(classpath):
     command = "javap -c " + classpath
-    disassembled_class = command_runner.run_bash_command(command)
-    instruct_count = len(re.findall("\s+\d+:\s\w+"), disassembled_class)
+    disassembled_class = command_runner.run_cmd_command(command)
+    instruct_count = len(re.findall("\s+\d+:\s\w+", disassembled_class))
 
     return instruct_count
 
@@ -96,11 +96,11 @@ def inspect_dir(
 
 
 def main():
-    output_file = "project_files_line_count.csv"
+    output_file = "project_files_instruct_count.csv"
     #root_dir = "C:/Users/FedorovNikolay/source/Study/test_projects/current/"
     root_dir = "D:/Study/phd_research/test_projects/current/"
 
-    inspect_dir(root_dir, output_file, inspect_type=Inspect_type.Line_count)
+    inspect_dir(root_dir, output_file, inspect_type=Inspect_type.Instruct_count)
 
 
 if __name__ == "__main__":
