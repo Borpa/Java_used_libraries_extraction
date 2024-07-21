@@ -25,7 +25,7 @@ def get_instruct_count(classpath):
 
 
 def get_line_count(filepath):
-    with open(filepath, "r") as f:
+    with open(filepath, "r", encoding="utf8") as f:
         line_count = len(f.readlines())
 
     return line_count
@@ -40,20 +40,22 @@ def inspect_dir(
     output_file,
     output_header=HEADER_SIZE,
     inspect_type=Inspect_type.Size,
-    file_postfix=".java",
+    file_extension=".java",
 ):
+    if inspect_type == Inspect_type.Line_count:
+        output_header = HEADER_LINE_COUNT
+        file_extension = ".java"
+
+    if inspect_type == Inspect_type.Instruct_count:
+        output_header = HEADER_INSTRUCT_COUNT
+        file_extension = ".class"
+
     with open(output_file, mode="w") as f:
         f.write(output_header)
 
-    if inspect_type == Inspect_type.Line_count:
-        file_postfix = ".java"
-
-    if inspect_type == Inspect_type.Instruct_count:
-        file_postfix = ".class"
-
     for path, subdirs, files in os.walk(root_dir):
         for name in files:
-            if not name.endswith(file_postfix):
+            if not name.endswith(file_extension):
                 continue
 
             filepath = os.path.join(path, name)
@@ -94,10 +96,11 @@ def inspect_dir(
 
 
 def main():
-    output_file = "project_files_size_data.csv"
-    root_dir = "C:/Users/FedorovNikolay/source/Study/test_projects/current/"
+    output_file = "project_files_line_count.csv"
+    #root_dir = "C:/Users/FedorovNikolay/source/Study/test_projects/current/"
+    root_dir = "D:/Study/phd_research/test_projects/current/"
 
-    inspect_dir(root_dir, output_file, HEADER_SIZE, Inspect_type.Size, ".class")
+    inspect_dir(root_dir, output_file, inspect_type=Inspect_type.Line_count)
 
 
 if __name__ == "__main__":
