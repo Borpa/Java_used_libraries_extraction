@@ -18,7 +18,7 @@ def run_cmd_command(command):
         command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE
     )
     out, err = proc.communicate()
-    output = out.decode()
+    output = out.decode("cp437")
     return output
 
 
