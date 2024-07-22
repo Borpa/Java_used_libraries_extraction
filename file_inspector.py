@@ -11,7 +11,7 @@ HEADER_INSTRUCT_COUNT = HEADER_BASE.format("instruction_count")
 
 
 class Inspect_type(Enum):
-    Size = 1
+    Size = 1 #file size in Bytes
     Line_count = 2
     Instruct_count = 3
 
@@ -38,17 +38,20 @@ def get_filesize(filepath):
 def inspect_dir(
     root_dir,
     output_file,
-    output_header=HEADER_SIZE,
     inspect_type=Inspect_type.Size,
     file_extension=".java",
 ):
-    if inspect_type == Inspect_type.Line_count:
-        output_header = HEADER_LINE_COUNT
-        file_extension = ".java"
-
-    if inspect_type == Inspect_type.Instruct_count:
-        output_header = HEADER_INSTRUCT_COUNT
-        file_extension = ".class"
+    match inspect_type:
+        case Inspect_type.Size:
+            output_header = HEADER_SIZE
+        case Inspect_type.Line_count:
+            output_header = HEADER_LINE_COUNT
+            file_extension = ".java"
+        case Inspect_type.Instruct_count:
+            output_header = HEADER_INSTRUCT_COUNT
+            file_extension = ".class"
+        case _:
+            return None
 
     with open(output_file, mode="w") as f:
         f.write(output_header)
@@ -80,16 +83,15 @@ def inspect_dir(
 
             match inspect_type:
                 case Inspect_type.Size:
-                    filesize = get_filesize(filepath)
-                    output = output_base.format(filesize)
+                    inspected_data = get_filesize(filepath)
                 case Inspect_type.Line_count:
-                    line_count = get_line_count(filepath)
-                    output = output_base.format(line_count)
+                    inspected_data = get_line_count(filepath)
                 case Inspect_type.Instruct_count:
-                    instruct_count = get_instruct_count(filepath)
-                    output = output_base.format(instruct_count)
+                    inspected_data = get_instruct_count(filepath)
                 case _:
                     return None
+
+            output = output_base.format(inspected_data)
 
             with open(output_file, mode="a") as f:
                 f.write(output + "\n")
@@ -97,7 +99,7 @@ def inspect_dir(
 
 def main():
     output_file = "project_files_instruct_count.csv"
-    #root_dir = "C:/Users/FedorovNikolay/source/Study/test_projects/current/"
+    # root_dir = "C:/Users/FedorovNikolay/source/Study/test_projects/current/"
     root_dir = "D:/Study/phd_research/test_projects/current/"
 
     inspect_dir(root_dir, output_file, inspect_type=Inspect_type.Instruct_count)
