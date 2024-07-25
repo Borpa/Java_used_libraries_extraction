@@ -723,53 +723,45 @@ def filter_with_external_file(
         class1_gb = df.groupby(["project1", "project1_ver", "class1"])
         class2_gb = df.groupby(["project2", "project2_ver", "class2"])
 
-        class1_gb.class1 = class1_gb.str.split(".")[-1]
-        class2_gb.class2 = class2_gb.str.split(".")[-1]
+        # class1_gb.class1 = class1_gb.class1.str.split(".")[-1]
+        # class2_gb.class2 = class2_gb.class2.str.split(".")[-1]
 
-        class1_gb_filtered = class1_gb[
-            check_module_size(
-                data_file,
-                class1_gb.class1,
-                class1_gb.project1,
-                class1_gb.project1_ver,
-                min_value,
-                inspect_type,
-                file_extension,
-            )
-        ]
+        for gb in [class1_gb, class2_gb]:
+            for group in gb:
+                module_name = group[0][2].split(".")[-1]
+                project = group[0][0]
+                project_ver = group[0][1]
+                size_check = check_module_size(
+                    data_file,
+                    module_name,
+                    project,
+                    project_ver,
+                    min_value,
+                    inspect_type,
+                    file_extension,
+                )
 
-        class2_gb_filtered = class2_gb[
-            check_module_size(
-                data_file,
-                class2_gb.class2,
-                class2_gb.project2,
-                class2_gb.project2_ver,
-                min_value,
-                inspect_type,
-                file_extension,
-            )
-        ]
-
-        class1_values = class1_gb_filtered.class1.value
-        class2_values = class2_gb_filtered.class2.value
-
-        df_filtered = df[(df.class1 in class1_values) & (df.class2 in class2_values)]
+                if not size_check:
+                    df = df[(df.class1 != module_name) & (df.class2 != module_name)]
 
         total_output = birthmark_dir + output_dir
 
         if not os.path.exists(total_output):
             os.makedirs(total_output)
 
-        df_filtered.to_csv(total_output + birthmark_file, index=False)
+        df.to_csv(total_output + birthmark_file, index=False)
 
 
 def main():
-    bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/top_sim/"
+    bmdir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/topsim_arch/"
+    # bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/top_sim/"
+
+    filter_with_external_file(bmdir, "test.csv", 100)
 
     # get_top_sim(bmdir)
 
-    combine_birthmarks(bmdir)
-    get_group_count(bmdir + "total/")
+    # combine_birthmarks(bmdir)
+    # get_group_count(bmdir + "total/")
 
     # for N in [800, 1000]:
     #    top = "top{}/".format(N)
