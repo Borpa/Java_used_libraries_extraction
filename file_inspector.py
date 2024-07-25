@@ -5,9 +5,13 @@ from enum import Enum
 
 HEADER_BASE = "project_type,project_name,project_version,filename,{},filepath\n"
 
-HEADER_SIZE = HEADER_BASE.format("file_size(B)")
-HEADER_LINE_COUNT = HEADER_BASE.format("line_count")
-HEADER_INSTRUCT_COUNT = HEADER_BASE.format("instruction_count")
+VALUE_COLUMN_SIZE = "file_size(B)"
+VALUE_COLUMN_LINE_COUNT = "line_count"
+VALUE_COLUMN_INSTRUCT_COUNT = "instruction_count"
+
+HEADER_SIZE = HEADER_BASE.format(VALUE_COLUMN_SIZE)
+HEADER_LINE_COUNT = HEADER_BASE.format(VALUE_COLUMN_LINE_COUNT)
+HEADER_INSTRUCT_COUNT = HEADER_BASE.format(VALUE_COLUMN_INSTRUCT_COUNT)
 
 
 class Inspect_type(Enum):
