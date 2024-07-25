@@ -4,6 +4,12 @@ import os
 import project_inspector as pi
 from run_pochi import POCHI_OUTPUT_HEADER, POCHI_OUTPUT_HEADER_AVG
 from project_inspector import PROJECT_TYPES
+from file_inspector import (
+    Inspect_type,
+    VALUE_COLUMN_SIZE,
+    VALUE_COLUMN_LINE_COUNT,
+    VALUE_COLUMN_INSTRUCT_COUNT,
+)
 
 BIRTHMARK_DATA_DIR = "./birthmarks/"
 GROUPBY_OUTPUT_FILENAME = "groupby_info"
@@ -495,7 +501,7 @@ def get_top_sim(birthmark_dir, output_dir="top_sim/"):
 
 
 def filter_by_module_size(birthmark_dir, min_filesize):
-    output_dir="filtered_by_size_{}/".format(min_filesize)
+    output_dir = "filtered_by_size_{}/".format(min_filesize)
     for birthmark_file in os.listdir(birthmark_dir):
         if not birthmark_file.endswith(".csv"):
             continue
@@ -663,6 +669,98 @@ def get_group_count(birthmark_dir):
             os.makedirs(output_total)
 
         gb.to_csv(output_total + birthmark_file, index=False)
+
+
+def check_module_size(
+    data_file,
+    module_name,
+    project_name,
+    project_ver,
+    min_value,
+    inspect_type=Inspect_type.Size,
+    file_extension=".java",
+):
+    df = pd.read_csv(data_file)
+
+    match inspect_type:
+        case Inspect_type.Size:
+            value_column = VALUE_COLUMN_SIZE
+            module_name = module_name + file_extension
+
+        case Inspect_type.Line_count:
+            value_column = VALUE_COLUMN_LINE_COUNT
+            module_name = module_name + ".java"
+
+        case Inspect_type.Instruct_count:
+            value_column = VALUE_COLUMN_INSTRUCT_COUNT
+            module_name = module_name + ".class"
+
+    value_line = df[
+        (df.project_name == project_name)
+        & (df.project_ver == project_ver)
+        & (df.filename == module_name)
+    ]
+
+    value = int(value_line[value_column])
+
+    return value >= min_value
+
+
+def filter_with_external_file(
+    birthmark_dir,
+    data_file,
+    min_value,
+    output_dir="filtered/",
+    inspect_type=Inspect_type.Size,
+    file_extension=".java",
+):
+    for birthmark_file in os.listdir(birthmark_dir):
+        if not birthmark_file.endswith(".csv"):
+            continue
+
+        df = pd.read_csv(birthmark_dir + birthmark_file)
+
+        class1_gb = df.groupby(["project1", "project1_ver", "class1"])
+        class2_gb = df.groupby(["project2", "project2_ver", "class2"])
+
+        class1_gb.class1 = class1_gb.str.split(".")[-1]
+        class2_gb.class2 = class2_gb.str.split(".")[-1]
+
+        class1_gb_filtered = class1_gb[
+            check_module_size(
+                data_file,
+                class1_gb.class1,
+                class1_gb.project1,
+                class1_gb.project1_ver,
+                min_value,
+                inspect_type,
+                file_extension,
+            )
+        ]
+
+        class2_gb_filtered = class2_gb[
+            check_module_size(
+                data_file,
+                class2_gb.class2,
+                class2_gb.project2,
+                class2_gb.project2_ver,
+                min_value,
+                inspect_type,
+                file_extension,
+            )
+        ]
+
+        class1_values = class1_gb_filtered.class1.value
+        class2_values = class2_gb_filtered.class2.value
+
+        df_filtered = df[(df.class1 in class1_values) & (df.class2 in class2_values)]
+
+        total_output = birthmark_dir + output_dir
+
+        if not os.path.exists(total_output):
+            os.makedirs(total_output)
+
+        df_filtered.to_csv(total_output + birthmark_file, index=False)
 
 
 def main():
