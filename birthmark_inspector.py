@@ -701,7 +701,7 @@ def check_module_size(
         & (df.filename == module_name)
     ]
 
-    value = int(value_line[value_column])
+    value = int(value_line[value_column].loc[0])
 
     return value >= min_value
 
