@@ -723,9 +723,6 @@ def filter_with_external_file(
         class1_gb = df.groupby(["project1", "project1_ver", "class1"])
         class2_gb = df.groupby(["project2", "project2_ver", "class2"])
 
-        # class1_gb.class1 = class1_gb.class1.str.split(".")[-1]
-        # class2_gb.class2 = class2_gb.class2.str.split(".")[-1]
-
         for gb in [class1_gb, class2_gb]:
             for group in gb:
                 module_name = group[0][2].split(".")[-1]
@@ -742,7 +739,10 @@ def filter_with_external_file(
                 )
 
                 if not size_check:
-                    df = df[(df.class1 != module_name) & (df.class2 != module_name)]
+                    df = df[
+                        (df.class1.str.split(".")[-1] != module_name)
+                        & (df.class2.str.split(".")[-1] != module_name)
+                    ]
 
         total_output = birthmark_dir + output_dir
 
