@@ -15,7 +15,7 @@ HEADER_INSTRUCT_COUNT = HEADER_BASE.format(VALUE_COLUMN_INSTRUCT_COUNT)
 
 
 class Inspect_type(Enum):
-    Size = 1 #file size in Bytes
+    Size = 1  # file size in Bytes
     Line_count = 2
     Instruct_count = 3
 
@@ -41,19 +41,24 @@ def get_filesize(filepath):
 
 def inspect_dir(
     root_dir,
-    output_file,
+    output_file="project_files_{}.csv",
     inspect_type=Inspect_type.Size,
     file_extension=".java",
 ):
     match inspect_type:
         case Inspect_type.Size:
             output_header = HEADER_SIZE
+            output_file = output_file.format(
+                "size_{}".format(file_extension.replace(".", ""))
+            )
         case Inspect_type.Line_count:
             output_header = HEADER_LINE_COUNT
             file_extension = ".java"
+            output_file = output_file.format("line_count")
         case Inspect_type.Instruct_count:
             output_header = HEADER_INSTRUCT_COUNT
             file_extension = ".class"
+            output_file = output_file.format("instruct_count")
         case _:
             return None
 
@@ -102,11 +107,10 @@ def inspect_dir(
 
 
 def main():
-    output_file = "project_files_instruct_count.csv"
     # root_dir = "C:/Users/FedorovNikolay/source/Study/test_projects/current/"
     root_dir = "D:/Study/phd_research/test_projects/current/"
 
-    inspect_dir(root_dir, output_file, inspect_type=Inspect_type.Instruct_count)
+    inspect_dir(root_dir)
 
 
 if __name__ == "__main__":
