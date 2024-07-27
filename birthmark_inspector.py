@@ -690,7 +690,7 @@ def check_module_size(
 
         case Inspect_type.Line_count:
             value_column = VALUE_COLUMN_LINE_COUNT
-            module_name = module_name + ".java"
+            module_name = module_name.split("$")[0] + ".java"
 
         case Inspect_type.Instruct_count:
             value_column = VALUE_COLUMN_INSTRUCT_COUNT
@@ -698,13 +698,18 @@ def check_module_size(
         case _:
             raise Exception("Unsupported Inspect_type")
 
-    value_line = df[
+    value_row = df[
         (df.project_name == project_name)
-        & (df.project_ver == project_ver)
+        & (df.project_version == project_ver)
         & (df.filename == module_name)
     ]
 
-    value = int(value_line[value_column].loc[0])
+    value_row = value_row[value_column]
+
+    if len(value_row) == 0:
+        value = 0
+    else:
+        value = int(value_row.values[0])
 
     return value >= min_value
 
@@ -743,8 +748,8 @@ def filter_with_external_file(
 
                 if not size_check:
                     df = df[
-                        (df.class1.str.split(".")[-1] != module_name)
-                        & (df.class2.str.split(".")[-1] != module_name)
+                        (df.class1.str.split(".").str[-1] != module_name)
+                        & (df.class2.str.split(".").str[-1] != module_name)
                     ]
 
         match inspect_type:
@@ -753,9 +758,9 @@ def filter_with_external_file(
                     ["size_{}".format(file_extension.replace(".", "")), str(min_value)]
                 )
             case Inspect_type.Line_count:
-                output_dir = output_dir.format(["line_count", str(min_value)])
+                output_dir = output_dir.format("line_count", str(min_value))
             case Inspect_type.Instruct_count:
-                output_dir = output_dir.format(["instruct_count", str(min_value)])
+                output_dir = output_dir.format("instruct_count", str(min_value))
             case _:
                 raise Exception("Unsupported Inspect_type")
 
@@ -771,7 +776,9 @@ def main():
     # bmdir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/topsim_classes_new/"
     bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes_new/filtered/"
 
-    filter_with_external_file(bmdir, "test.csv", 100)
+    filter_with_external_file(
+        bmdir, "project_files_line_count.csv", 10, inspect_type=Inspect_type.Line_count
+    )
 
     # get_top_sim(bmdir)
 
