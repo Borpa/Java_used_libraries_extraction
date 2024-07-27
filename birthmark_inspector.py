@@ -747,10 +747,21 @@ def filter_with_external_file(
                 )
 
                 if not size_check:
-                    df = df[
-                        (df.class1.str.split(".").str[-1] != module_name)
-                        & (df.class2.str.split(".").str[-1] != module_name)
-                    ]
+                    df.drop(
+                        df[
+                            (
+                                (df.project1 == project)
+                                & (df.project1_ver == project_ver)
+                                & (df.class1.str.split(".").str[-1] == module_name)
+                            )
+                            | (
+                                (df.project2 == project)
+                                & (df.project2_ver == project_ver)
+                                & (df.class2.str.split(".").str[-1] == module_name)
+                            )
+                        ].index,
+                        inplace=True,
+                    )
 
         match inspect_type:
             case Inspect_type.Size:
@@ -777,7 +788,10 @@ def main():
     bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes_new/filtered/"
 
     filter_with_external_file(
-        bmdir, "project_files_line_count.csv", 10, inspect_type=Inspect_type.Line_count
+        bmdir,
+        "project_files_instruct_count.csv",
+        10,
+        inspect_type=Inspect_type.Instruct_count,
     )
 
     # get_top_sim(bmdir)
