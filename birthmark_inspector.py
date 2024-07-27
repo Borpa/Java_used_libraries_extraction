@@ -695,6 +695,8 @@ def check_module_size(
         case Inspect_type.Instruct_count:
             value_column = VALUE_COLUMN_INSTRUCT_COUNT
             module_name = module_name + ".class"
+        case _:
+            raise Exception("Unsupported Inspect_type")
 
     value_line = df[
         (df.project_name == project_name)
@@ -711,7 +713,7 @@ def filter_with_external_file(
     birthmark_dir,
     data_file,
     min_value,
-    output_dir="filtered/",
+    output_dir="filtered_by_{}_{}/",
     inspect_type=Inspect_type.Size,
     file_extension=".java",
 ):
@@ -745,6 +747,18 @@ def filter_with_external_file(
                         & (df.class2.str.split(".")[-1] != module_name)
                     ]
 
+        match inspect_type:
+            case Inspect_type.Size:
+                output_dir = output_dir.format(
+                    ["size_{}".format(file_extension.replace(".", "")), str(min_value)]
+                )
+            case Inspect_type.Line_count:
+                output_dir = output_dir.format(["line_count", str(min_value)])
+            case Inspect_type.Instruct_count:
+                output_dir = output_dir.format(["instruct_count", str(min_value)])
+            case _:
+                raise Exception("Unsupported Inspect_type")
+
         total_output = birthmark_dir + output_dir
 
         if not os.path.exists(total_output):
@@ -754,8 +768,8 @@ def filter_with_external_file(
 
 
 def main():
-    bmdir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/topsim_arch/"
-    # bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/top_sim/"
+    # bmdir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/topsim_classes_new/"
+    bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes_new/filtered/"
 
     filter_with_external_file(bmdir, "test.csv", 100)
 
@@ -771,7 +785,7 @@ def main():
     #    combine_birthmarks(bmdir + top + "avg/")
 
     # bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/"
-    # class_filter(bmdir, author_list)
+    # class_filter(bmdir)
 
 
 if __name__ == "__main__":
