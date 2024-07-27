@@ -10,6 +10,7 @@ from file_inspector import (
     VALUE_COLUMN_LINE_COUNT,
     VALUE_COLUMN_INSTRUCT_COUNT,
 )
+from extra.authors import AUTHOR_LIST
 
 BIRTHMARK_DATA_DIR = "./birthmarks/"
 GROUPBY_OUTPUT_FILENAME = "groupby_info"
@@ -358,7 +359,7 @@ def separate_into_dirs(birthmark_dir, project_category, main_dir):
                 group[1].to_csv(f, index=False)
 
 
-def class_filter(birthmark_dir, author_list, output_dir="filtered/"):
+def class_filter(birthmark_dir, author_list=AUTHOR_LIST, output_dir="filtered/"):
     for birthmark_file in os.listdir(birthmark_dir):
         if not birthmark_file.endswith(".csv"):
             continue
