@@ -498,9 +498,6 @@ def group_by_max_sim(
     output_filename,
     output_dir=OUTPUT_DIR,
 ):
-    #if len(sim_data) == 0:
-    #    return
-
     column_list_min = [
         "birthmark",
         "comparator",
@@ -525,22 +522,14 @@ def group_by_max_sim(
 
     for chunk in pd.read_csv(sim_data, chunksize=1e7):
         chunk.columns = column_list_full
-        #chunk = chunk[chunk.similarity != "NaN"]
         chunk['similarity'] = pd.to_numeric(chunk['similarity'], errors='coerce', downcast='float')
         #chunk["similarity"] = chunk["similarity"].apply(pd.to_numeric, downcast='float', errors='coerce')
         chunk = chunk.convert_dtypes()
-        chunk["class1"] = chunk["class1"].str.split('$').str[0]
-        chunk["class2"] = chunk["class2"].str.split('$').str[0]
     
         result1 = chunk.loc[chunk.groupby([*groupby_columns1])["similarity"].idxmax().dropna()]
         result2 = chunk.loc[chunk.groupby([*groupby_columns2])["similarity"].idxmax().dropna()]
 
         result = pd.concat([result, result1, result2]).drop_duplicates()
-
-
-    #result = result.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
-    
-    #result = result.groupby([*column_list_min]).agg({"similarity": "max"}).reset_index()
 
     if len(result) == 0:
         return
@@ -579,22 +568,10 @@ def pochi_extract_compare_max_sim(
                     extraction_script,
                     project1_file,
                     project2_file,
-                    #"> ./temp/temp.txt"
                 ]
             )
-            #file_pair_result = []
             
-            script_output = cr.run_bash_command_no_output(command) #.split("\r\n")
-            
-            #line = script_output.pop()
-            #while script_output:
-            #    if len(line) == 0:
-            #        line = script_output.pop()
-            #        continue
-            #    newline = line.replace("\r\n", "").split(",")
-
-            #    file_pair_result.append(newline)
-            #    line = script_output.pop()
+            cr.run_bash_command_no_output(command) #.split("\r\n")
 
             script_result = "./temp/temp.csv"
             group_by_max_sim(
