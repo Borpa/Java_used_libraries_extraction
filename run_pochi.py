@@ -496,6 +496,7 @@ def group_by_max_sim(
     project2_ver,
     sim_data,
     output_filename,
+    topN=1,
     output_dir=OUTPUT_DIR,
 ):
     column_list_min = [
@@ -526,8 +527,11 @@ def group_by_max_sim(
         #chunk["similarity"] = chunk["similarity"].apply(pd.to_numeric, downcast='float', errors='coerce')
         chunk = chunk.convert_dtypes()
     
-        result1 = chunk.loc[chunk.groupby([*groupby_columns1])["similarity"].idxmax().dropna()]
-        result2 = chunk.loc[chunk.groupby([*groupby_columns2])["similarity"].idxmax().dropna()]
+        result1 = chunk.groupby([*groupby_columns1])["similarity"].nlargest(topN).reset_index()
+        result2 = chunk.groupby([*groupby_columns2])["similarity"].nlargest(topN).reset_index()
+
+        #result1 = chunk.loc[chunk.groupby([*groupby_columns1])["similarity"].idxmax().dropna()]
+        #result2 = chunk.loc[chunk.groupby([*groupby_columns2])["similarity"].idxmax().dropna()]
 
         result = pd.concat([result, result1, result2]).drop_duplicates()
 
