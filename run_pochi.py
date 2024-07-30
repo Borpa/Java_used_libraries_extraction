@@ -12,6 +12,7 @@ import project_inspector as pi
 from calculate_files_similarity import FILES_SIM
 from extract_project_dependencies import TESTED_SOFTWARE_DIR
 from custom_similarity_functions import compare_all
+from extra.authors import AUTHOR_LIST
 
 
 BIRTHMARK_SOFTWARE = (
@@ -657,7 +658,7 @@ def pochi_extract_compare_w_filter(
     project2,
     project1_file_list,
     project2_file_list,
-    author_list,
+    author_list=AUTHOR_LIST,
     software_location=BIRTHMARK_SOFTWARE,
     options=None,
     project1_ver=None,
