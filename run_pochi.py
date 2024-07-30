@@ -692,6 +692,7 @@ def pochi_extract_compare_w_filter(
                 project2_ver=project2_ver,
                 sim_data=script_result,
                 output_filename=output_filename,
+                author_list=author_list,
                 output_dir=output_dir,
             )
             gc.collect()
