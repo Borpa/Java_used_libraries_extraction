@@ -771,7 +771,7 @@ def run_pochi_pairs_dataframe(
             row.project2_ver,
         )
 
-        pochi_extract_compare_max_sim(
+        pochi_extract_compare_w_filter(
             project1=row.project1,
             project2=row.project2,
             project1_ver=row.project1_ver,
