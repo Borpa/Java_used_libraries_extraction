@@ -727,6 +727,7 @@ def filter_with_external_file(
             continue
 
         df = pd.read_csv(birthmark_dir + birthmark_file)
+        result_df = df.copy()
 
         class1_gb = df.groupby(["project1", "project1_ver", "class1"])
         class2_gb = df.groupby(["project2", "project2_ver", "class2"])
@@ -747,17 +748,23 @@ def filter_with_external_file(
                 )
 
                 if not size_check:
-                    df.drop(
-                        df[
+                    result_df.drop(
+                        result_df[
                             (
-                                (df.project1 == project)
-                                & (df.project1_ver == project_ver)
-                                & (df.class1.str.split(".").str[-1] == module_name)
+                                (result_df.project1 == project)
+                                & (result_df.project1_ver == project_ver)
+                                & (
+                                    result_df.class1.str.split(".").str[-1]
+                                    == module_name
+                                )
                             )
                             | (
-                                (df.project2 == project)
-                                & (df.project2_ver == project_ver)
-                                & (df.class2.str.split(".").str[-1] == module_name)
+                                (result_df.project2 == project)
+                                & (result_df.project2_ver == project_ver)
+                                & (
+                                    result_df.class2.str.split(".").str[-1]
+                                    == module_name
+                                )
                             )
                         ].index,
                         inplace=True,
@@ -780,21 +787,29 @@ def filter_with_external_file(
         if not os.path.exists(total_output):
             os.makedirs(total_output)
 
-        df.to_csv(total_output + birthmark_file, index=False)
+        result_df.to_csv(total_output + birthmark_file, index=False)
 
 
 def main():
     # bmdir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/topsim_classes_new/"
     bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes_new/filtered/"
+    min_value = 40
+    inspect_type = Inspect_type.Instruct_count
+
+    match inspect_type:
+        case Inspect_type.Line_count:
+            filename_extension = "line_count"
+        case Inspect_type.Instruct_count:
+            filename_extension = "instruct_count"
 
     filter_with_external_file(
         bmdir,
-        "project_files_instruct_count.csv",
-        10,
-        inspect_type=Inspect_type.Instruct_count,
+        "project_files_{}.csv".format(filename_extension),
+        min_value,
+        inspect_type=inspect_type,
     )
 
-    # get_top_sim(bmdir)
+    get_top_sim(bmdir + "filtered_by_{}_{}/".format(filename_extension, min_value))
 
     # combine_birthmarks(bmdir)
     # get_group_count(bmdir + "total/")
