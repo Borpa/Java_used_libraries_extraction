@@ -94,6 +94,7 @@ POCHI_OUTPUT_HEADER_MAX_SIM = [
     "similarity",
 ]
 
+
 def __get_similar_projects_pairs(threshold, num_of_pairs, similarity_data):
     df = pd.read_csv(similarity_data)
     project_groups = [
@@ -466,7 +467,7 @@ def pochi_extract_compare_avg(
             file_pair_result = []
             script_output = cr.run_bash_command_no_output(command).split("\r\n")
             line = script_output.pop()
-            #for line in script_output:
+            # for line in script_output:
             while script_output:
                 if len(line) == 0:
                     line = script_output.pop()
@@ -475,8 +476,8 @@ def pochi_extract_compare_avg(
                 newline = newline[:3] + newline[5:]
                 file_pair_result.append(newline)
                 line = script_output.pop()
-                #script_output.remove(line)
-            #script_output = None
+                # script_output.remove(line)
+            # script_output = None
             calculate_avg_similarity(
                 project1,
                 project2,
@@ -496,17 +497,15 @@ def group_by_max_sim(
     project2_ver,
     sim_data,
     output_filename,
+    topN=1,
     output_dir=OUTPUT_DIR,
 ):
-    #if len(sim_data) == 0:
-    #    return
-
     column_list_min = [
         "birthmark",
         "comparator",
         "matcher",
     ]
-    
+
     column_list_full = [
         "birthmark",
         "comparator",
@@ -525,22 +524,27 @@ def group_by_max_sim(
 
     for chunk in pd.read_csv(sim_data, chunksize=1e7):
         chunk.columns = column_list_full
-        #chunk = chunk[chunk.similarity != "NaN"]
-        chunk['similarity'] = pd.to_numeric(chunk['similarity'], errors='coerce', downcast='float')
-        #chunk["similarity"] = chunk["similarity"].apply(pd.to_numeric, downcast='float', errors='coerce')
+        chunk["similarity"] = pd.to_numeric(
+            chunk["similarity"], errors="coerce", downcast="float"
+        )
+        # chunk["similarity"] = chunk["similarity"].apply(pd.to_numeric, downcast='float', errors='coerce')
         chunk = chunk.convert_dtypes()
-        chunk["class1"] = chunk["class1"].str.split('$').str[0]
-        chunk["class2"] = chunk["class2"].str.split('$').str[0]
-    
-        result1 = chunk.loc[chunk.groupby([*groupby_columns1])["similarity"].idxmax().dropna()]
-        result2 = chunk.loc[chunk.groupby([*groupby_columns2])["similarity"].idxmax().dropna()]
+
+        result1 = (
+            chunk.groupby([*groupby_columns1])["similarity"]
+            .nlargest(topN)
+            .reset_index()
+        )
+        result2 = (
+            chunk.groupby([*groupby_columns2])["similarity"]
+            .nlargest(topN)
+            .reset_index()
+        )
+
+        # result1 = chunk.loc[chunk.groupby([*groupby_columns1])["similarity"].idxmax().dropna()]
+        # result2 = chunk.loc[chunk.groupby([*groupby_columns2])["similarity"].idxmax().dropna()]
 
         result = pd.concat([result, result1, result2]).drop_duplicates()
-
-
-    #result = result.groupby([*column_list_min]).agg({"similarity": "mean"}).reset_index()
-    
-    #result = result.groupby([*column_list_min]).agg({"similarity": "max"}).reset_index()
 
     if len(result) == 0:
         return
@@ -579,22 +583,10 @@ def pochi_extract_compare_max_sim(
                     extraction_script,
                     project1_file,
                     project2_file,
-                    #"> ./temp/temp.txt"
                 ]
             )
-            #file_pair_result = []
-            
-            script_output = cr.run_bash_command_no_output(command) #.split("\r\n")
-            
-            #line = script_output.pop()
-            #while script_output:
-            #    if len(line) == 0:
-            #        line = script_output.pop()
-            #        continue
-            #    newline = line.replace("\r\n", "").split(",")
 
-            #    file_pair_result.append(newline)
-            #    line = script_output.pop()
+            cr.run_bash_command_no_output(command)  # .split("\r\n")
 
             script_result = "./temp/temp.csv"
             group_by_max_sim(
@@ -605,6 +597,101 @@ def pochi_extract_compare_max_sim(
                 script_result,
                 output_filename,
                 output_dir,
+            )
+            gc.collect()
+
+
+def filter_by_authors(
+    project1,
+    project2,
+    project1_ver,
+    project2_ver,
+    sim_data,
+    output_filename,
+    author_list,
+    output_dir=OUTPUT_DIR,
+):
+    column_list_full = [
+        "birthmark",
+        "comparator",
+        "matcher",
+        "class1",
+        "class2",
+        "similarity",
+    ]
+    result = None
+
+    if os.stat(sim_data).st_size == 0:
+        return
+
+    for chunk in pd.read_csv(sim_data, chunksize=1e7):
+        chunk.columns = column_list_full
+        chunk["similarity"] = pd.to_numeric(
+            chunk["similarity"], errors="coerce", downcast="float"
+        )
+        chunk = chunk.convert_dtypes()
+
+        authors_str = "|".join(author_list)
+
+        res = chunk[
+            (chunk.class1.str.contains(authors_str))
+            & (chunk.class2.str.contains(authors_str))
+        ]
+
+        result = pd.concat([result, res]).drop_duplicates()
+
+    if len(result) == 0:
+        return
+
+    result[["project1", "project1_ver", "project2", "project2_ver"]] = [
+        [project1, project1_ver, project2, project2_ver] for i in range(len(result))
+    ]
+    result = result[POCHI_OUTPUT_HEADER_MAX_SIM]
+
+    with open(output_dir + output_filename, "a", newline="") as file:
+        result.to_csv(file, index=False, header=False)
+
+
+def pochi_extract_compare_w_filter(
+    project1,
+    project2,
+    project1_file_list,
+    project2_file_list,
+    author_list,
+    software_location=BIRTHMARK_SOFTWARE,
+    options=None,
+    project1_ver=None,
+    project2_ver=None,
+    output_filename=POCHI_OUTPUT_FILENAME,
+    output_dir=OUTPUT_DIR,
+):
+    full_path = software_location + POCHI_VERSION + "/bin/"
+    pochi_script = full_path + "pochi_unbuf"
+    extraction_script = "./pochi_scripts/" + "extract-compare.groovy"
+
+    for project1_file in project1_file_list:
+        for project2_file in project2_file_list:
+            command = " ".join(
+                [
+                    "sh",
+                    pochi_script,
+                    extraction_script,
+                    project1_file,
+                    project2_file,
+                ]
+            )
+
+            cr.run_bash_command_no_output(command)
+
+            script_result = "./temp/temp.csv"
+            filter_by_authors(
+                project1=project1,
+                project2=project2,
+                project1_ver=project1_ver,
+                project2_ver=project2_ver,
+                sim_data=script_result,
+                output_filename=output_filename,
+                output_dir=output_dir,
             )
             gc.collect()
 
