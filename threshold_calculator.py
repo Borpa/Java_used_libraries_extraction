@@ -415,27 +415,27 @@ def calculate_threshold(birthmark_dir, output_filename):
             file.write(",".join(newline))
 
 
-def main():
-    limit_low = 50
-    limit_high = 200
-
-    for N_perc1 in [90, 60, 30]:
-        for N_perc2 in [90, 60, 30]:
-            for N_perc3 in [90, 60, 30]:
-                bmdir_base = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/top_sim/"
-
+def calculate_threshold_partial_ranges(
+    limit_low,
+    limit_high,
+    N_perc1_range,
+    N_perc2_range,
+    N_perc3_range,
+    birthmark_dir_base="D:/Study/phd_research/library_extraction/birthmarks/topsim_classes/filtered/top_sim/",
+    birthmark_group_dir_base="D:/Study/phd_research/library_extraction/birthmarks_group_data/",
+):
+    for N_perc1 in N_perc1_range:
+        for N_perc2 in N_perc2_range:
+            for N_perc3 in N_perc3_range:
                 top = "top{}_{}_{}perc_partial/".format(N_perc1, N_perc2, N_perc3)
                 top_total = top.replace("/", "") + "_total/"
 
-                bmdir = bmdir_base + top + "avg/total/"
+                bmdir = birthmark_dir_base + top + "avg/total/"
 
-                birthmark_group_dir = (
-                    "D:/Study/phd_research/library_extraction/birthmarks_group_data/"
-                    + top_total
-                )
+                birthmark_group_dir = birthmark_group_dir_base + top_total
                 # bmi.filter_by_top_N(bmdir_base, N, top)
                 bmi.filter_by_top_perc_partial(
-                    birthmark_dir=bmdir_base,
+                    birthmark_dir=birthmark_dir_base,
                     limit_low=limit_low,
                     limit_high=limit_high,
                     N_perc1=N_perc1 / 100,
@@ -443,8 +443,8 @@ def main():
                     N_perc3=N_perc3 / 100,
                     output_dir=top,
                 )
-                bmi.get_group_avg_sim(bmdir_base + top)
-                bmi.combine_birthmarks(bmdir_base + top + "avg/")
+                bmi.get_group_avg_sim(birthmark_dir_base + top)
+                bmi.combine_birthmarks(birthmark_dir_base + top + "avg/")
 
                 threshold_file = "threhsolds_{}_total_filtered.csv".format(
                     top.replace("/", "")
@@ -466,8 +466,44 @@ def main():
                 #    + "res_cred_perc_{}_total.csv".format(top.replace("/", "")),
                 # )
 
-                rmtree(bmdir_base + top)
+                rmtree(birthmark_dir_base + top)
                 rmtree(birthmark_group_dir)
+
+
+def calculate_threshold_single(
+    base_dir,
+    make_dirs=True,
+    rm_dirs=True,
+    birthmark_dir_base="D:/Study/phd_research/library_extraction/birthmarks/topsim_classes_new/filtered/",
+    birthmark_group_dir_base="D:/Study/phd_research/library_extraction/birthmarks_group_data/",
+):
+    top = "top_sim/"
+    birthmark_group_dir = birthmark_group_dir_base + base_dir.replace("/", "_total/")
+    bmdir = birthmark_dir_base + base_dir + top + "avg/total/"
+    if make_dirs:
+        bmi.get_group_avg_sim(birthmark_dir_base + base_dir + top)
+        bmi.combine_birthmarks(birthmark_dir_base + base_dir + top + "avg/")
+
+    threshold_file = "threhsolds_{}_total.csv".format(base_dir.replace("/", ""))
+    bmi.separate_into_dirs(bmdir, "total", birthmark_group_dir)
+
+    output_total = "./results/filtered/" + base_dir
+
+    if not os.path.exists(output_total):
+        os.makedirs(output_total)
+
+    calculate_threshold(birthmark_group_dir, output_total + threshold_file)
+    
+    if rm_dirs:
+        rmtree(birthmark_dir_base + base_dir + top + "avg/")
+    rmtree(birthmark_group_dir)
+
+
+def main():
+    #calculate_threshold_partial_ranges(
+    #    50, 200, [90, 60, 30], [90, 60, 30], [90, 60, 30]
+    #)
+    calculate_threshold_single("filtered_by_instruct_count_50/")
 
 
 if __name__ == "__main__":
