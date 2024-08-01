@@ -402,23 +402,36 @@ def filter_by_top_perc(birthmark_dir, N_perc, output_dir="top3perc/"):
 
 
 def get_top_sim(birthmark_dir, output_dir="top_sim/"):
+    columns_base = [
+        "project1",
+        "project1_ver",
+        "project2",
+        "project2_ver",
+        "birthmark",
+        "comparator",
+        "matcher",
+    ]
+
+    groupby_columns1 = columns_base + ["class1"]
+    groupby_columns2 = columns_base + ["class2"]
+
     for birthmark_file in os.listdir(birthmark_dir):
         if not birthmark_file.endswith(".csv"):
             continue
 
-        df = pd.read_csv(birthmark_dir + birthmark_file)
-        columns_base = [
-            "project1",
-            "project1_ver",
-            "project2",
-            "project2_ver",
-            "birthmark",
-            "comparator",
-            "matcher",
-        ]
+        if os.path.getsize(birthmark_dir + birthmark_file) > 1e9:
+            df = None
+            for chunk in pd.read_csv(birthmark_dir + birthmark_file, chunksize=1e7):
+                result1 = chunk.loc[
+                    chunk.groupby([*groupby_columns1])["similarity"].idxmax().dropna()
+                ]
+                result2 = chunk.loc[
+                    chunk.groupby([*groupby_columns2])["similarity"].idxmax().dropna()
+                ]
 
-        groupby_columns1 = columns_base + ["class1"]
-        groupby_columns2 = columns_base + ["class2"]
+                df = pd.concat([df, result1, result2]).drop_duplicates()
+        else:
+            df = pd.read_csv(birthmark_dir + birthmark_file)
 
         result1 = df.loc[
             df.groupby([*groupby_columns1])["similarity"].idxmax().dropna()
@@ -660,49 +673,52 @@ def filter_with_external_file(
         if not birthmark_file.endswith(".csv"):
             continue
 
-        df = pd.read_csv(birthmark_dir + birthmark_file)
-        result_df = df.copy()
+        # df = pd.read_csv(birthmark_dir + birthmark_file)
+        result_df = None
+        for chunk in pd.read_csv(birthmark_dir + birthmark_file, chunksize=1e7):
+            result_chunk = chunk.copy()
 
-        class1_gb = df.groupby(["project1", "project1_ver", "class1"])
-        class2_gb = df.groupby(["project2", "project2_ver", "class2"])
+            class1_gb = chunk.groupby(["project1", "project1_ver", "class1"])
+            class2_gb = chunk.groupby(["project2", "project2_ver", "class2"])
 
-        for gb in [class1_gb, class2_gb]:
-            for group in gb:
-                module_name = group[0][2].split(".")[-1]
-                project = group[0][0]
-                project_ver = group[0][1]
-                size_check = check_module_size(
-                    data_file,
-                    module_name,
-                    project,
-                    project_ver,
-                    min_value,
-                    inspect_type,
-                    file_extension,
-                )
-
-                if not size_check:
-                    result_df.drop(
-                        result_df[
-                            (
-                                (result_df.project1 == project)
-                                & (result_df.project1_ver == project_ver)
-                                & (
-                                    result_df.class1.str.split(".").str[-1]
-                                    == module_name
-                                )
-                            )
-                            | (
-                                (result_df.project2 == project)
-                                & (result_df.project2_ver == project_ver)
-                                & (
-                                    result_df.class2.str.split(".").str[-1]
-                                    == module_name
-                                )
-                            )
-                        ].index,
-                        inplace=True,
+            for gb in [class1_gb, class2_gb]:
+                for group in gb:
+                    module_name = group[0][2].split(".")[-1]
+                    project = group[0][0]
+                    project_ver = group[0][1]
+                    size_check = check_module_size(
+                        data_file,
+                        module_name,
+                        project,
+                        project_ver,
+                        min_value,
+                        inspect_type,
+                        file_extension,
                     )
+
+                    if not size_check:
+                        result_chunk.drop(
+                            result_chunk[
+                                (
+                                    (result_chunk.project1 == project)
+                                    & (result_chunk.project1_ver == project_ver)
+                                    & (
+                                        result_chunk.class1.str.split(".").str[-1]
+                                        == module_name
+                                    )
+                                )
+                                | (
+                                    (result_chunk.project2 == project)
+                                    & (result_chunk.project2_ver == project_ver)
+                                    & (
+                                        result_chunk.class2.str.split(".").str[-1]
+                                        == module_name
+                                    )
+                                )
+                            ].index,
+                            inplace=True,
+                        )
+            result_df = pd.concat([result_df, result_chunk])
 
         match inspect_type:
             case Inspect_type.Size:
@@ -726,8 +742,8 @@ def filter_with_external_file(
 
 def main():
     # bmdir = "C:/Users/FedorovNikolay/source/VSCode_projects/Java_used_libraries_extraction/birthmarks/topsim_classes_new/"
-    bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_classes_new/filtered/"
-    min_value = 40
+    bmdir = "D:/Study/phd_research/library_extraction/birthmarks/topsim_prefilter/"
+    min_value = 5
     inspect_type = Inspect_type.Instruct_count
 
     match inspect_type:
